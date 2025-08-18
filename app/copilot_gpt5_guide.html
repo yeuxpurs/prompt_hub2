@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copilot(GPT-5) 멀티모달 기능 총정리</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            line-height: 1.7;
+            scroll-behavior: smooth;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+        }
+        
+        .content-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-card {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .section-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .section-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        .section-card:hover::before {
+            opacity: 1;
+        }
+        
+        .nav-link {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .nav-link:hover::before {
+            left: 100%;
+        }
+        
+        .code-block {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: auto;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(59, 130, 246, 0.8);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .copy-btn:hover {
+            background: rgba(37, 99, 235, 0.9);
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background-color: #10b981; /* Green color for success */
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 0.375rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tag-copilot {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+        }
+        
+        .tag-azure {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .prompt-example {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-left: 4px solid #0ea5e9;
+            padding: 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: 1rem 0;
+            position: relative;
+        }
+        
+        .prompt-example::before {
+            content: ' ';
+            position: absolute;
+            top: 1rem;
+            left: -0.5rem;
+            font-size: 1.5rem;
+            background: white;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .model-comparison {
+            background: linear-gradient(135deg, #fef3c7, #fed7aa);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 2px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .capability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .capability-card {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .capability-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .floating-elements {
+                display: none;
+            }
+            .capability-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-circle" style="width: 100px; height: 100px; top: 10%; left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-circle" style="width: 60px; height: 60px; top: 60%; right: 10%; animation-delay: 2s;"></div>
+        <div class="floating-circle" style="width: 80px; height: 80px; bottom: 20%; left: 20%; animation-delay: 4s;"></div>
+    </div>
+
+    <!-- 헤더 -->
+    <header class="glass-morphism mx-6 mt-6 sticky top-6 z-50">
+        <div class="container mx-auto px-8 py-6 relative">
+            <!-- === 뒤로가기 버튼 추가 === -->
+            <button onclick="goBack()" title="뒤로가기" class="absolute top-1/2 left-4 md:left-8 -translate-y-1/2 text-white bg-white/10 p-2 md:p-3 rounded-full hover:bg-white/20 transition-colors duration-300 border-0 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            </button>
+            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">
+                🚀 Copilot(GPT-5) 멀티모달 기능 총정리
+            </h1>
+            <p class="text-white/80 mt-2 text-center text-lg">
+                실무 최적화 완전 매뉴얼 | 업데이트: 2025-08-17
+            </p>
+            <div class="flex justify-center mt-4 space-x-4">
+                <span class="tag tag-copilot">Copilot=GPT-5 풀 멀티모달</span>
+                <span class="tag tag-azure">Azure OpenAI=텍스트·이미지</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8 flex flex-col lg:flex-row gap-8">
+        
+        <!-- 내비게이션 -->
+        <nav class="lg:w-1/4 lg:sticky top-32 self-start">
+            <div class="glass-morphism p-6">
+                <h3 class="font-bold mb-6 text-lg text-white">📋 바로가기</h3>
+                <ul class="space-y-3">
+                    <li><a href="#section1" class="nav-link block p-3 text-white/90 hover:text-white hover:bg-white/20 rounded-lg transition-all">1. 능력 맵</a></li>
+                    <li><a href="#section2" class="nav-link block p-3 text-white/90 hover:text-white hover:bg-white/20 rounded-lg transition-all">2. 실전 레시피 12선</a></li>
+                    <li><a href="#section3" class="nav-link block p-3 text-white/90 hover:text-white hover:bg-white/20 rounded-lg transition-all">3. 풀파이프라인 예시</a></li>
+                    <li><a href="#section4" class="nav-link block p-3 text-white/90 hover:text-white hover:bg-white/20 rounded-lg transition-all">4. 프롬프트 설계 체크리스트</a></li>
+                    <li><a href="#section5" class="nav-link block p-3 text-white/90 hover:text-white hover:bg-white/20 rounded-lg transition-all">5. 가드레일 & 운영 팁</a></li>
+                    <li><a href="#section6" class="nav-link block p-3 text-white/90 hover:text-white hover:bg-white/20 rounded-lg transition-all">6. 미니 프롬프트 라이브러리</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="flex-1 space-y-8">
+            <div class="content-container p-8 space-y-12">
+            
+            <!-- 1. 능력 맵 -->
+            <section id="section1" class="section-card p-8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                    <span class="text-blue-600">1.</span> 무엇을 할 수 있나? (능력 맵)
+                </h2>
+                
+                <div class="model-comparison">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">🎯 멀티모달 핵심 원칙</h3>
+                    <p class="text-lg text-gray-700 font-medium text-center">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">음성/실시간</span> 
+                        은 무조건 
+                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">Copilot(GPT-5)</span>
+                        , 텍스트 대량·초장문은 
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full">Azure(4.1/mini)</span>
+                        로 백엔드 설계
+                    </p>
+                </div>
+
+                <div class="capability-grid">
+                    <div class="capability-card">
+                        <h4 class="font-bold text-lg mb-3 text-blue-600">🎤 음성 기능</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>✅ 실시간 대화/통역</li>
+                            <li>✅ 발화 요약</li>
+                            <li>✅ 회의 중 액션 아이템 생성</li>
+                            <li>✅ 톤/속도 조절</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="capability-card">
+                        <h4 class="font-bold text-lg mb-3 text-green-600">👁️ 시각 기능</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>✅ 이미지·스크린샷·도표 인식(OCR)</li>
+                            <li>✅ UI/그래프 해석</li>
+                            <li>✅ 사물·장면 분석</li>
+                            <li>✅ 필기 인식</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="capability-card">
+                        <h4 class="font-bold text-lg mb-3 text-purple-600">📄 문서화</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>✅ PPT/문서/이메일 자동 작성</li>
+                            <li>✅ 요약본 생성</li>
+                            <li>✅ 출처/근거 포함 지시 가능</li>
+                            <li>✅ 자료 묶음 통합 처리</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="capability-card">
+                        <h4 class="font-bold text-lg mb-3 text-red-600">🎨 창작</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>✅ 마케팅용 이미지/아이콘/일러스트</li>
+                            <li>✅ 스타일 가이드 적용</li>
+                            <li>✅ 접근성(alt text) 자동 부가</li>
+                            <li>✅ 브랜드 일관성 유지</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="capability-card">
+                        <h4 class="font-bold text-lg mb-3 text-orange-600">⚡ 업무흐름</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>✅ Teams/Outlook/Word/PowerPoint/Excel 연동</li>
+                            <li>✅ 현재 열려 있는 파일·대화·회의 컨텍스트 활용</li>
+                            <li>✅ 이어서 작업 기능</li>
+                            <li>✅ 실시간 협업 지원</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="capability-card">
+                        <h4 class="font-bold text-lg mb-3 text-indigo-600">🌐 다국어</h4>
+                        <ul class="space-y-2 text-gray-700">
+                            <li>✅ 한국어↔영/일/중 자연스러운 번역</li>
+                            <li>✅ 트랜스크리에이션</li>
+                            <li>✅ 문화/톤 지시 가능</li>
+                            <li>✅ 비즈니스 맥락 고려</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. 실전 레시피 12선 -->
+            <section id="section2" class="section-card p-8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                    <span class="text-blue-600">2.</span> 실전 레시피 12선 + 예시 프롬프트
+                </h2>
+                
+                <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200 mb-6">
+                    <p class="text-center font-medium text-gray-800">
+                        💡 <strong>아래 프롬프트는 그대로 복사·붙여넣기 후 대괄호만 교체하면 됩니다</strong>
+                    </p>
+                </div>
+
+                <div class="space-y-8">
+                    <!-- A. 회의·음성 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">🎤 A. 회의·음성</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-bold mb-3 text-gray-700">1. 실시간 동시통역 & 노트</h4>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                    <pre><code>역할: 회의 동시통역과 기록 보조.
+언어: 한국어↔영어 양방향, 용어집은 [첨부/아래 블록].
+지시: 핵심 결정·주요 수치·담당자·데드라인을 실시간으로 캡처하고,
+     15분 간격 요약과 회의 종료 시 액션 아이템(담당/기한) 목록을 보여줘.
+형식: [표 + 불릿]으로 출력, 모호한 내용은 즉시 확인 질문.</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold mb-3 text-gray-700">2. 고객 콜 코칭(음성)</h4>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                    <pre><code>내 발화를 간결/공감/해결지향 톤으로 리라이팅해서
+마이크로세컨드 지연 없이 제안해줘.
+"금지 표현" 목록은 [붙임] 준수. 고객 감정 레벨 3단계로 태깅.</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- B. 이미지 이해/변환 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">🖼️ B. 이미지 이해/변환</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-bold mb-3 text-gray-700">3. 스크린샷 → 버그 티켓</h4>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                    <pre><code>[스크린샷 N장]을 분석해 재현 단계, 예상/실제 동작, 환경정보를 추출하고 
+JIRA 템플릿에 맞춰 요약해줘. 심각도·우선순위 제안과 원인 가설 3개 포함.
+산출물: [Markdown + 코드블록 재현 스크립트(가능 시)].</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold mb-3 text-gray-700">4. 도표·사진 → 데이터 테이블 + 인사이트</h4>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                    <pre><code>첨부 이미지들에서 표/수치/OCR을 표준화된 CSV로 추출하고,
+지표 5개(KPI)와 시사점 5개를 도출해줘.
+형식: (1) CSV, (2) 요약(불릿), (3) 다음 실험 제안 3가지.</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- C. 창작(이미지) -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-gray-800">🎨 C. 창작(이미지)</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="font-bold mb-3 text-gray-700">5. 브랜드 이미지 캠페인 세트</h4>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                    <pre><code>목표: [제품/서비스] 런칭용 이미지 4종 세트 생성.
+세트: (1) 1:1 히어로, (2) 16:9 웹 배너, (3) 4:5 SNS 피드, (4) 9:16 스토리.
+스타일: [브랜드 톤/팔레트/참고 링크 요약].
+피사체/장면: [핵심 메시지]가 바로 보이게 간결하게.
+출력: 각 버전에 대한 프롬프트/시드설명 + 접근성용 alt text 1문장.
+제약: 상표/인물권 제한 준수, 과장·허위 효능 금지.</code></pre>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold mb-3 text-gray-700">6. 제품 렌더 합성(컨셉)</h4>
+                                <div class="code-block">
+                                    <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                    <pre><code>입력: 제품 정면/측면 이미지 2장.
+지시: 배경 제거 후 [상황/로케이션]에 사실적으로 합성, 그림자/반사 정합.
+출력: 전/후 비교, 색상 3안, 인네일 256px/웹 1600px 패키지 설명.</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">📊 D. PowerPoint</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                <pre><code>자료: [PDF/문서/링크 목록].
+과제: 12슬라이드 투자자 피치.
+구성: 1표지→2문제→3기회→4솔루션→5데모→6시장→
+     7경쟁→8비즈니스모델→9실적→10로드맵→11팀→12요청
+지시: 각 슬라이드 3불릿 이하, 발표자노트 80-120자
+톤: 간결·데이터 중심</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">📄 E. Word/보고서</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                <pre><code>입력: RFP 원문(필수 요구/평가기준 강조).
+목표: 8쪽 제안서 초안.
+섹션: 요약/요구해석/솔루션/계획/인력/리스크/가격
+지시: 평가기준 가중치 맞춘 가독성, 
+     "필수 요건 충족 매핑" 표 포함</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">📈 F. Excel/데이터</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                <pre><code>시나리오: [기준 가정 테이블]로 CAC/LTV/BE 산출.
+지시: 민감도(±10/20/30%) 테이블과 토네이도 차트,
+     임계값/의사결정 규칙 5개,
+     마지막에 요약 5문장</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">📧 G. 이메일/고객 커뮤니케이션</h3>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                <pre><code>현재 스레드를 5불릿으로 요약.
+고객 페인포인트/요구/제약 추출.
+답장 옵션 3개: (1)정중/신속, (2)대안제시, (3)강한마감유도.
+각 옵션에 '다음 단계' 3줄 포함</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 풀파이프라인 예시 -->
+            <section id="section3" class="section-card p-8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                    <span class="text-blue-600">3.</span> "멀티모달 + 문서화" 풀파이프라인 예시
+                </h2>
+                
+                <div class="prompt-example">
+                    <h4 class="font-bold mb-3 text-gray-800">📄 이미지 촬영 → 분석 → 문서/슬라이드 생성 → 후속 메일 한 번에</h4>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                            <h5 class="font-bold text-blue-800 mb-2">1단계: 현장 사진 5장 업로드</h5>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                <pre><code>"각 사진에서 결함 유형/위치/심각도(1—5)를 표로 정리, 근거를 확대 캡처와 함께 첨부. 중복 결함은 병합."</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
+                            <h5 class="font-bold text-green-800 mb-2">2단계: 자동 PPT 생성</h5>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                <pre><code>"위 표를 기반으로 품질 리뷰 8슬라이드 작성. 경향 그래프 1개, 재발 방지 대책 3개, 담당/기한 매핑표 포함."</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-400">
+                            <h5 class="font-bold text-purple-800 mb-2">3단계: 요약 메일 초안</h5>
+                            <div class="code-block">
+                                <button class="copy-btn" onclick="copyCode(this)">복사</button>
+                                <pre><code>"슬라이드 요점을 6줄로 요약해 고객에게 보내는 메일로 작성. 톤: 사실·책임감·구체적 일정."</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. 프롬프트 설계 체크리스트 -->
+            <section id="section4" class="section-card p-8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                    <span class="text-blue-600">4.</span> 프롬프트 설계 체크리스트 (팀 공통 규칙)
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-blue-800 mb-2">🎯 목표·제약</h4>
+                            <p class="text-blue-700">"이번 산출물의 성공 기준은 무엇인가?"를 첫 줄에 명시</p>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-green-800 mb-2">🔍 입력 범위</h4>
+                            <p class="text-green-700">사용할 파일/대화/회의를 정확히 지정 ("현재 문서만", "첨부 3개만")</p>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-purple-800 mb-2">📋 형식 고정</h4>
+                            <p class="text-purple-700">표/불릿/코드/슬라이드 수/노트 길이를 미리 합의</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-orange-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-orange-800 mb-2">📚 근거 요구</h4>
+                            <p class="text-orange-700">"숫자·주장에는 근거/출처/불확실성"을 붙이도록 지시</p>
+                        </div>
+                        
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-red-800 mb-2">✅ 검증 단계</h4>
+                            <p class="text-red-700">"마지막 슬라이드(혹은 장)에 검증 체크리스트/리스크" 삽입</p>
+                        </div>
+                        
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-yellow-800 mb-2">🔄 재사용 변수화</h4>
+                            <p class="text-yellow-700">날짜·브랜드 팔레트·톤·금지 표현을 팀 템플릿으로 관리</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. 가드레일 & 운영 팁 -->
+            <section id="section5" class="section-card p-8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                    <span class="text-blue-600">5.</span> 가드레일 & 운영 팁
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-red-50 border-l-4 border-red-400 p-4 rounded-r-lg">
+                        <h4 class="font-bold text-red-800 mb-2">⚠️ 개인정보/상표/초상권</h4>
+                        <p class="text-red-700">이미지 생성 시 <strong>실존 인물/로고/상표</strong> 회피 지시. 합성 시 <strong>권리 확인 문구</strong> 포함.</p>
+                    </div>
+                    
+                    <div class="bg-orange-50 border-l-4 border-orange-400 p-4 rounded-r-lg">
+                        <h4 class="font-bold text-orange-800 mb-2">🔍 사실 검증</h4>
+                        <p class="text-orange-700">외부 통계·수치가 들어가면 "출처 각주"를 요구하고, 중요한 결론은 <strong>대안/반례</strong>와 함께 제시.</p>
+                    </div>
+                    
+                    <div class="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                        <h4 class="font-bold text-green-800 mb-2">♿ 접근성</h4>
+                        <p class="text-green-700">자동으로 <strong>alt text/캡션</strong>을 요청(슬라이드·이미지 공통).</p>
+                    </div>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                        <h4 class="font-bold text-blue-800 mb-2">🔄 리비전 루프</h4>
+                        <p class="text-blue-700">"슬라이드 n만 재작성", "톤만 바꾸기", "근거 강화"처럼 <strong>부분 리젝</strong>을 습관화.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. 미니 프롬프트 라이브러리 (이 섹션은 비어있으므로 필요 시 채울 수 있습니다) -->
+            <section id="section6" class="section-card p-8">
+                 <h2 class="text-2xl font-bold mb-6 text-gray-800">
+                    <span class="text-blue-600">6.</span> 미니 프롬프트 라이브러리
+                </h2>
+                <p class="text-gray-600">이 섹션은 향후 팀의 공통 프롬프트를 추가하기 위해 비워져 있습니다.</p>
+            </section>
+
+            </div>
+        </main>
+    </div>
+    
+    <!-- === 스크립트 추가 시작 === -->
+    <script>
+        // 뒤로가기 함수
+        function goBack() {
+            // 브라우저 히스토리가 있으면 뒤로가기, 없으면 index.html로 이동
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function copyCode(buttonElement) {
+            // 버튼 옆에 있는 pre 태그 안의 code 요소의 텍스트를 가져옵니다.
+            const codeElement = buttonElement.nextElementSibling.querySelector('code');
+            const codeText = codeElement.innerText;
+
+            // 텍스트를 클립보드에 복사하기 위해 임시 textarea를 생성합니다.
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = codeText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            
+            try {
+                // execCommand는 오래된 방식이지만, iframe 환경 등에서 호환성이 좋습니다.
+                document.execCommand('copy');
+                
+                // 사용자에게 복사 성공 피드백을 줍니다.
+                const originalText = buttonElement.innerText;
+                buttonElement.innerText = '복사 완료!';
+                buttonElement.classList.add('copied');
+                
+                // 2초 후에 원래 텍스트로 되돌립니다.
+                setTimeout(() => {
+                    buttonElement.innerText = originalText;
+                    buttonElement.classList.remove('copied');
+                }, 2000);
+
+            } catch (err) {
+                console.error('클립보드 복사에 실패했습니다:', err);
+                // 필요하다면 사용자에게 실패 알림을 줄 수 있습니다.
+            }
+
+            // 임시 textarea를 제거합니다.
+            document.body.removeChild(tempTextArea);
+        }
+    </script>
+    <!-- === 스크립트 추가 끝 === -->
+
+</body>
+</html>

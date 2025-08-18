@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure OpenAI GPT-4 모델 완전 가이드 (수정본)</title>
+    <style>
+        /* 기본 스타일 (변경 없음) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; color: white; padding: 2rem 0; margin-bottom: 2rem; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
+        .nav-tabs { display: flex; justify-content: center; margin-bottom: 2rem; background: white; border-radius: 15px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .nav-tab { padding: 12px 24px; margin: 0 5px; background: transparent; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; color: #666; }
+        .nav-tab.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .nav-tab:hover:not(.active) { background: #f8f9fa; transform: translateY(-1px); }
+        .content-section { display: none; background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .content-section.active { display: block; animation: fadeInUp 0.5s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 2rem 0; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .comparison-table th { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 15px; text-align: left; font-weight: 600; }
+        .comparison-table td { padding: 15px; border-bottom: 1px solid #eee; transition: background 0.3s ease; }
+        .comparison-table tr:hover td { background: #f8f9ff; }
+        .model-card { background: linear-gradient(135deg, #f8f9ff, #e8edff); border-radius: 15px; padding: 2rem; margin: 1rem 0; border-left: 5px solid #667eea; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+        .model-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); }
+        .model-card h3 { color: #667eea; margin-bottom: 1rem; font-size: 1.5rem; }
+        .prompt-builder { background: #f8f9fa; border-radius: 15px; padding: 2rem; margin: 2rem 0; }
+        .prompt-section { margin: 1rem 0; }
+        .prompt-section label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: #333; }
+        .prompt-section textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; resize: vertical; min-height: 80px; font-family: inherit; transition: border-color 0.3s ease; }
+        .prompt-section textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin: 10px 5px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn-secondary { background: linear-gradient(135deg, #6c757d, #5a6268); }
+        .output-box { position: relative; background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 10px; padding: 1.5rem; margin: 1rem 0; font-family: 'Courier New', monospace; white-space: pre-wrap; min-height: 100px; }
+        .warning-box { background: linear-gradient(135deg, #fff3cd, #ffeaa7); border-left: 5px solid #ffc107; padding: 1rem; margin: 1rem 0; border-radius: 10px; }
+        .info-box { background: linear-gradient(135deg, #d1ecf1, #b8daff); border-left: 5px solid #17a2b8; padding: 1rem; margin: 1rem 0; border-radius: 10px; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin: 2rem 0; }
+        .feature-card { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+        .feature-card:hover { transform: translateY(-5px); }
+        .feature-card h4 { color: #667eea; margin-bottom: 1rem; }
+        .interactive-demo { background: linear-gradient(135deg, #e8f5e8, #d4edd4); border-radius: 15px; padding: 2rem; margin: 2rem 0; }
+        .model-selector { display: flex; gap: 10px; margin: 1rem 0; flex-wrap: wrap; }
+        .model-option { padding: 10px 20px; background: white; border: 2px solid #ddd; border-radius: 25px; cursor: pointer; transition: all 0.3s ease; }
+        .model-option.selected { background: #667eea; color: white; border-color: #667eea; }
+        .scenario-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+        .scenario-card { background: white; border-radius: 15px; padding: 1.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.3s ease; border: 2px solid transparent; }
+        .scenario-card:hover { transform: translateY(-3px); border-color: #667eea; }
+        .scenario-card.selected { border-color: #667eea; background: #f8f9ff; }
+        @media (max-width: 768px) { .nav-tabs { flex-direction: column; } .nav-tab { margin: 5px 0; } .header h1 { font-size: 2rem; } .container { padding: 10px; } }
+        /* 추가 스타일 */
+        .copy-btn { position: absolute; top: 10px; right: 10px; padding: 5px 10px; font-size: 0.8rem; }
+        .recommended { color: #28a745; font-weight: bold; font-size: 0.9rem; }
+        mark { background: #fff3cd; padding: 2px 4px; border-radius: 3px; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🚀 Azure OpenAI GPT-4 모델 완전 가이드</h1>
+            <p>GPT-4o, GPT-4o-mini, GPT-4.1, GPT-4.1-mini 마스터하기</p>
+        </header>
+
+        <!-- DEBUG: onclick 핸들러에 'this'를 전달하여 클릭된 요소를 명확히 식별하도록 수정 -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('overview', this)">📊 모델 비교</button>
+            <button class="nav-tab" onclick="showSection('details', this)">🔍 상세 분석</button>
+            <button class="nav-tab" onclick="showSection('prompts', this)">✍️ 프롬프트 실습</button>
+            <button class="nav-tab" onclick="showSection('scenarios', this)">🎯 활용 시나리오</button>
+            <button class="nav-tab" onclick="showSection('best-practices', this)">💡 베스트 프랙티스</button>
+        </nav>
+
+        <!-- 모델 비교 섹션 -->
+        <section class="content-section active" id="overview">
+            <h2>📊 GPT-4 계열 모델 종합 비교</h2>
+            <div class="warning-box"><strong>⚠️ 중요:</strong> 사내 Azure OpenAI Chat(웹 UI)은 텍스트 전용입니다. Vision 기능과 1M 토큰 컨텍스트는 API 호출을 통해서만 사용 가능합니다.</div>
+            <table class="comparison-table">
+                <thead><tr><th>기능/특징</th><th>GPT-4o</th><th>GPT-4o-mini</th><th>GPT-4.1</th><th>GPT-4.1-mini</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>핵심 강점</strong></td><td>고정밀 밸런스<br>다국어, 함수 호출 우수</td><td>비용 효율성 및 속도<br>99.99% SLA 보장</td><td>초장문 처리 및 최고 정확도<br>최대 1M 토큰</td><td>효율 중심 장문 처리<br>1M 토큰, 속도·비용 절감</td></tr>
+                    <tr><td><strong>컨텍스트 토큰</strong></td><td>128K</td><td>128K</td><td>최대 1M</td><td>1M</td></tr>
+                    <tr><td><strong>Vision 입력</strong></td><td>✅ API 전용</td><td>✅ API 전용</td><td>✅ API 전용</td><td>✅ API 전용</td></tr>
+                    <tr><td><strong>정확도 수준</strong></td><td>매우 높음</td><td>높음</td><td>가장 높음</td><td>높음</td></tr>
+                    <tr><td><strong>응답 속도</strong></td><td>빠름</td><td>매우 빠름</td><td>보통</td><td>빠름</td></tr>
+                    <tr><td><strong>비용 효율성</strong></td><td>중간</td><td>매우 높음</td><td>낮음</td><td>높음</td></tr>
+                </tbody>
+            </table>
+            <div class="interactive-demo">
+                <h3>🎮 모델 선택 도우미</h3>
+                <p>아래 질문에 답하여 최적의 모델을 찾아보세요:</p>
+                <div id="model-quiz">
+                    <div class="quiz-question"><p><strong>Q1. 주요 사용 목적은?</strong></p><div class="model-selector"><div class="model-option" onclick="selectQuizOption(this, 1, 'speed')">빠른 응답이 중요</div><div class="model-option" onclick="selectQuizOption(this, 1, 'accuracy')">높은 정확도가 중요</div><div class="model-option" onclick="selectQuizOption(this, 1, 'cost')">비용 효율성이 중요</div><div class="model-option" onclick="selectQuizOption(this, 1, 'long')">긴 문서 처리</div></div></div>
+                    <div class="quiz-question"><p><strong>Q2. 처리할 데이터 크기는?</strong></p><div class="model-selector"><div class="model-option" onclick="selectQuizOption(this, 2, 'small')">짧은 텍스트 (몇 문장)</div><div class="model-option" onclick="selectQuizOption(this, 2, 'medium')">중간 문서 (몇 페이지)</div><div class="model-option" onclick="selectQuizOption(this, 2, 'large')">긴 문서 (수십 페이지)</div><div class="model-option" onclick="selectQuizOption(this, 2, 'huge')">초장문 (수백 페이지)</div></div></div>
+                    <div id="recommendation" style="display:none; margin-top: 2rem; padding: 1rem; background: #e8f5e8; border-radius: 10px;"><h4>🎯 추천 모델: <span id="recommended-model"></span></h4><p id="recommendation-reason"></p></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 상세 분석 섹션 -->
+        <section class="content-section" id="details">
+            <h2>🔍 모델별 상세 분석</h2>
+            <div class="model-card"><h3>🎯 GPT-4o (Omni) - 밸런스형 플래그십</h3><div class="feature-grid"><div class="feature-card"><h4>🌍 다국어 처리</h4><p>50개 이상 언어 지원, 높은 번역 품질과 문화적 맥락 이해</p></div><div class="feature-card"><h4>🔧 함수 호출</h4><p>JSON 출력, API 연동, 구조화된 데이터 추출에 최적화</p></div><div class="feature-card"><h4>👁️ Vision 기능</h4><p>이미지 분석, 차트 해석, OCR, 시각적 질의응답</p></div><div class="feature-card"><h4>⚡ 추론 능력</h4><p>복합적 사고, 논리적 분석, 창의적 문제 해결</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 다국어 비즈니스 문서, API 연동이 필요한 애플리케이션, 이미지가 포함된 분석 작업</div></div>
+            <div class="model-card"><h3>⚡ GPT-4o-mini - 속도와 효율성의 최적화</h3><div class="feature-grid"><div class="feature-card"><h4>💨 초고속 응답</h4><p>평균 응답 시간 1-2초, 실시간 애플리케이션에 최적</p></div><div class="feature-card"><h4>💰 최고 비용 효율</h4><p>GPT-4o 대비 85% 비용 절감, 대량 처리에 유리</p></div><div class="feature-card"><h4>🛡️ 안정성 보장</h4><p>99.99% SLA, 엔터프라이즈급 안정성</p></div><div class="feature-card"><h4>🔒 버전 고정</h4><p>모델 버전 고정으로 일관된 결과 보장</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 실시간 챗봇, 대량 문서 분류, 빠른 요약 작업, 고객 서비스 자동화</div></div>
+            <div class="model-card"><h3>🏆 GPT-4.1 - 최고 성능 프리미엄</h3><div class="feature-grid"><div class="feature-card"><h4>📚 1M 토큰 컨텍스트</h4><p>약 750,000 단어, 500페이지 문서를 한 번에 처리</p></div><div class="feature-card"><h4>🎯 최고 정확도</h4><p>코딩, 수학, 추론 모든 영역에서 최상위 성능</p></div><div class="feature-card"><h4>🔍 초장문 RAG</h4><p>방대한 문서 검색 및 정보 합성 능력</p></div><div class="feature-card"><h4>⚖️ 법률/계약서</h4><p>복잡한 법률 문서 분석 및 위험 요소 식별</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 대규모 계약서 검토, 복잡한 코드베이스 분석, 학술 연구, 정밀한 분석이 필요한 업무</div></div>
+            <div class="model-card"><h3>⚖️ GPT-4.1-mini - 장문 처리의 균형점</h3><div class="feature-grid"><div class="feature-card"><h4>📊 효율적 장문 처리</h4><p>1M 토큰을 빠르고 경제적으로 처리</p></div><div class="feature-card"><h4>⏰ 향상된 속도</h4><p>GPT-4.1 대비 2-3배 빠른 응답 속도</p></div><div class="feature-card"><h4>💵 합리적 비용</h4><p>장문 처리 대비 최적의 가격 대비 성능</p></div><div class="feature-card"><h4>📈 로그 분석</h4><p>대용량 시스템 로그 및 데이터 분석에 특화</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 대용량 로그 분석, 긴 회의록 요약, 대규모 데이터 마이닝, 비용 효율적인 장문 Q&A</div></div>
+        </section>
+
+        <!-- 프롬프트 실습 섹션 -->
+        <section class="content-section" id="prompts">
+            <h2>✍️ G-C-E-S 프롬프트 실습</h2>
+            <div class="info-box"><strong>📝 G-C-E-S 프레임워크:</strong><br><strong>G</strong>oal (목표) → <strong>C</strong>ontext (맥락) → <strong>E</strong>xpectation (기대 결과) → <strong>S</strong>ource (참고 데이터)</div>
+            <div class="prompt-builder">
+                <h3>🛠️ 프롬프트 빌더</h3>
+                <div class="model-selector"><div class="model-option selected" onclick="selectModel(this, 'gpt-4o')">GPT-4o</div><div class="model-option" onclick="selectModel(this, 'gpt-4o-mini')">GPT-4o-mini</div><div class="model-option" onclick="selectModel(this, 'gpt-4.1')">GPT-4.1</div><div class="model-option" onclick="selectModel(this, 'gpt-4.1-mini')">GPT-4.1-mini</div></div>
+                <div class="prompt-section"><label>[G] Goal - 목표:</label><textarea id="goal-input" placeholder="예: 일본 고객사에게 보낼 감사 이메일 초안을 작성하고 교정해 주세요."></textarea></div>
+                <div class="prompt-section"><label>[C] Context - 맥락:</label><textarea id="context-input" placeholder="예: 당신은 IT 솔루션 영업 담당자입니다. 대상 고객은 일본 대기업의 임원이며..."></textarea></div>
+                <div class="prompt-section"><label>[E] Expectation - 기대 결과:</label><textarea id="expectation-input" placeholder="예: 한국어 원본과 일본어 번역본을 함께 제시해 주세요. 일본어는 150자 이내로..."></textarea></div>
+                <div class="prompt-section"><label>[S] Source - 참고 데이터:</label><textarea id="source-input" placeholder="예: (포함할 핵심 내용: 계약 체결 감사, 성공적인 프로젝트 수행 약속...)"></textarea></div>
+                <button class="btn" onclick="generatePrompt()">🔥 프롬프트 생성</button>
+                <button class="btn btn-secondary" onclick="loadTemplate()">📋 템플릿 불러오기</button>
+                <button class="btn btn-secondary" onclick="clearPrompt()">🧹 초기화</button>
+                <div class="output-box" id="generated-prompt">생성된 프롬프트가 여기에 표시됩니다...</div>
+            </div>
+        </section>
+
+        <!-- 활용 시나리오 섹션 -->
+        <section class="content-section" id="scenarios">
+            <h2>🎯 실무 활용 시나리오</h2>
+            <div class="scenario-cards">
+                <div class="scenario-card" onclick="showScenario(this, 'multilingual')"><h4>🌍 다국어 비즈니스</h4><p>글로벌 협업, 번역, 현지화</p><span class="recommended">→ GPT-4o 추천</span></div>
+                <div class="scenario-card" onclick="showScenario(this, 'customer-service')"><h4>📞 고객 서비스</h4><p>실시간 응답, 문의 분류, 챗봇</p><span class="recommended">→ GPT-4o-mini 추천</span></div>
+                <div class="scenario-card" onclick="showScenario(this, 'legal-analysis')"><h4>⚖️ 법률 문서 분석</h4><p>계약서 검토, 리스크 분석</p><span class="recommended">→ GPT-4.1 추천</span></div>
+                <div class="scenario-card" onclick="showScenario(this, 'code-review')"><h4>💻 코드 리뷰</h4><p>대규모 코드베이스 분석</p><span class="recommended">→ GPT-4.1 추천</span></div>
+                <div class="scenario-card" onclick="showScenario(this, 'data-analysis')"><h4>📊 데이터 분석</h4><p>로그 분석, 패턴 발견</p><span class="recommended">→ GPT-4.1-mini 추천</span></div>
+                <div class="scenario-card" onclick="showScenario(this, 'content-creation')"><h4>✍️ 콘텐츠 제작</h4><p>마케팅 자료, 기술 문서</p><span class="recommended">→ GPT-4o 추천</span></div>
+            </div>
+            <div id="scenario-details" style="display:none; margin-top: 2rem;"><div class="model-card"><h3 id="scenario-title"></h3><div id="scenario-content"></div></div></div>
+        </section>
+
+        <!-- 베스트 프랙티스 섹션 -->
+        <section class="content-section" id="best-practices">
+            <h2>💡 베스트 프랙티스 & 고급 활용법</h2>
+            <div class="interactive-demo">
+                <h3>📊 ROI 계산기</h3>
+                <p>GPT-4 모델 도입으로 인한 비용 절감 효과를 계산해보세요</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <div class="prompt-section"><label>월간 처리 작업량:</label><input type="number" id="monthly-tasks" placeholder="예: 1000" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;"></div>
+                        <div class="prompt-section"><label>작업당 소요 시간 (분):</label><input type="number" id="time-per-task" placeholder="예: 30" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;"></div>
+                        <div class="prompt-section"><label>시간당 인건비 (원):</label><input type="number" id="hourly-rate" placeholder="예: 50000" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;"></div>
+                        <button class="btn" onclick="calculateROI()">💰 ROI 계산</button>
+                    </div>
+                    <div id="roi-result" style="display:none;"><div class="info-box"><h4>📈 절감 효과 분석</h4><div id="roi-details"></div></div></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let currentModel = 'gpt-4o';
+        let quizAnswers = {};
+
+        /**
+         * DEBUG: 탭과 컨텐츠 섹션 전환 로직을 통합하고 안정성을 높였습니다.
+         * @param {string} sectionId - 표시할 섹션의 ID
+         * @param {HTMLElement} tabElement - 클릭된 탭 요소
+         */
+        function showSection(sectionId, tabElement) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            if (tabElement) {
+                tabElement.classList.add('active');
+            }
+        }
+
+        /**
+         * DEBUG: 클릭된 요소를 명확히 받도록 'elem' 파라미터를 추가했습니다.
+         */
+        function selectModel(elem, model) {
+            currentModel = model;
+            elem.parentElement.querySelectorAll('.model-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            elem.classList.add('selected');
+            loadTemplate();
+        }
+
+        function selectQuizOption(elem, questionNum, answer) {
+            const questionDiv = elem.parentElement;
+            questionDiv.querySelectorAll('.model-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            elem.classList.add('selected');
+            quizAnswers[questionNum] = answer;
+            
+            if (quizAnswers[1] && quizAnswers[2]) {
+                showRecommendation();
+            }
+        }
+
+        function showRecommendation() {
+            const purpose = quizAnswers[1];
+            const dataSize = quizAnswers[2];
+            let recommendedModel = '';
+            let reason = '';
+            
+            if (dataSize === 'huge') {
+                recommendedModel = (purpose === 'accuracy') ? 'GPT-4.1' : 'GPT-4.1-mini';
+                reason = (purpose === 'accuracy') ? '수백 페이지 문서를 최고 정확도로 분석할 수 있는 1M 토큰 컨텍스트 지원' : '대용량 문서를 빠르고 경제적으로 처리하는 1M 토큰 모델';
+            } else if (purpose === 'speed' || purpose === 'cost') {
+                recommendedModel = 'GPT-4o-mini';
+                reason = '가장 빠른 응답 속도와 최고의 비용 효율성을 제공';
+            } else {
+                recommendedModel = 'GPT-4o';
+                reason = (purpose === 'accuracy') ? '높은 정확도와 균형잡힌 성능으로 다양한 작업에 최적' : '범용적인 작업에 가장 적합한 밸런스형 모델';
+            }
+            
+            document.getElementById('recommended-model').textContent = recommendedModel;
+            document.getElementById('recommendation-reason').textContent = reason;
+            document.getElementById('recommendation').style.display = 'block';
+        }
+
+        /**
+         * DEBUG: 프롬프트 생성 후 복사 버튼을 추가하는 로직을 통합했습니다.
+         */
+        function generatePrompt() {
+            const goal = document.getElementById('goal-input').value;
+            const context = document.getElementById('context-input').value;
+            const expectation = document.getElementById('expectation-input').value;
+            const source = document.getElementById('source-input').value;
+            
+            let prompt = '';
+            if (goal) prompt += `[G] ${goal}\n`;
+            if (context) prompt += `[C] ${context}\n`;
+            if (expectation) prompt += `[E] ${expectation}\n`;
+            if (source) prompt += `[S] ${source}`;
+            
+            const promptOutput = document.getElementById('generated-prompt');
+            if (!prompt.trim()) {
+                promptOutput.textContent = '프롬프트 구성 요소를 입력해주세요.';
+            } else {
+                promptOutput.textContent = `🤖 ${currentModel} 최적화 프롬프트:\n\n${prompt}`;
+            }
+            addCopyButton(); // 복사 버튼 추가/업데이트
+        }
+
+        function loadTemplate() {
+            const templates = {
+                'gpt-4o': { goal: '일본 고객사에게 보낼 감사 이메일 초안 작성', context: '당신은 IT 솔루션 영업 담당자입니다.', expectation: '한국어 원본과 일본어 번역본을 함께 제시.', source: '(핵심 내용: 계약 체결 감사, 성공적인 프로젝트 수행 약속)' },
+                'gpt-4o-mini': { goal: '고객 문의 내용 유형 분류', context: '당신은 고객 서비스 센터 AI 어시스턴트입니다.', expectation: '카테고리 이름 하나만 출력.', source: '"상품 배송이 언제 되나요?"' },
+                'gpt-4.1': { goal: '500페이지 분량 계약서에서 독소 조항 분석', context: '당신은 국제 M&A 전문 변호사입니다.', expectation: '위험도 높은 5개 조항을 표로 정리.', source: '(계약서 전문 텍스트)' },
+                'gpt-4.1-mini': { goal: '24시간 서버 로그 파일 분석하여 에러 패턴 식별', context: '당신은 DevOps 엔지니어입니다.', expectation: '가장 빈번한 3가지 에러 유형과 원인 추론.', source: '(서버 로그 파일 텍스트)' }
+            };
+            const template = templates[currentModel];
+            if (template) {
+                document.getElementById('goal-input').value = template.goal;
+                document.getElementById('context-input').value = template.context;
+                document.getElementById('expectation-input').value = template.expectation;
+                document.getElementById('source-input').value = template.source;
+            }
+        }
+
+        function clearPrompt() {
+            ['goal-input', 'context-input', 'expectation-input', 'source-input'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('generated-prompt').textContent = '생성된 프롬프트가 여기에 표시됩니다...';
+        }
+
+        function showScenario(elem, scenarioType) {
+            elem.parentElement.querySelectorAll('.scenario-card').forEach(card => card.classList.remove('selected'));
+            elem.classList.add('selected');
+
+            const scenarios = {
+                'multilingual': { title: '🌍 다국어 비즈니스 시나리오', content: '<h4>주요 업무:</h4><ul><li>한-일-중 계약서 번역</li><li>글로벌 마케팅 현지화</li></ul><h4>GPT-4o 활용 포인트:</h4><ul><li>높은 번역 품질</li><li>Function Calling</li></ul>' },
+                'customer-service': { title: '📞 고객 서비스 최적화', content: '<h4>주요 업무:</h4><ul><li>실시간 문의 분류</li><li>FAQ 자동 응답</li></ul><h4>⚡ GPT-4o-mini 활용 포인트:</h4><ul><li>초고속 응답</li><li>비용 효율성</li></ul>' },
+                'legal-analysis': { title: '⚖️ 법률 문서 전문 분석', content: '<h4>주요 업무:</h4><ul><li>M&A 계약서 독소 조항 분석</li><li>특허 명세서 검토</li></ul><h4>🏆 GPT-4.1 활용 포인트:</h4><ul><li>1M 토큰 컨텍스트</li><li>최고 정확도</li></ul>' }
+            };
+
+            const scenario = scenarios[scenarioType];
+            if (scenario) {
+                document.getElementById('scenario-title').textContent = scenario.title;
+                document.getElementById('scenario-content').innerHTML = scenario.content;
+                document.getElementById('scenario-details').style.display = 'block';
+            }
+        }
+
+        /**
+         * DEBUG: alert() 대신 인라인 메시지로 유효성 검사 결과를 표시하도록 수정했습니다.
+         */
+        function calculateROI() {
+            const resultDiv = document.getElementById('roi-result');
+            const detailsDiv = document.getElementById('roi-details');
+            resultDiv.style.display = 'none';
+            detailsDiv.innerHTML = '';
+
+            const monthlyTasks = parseInt(document.getElementById('monthly-tasks').value);
+            const timePerTask = parseInt(document.getElementById('time-per-task').value);
+            const hourlyRate = parseInt(document.getElementById('hourly-rate').value);
+
+            if (isNaN(monthlyTasks) || isNaN(timePerTask) || isNaN(hourlyRate) || monthlyTasks <= 0 || timePerTask <= 0 || hourlyRate <= 0) {
+                detailsDiv.innerHTML = `<p style="color: red;">모든 필드에 유효한 양수를 입력해주세요!</p>`;
+                resultDiv.style.display = 'block';
+                return;
+            }
+
+            const totalHours = (monthlyTasks * timePerTask) / 60;
+            const currentCost = totalHours * hourlyRate;
+            const aiEfficiency = 0.7;
+            const aiCost = monthlyTasks * 500;
+            const newCost = (currentCost * (1 - aiEfficiency)) + aiCost;
+            const savings = currentCost - newCost;
+
+            detailsDiv.innerHTML = `
+                <p><strong>📊 현재 월간 비용:</strong> ${currentCost.toLocaleString()}원</p>
+                <p><strong>🤖 AI 도입 후 비용:</strong> ${newCost.toLocaleString()}원</p>
+                <p><strong>💰 월간 절감액:</strong> ${savings.toLocaleString()}원</p>
+                <p><strong>📈 연간 절감액:</strong> ${(savings * 12).toLocaleString()}원</p>`;
+            resultDiv.style.display = 'block';
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.createElement('div');
+                toast.textContent = '📋 클립보드에 복사되었습니다!';
+                toast.style.cssText = `position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 12px 20px; border-radius: 8px; z-index: 1001; transition: opacity 0.5s;`;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 500);
+                }, 2500);
+            }).catch(err => console.error('복사 실패:', err));
+        }
+
+        function addCopyButton() {
+            const outputBox = document.getElementById('generated-prompt');
+            if (!outputBox) return;
+
+            let copyBtn = outputBox.querySelector('.copy-btn');
+            if (!copyBtn) {
+                copyBtn = document.createElement('button');
+                copyBtn.className = 'btn copy-btn';
+                copyBtn.textContent = '📋 복사';
+                outputBox.appendChild(copyBtn);
+            }
+            
+            copyBtn.onclick = () => {
+                const textToCopy = outputBox.textContent.replace('📋 복사', '').trim();
+                copyToClipboard(textToCopy);
+            };
+        }
+
+        /**
+         * DEBUG: 키워드 하이라이트 기능의 치명적인 오류를 수정했습니다.
+         * 이제 키워드가 올바르게 <mark> 태그로 감싸집니다.
+         */
+        function highlightKeywords() {
+            const keywords = ['GPT-4o', 'GPT-4o-mini', 'GPT-4.1', 'GPT-4.1-mini', 'Azure OpenAI'];
+            const regex = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
+            
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+                acceptNode: (node) => {
+                    if (node.parentElement.tagName.match(/SCRIPT|STYLE|MARK|TEXTAREA|INPUT/)) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            });
+
+            const nodesToReplace = [];
+            while(walker.nextNode()) {
+                const node = walker.currentNode;
+                if (regex.test(node.textContent)) {
+                    const replacement = document.createElement('span');
+                    replacement.innerHTML = node.textContent.replace(regex, `<mark>$&</mark>`);
+                    nodesToReplace.push({oldNode: node, newNode: replacement});
+                }
+            }
+            
+            nodesToReplace.forEach(item => {
+                item.oldNode.parentNode.replaceChild(item.newNode, item.oldNode);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTemplate();
+            highlightKeywords();
+        });
+    </script>
+</body>
+</html>
