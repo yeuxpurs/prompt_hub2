@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>✨ Prompt Hub — 선택 페이지</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;background:linear-gradient(135deg,#eef2ff,#f8fbff) fixed;}
+    header{padding:28px 20px 14px;text-align:center}
+    header h1{margin:0 0 6px;font-size:clamp(22px,3.5vw,32px)}
+    header p{margin:0;color:#555}
+    .lang-selector{position:absolute;top:20px;right:20px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px;min-width:120px}
+    .lang-selector select{border:0;background:transparent;font-size:14px;width:100%;outline:0}
+    .wrap{max-width:1100px;margin:0 auto;padding:16px 20px 40px}
+    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:6px 0 16px}
+    .search{flex:1;display:flex;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px}
+    .search input{flex:1;border:0;outline:0;font-size:15px}
+    .hint{font-size:13px;color:#666}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+    .card{display:block;position:relative;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px 14px 14px;text-decoration:none;color:inherit;transition:.2s;outline:0}
+    .card:focus-visible{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
+    .card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}
+    .visual{display:flex;align-items:center;gap:12px}
+    .emoji{font-size:36px;line-height:1.1}
+    .thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid #e5e7eb;background:#f8fafc}
+    .idx{position:absolute;top:10px;right:12px;font:600 12px/1 system-ui;border:1px solid #e5e7eb;border-radius:999px;padding:3px 8px;background:#fff;color:#374151}
+    .title{margin:8px 0 6px;font-weight:700;font-size:18px;letter-spacing:-.2px}
+    .desc{margin:0 0 10px;color:#556;min-height:40px;font-size:14px}
+    .tags{display:flex;flex-wrap:wrap;gap:6px}
+    .tag{border:1px dashed #cbd5e1;border-radius:999px;padding:4px 8px;font-size:12px;color:#475569;background:#f8fafc}
+    footer{margin-top:28px;color:#667085;font-size:13px;text-align:center}
+    
+    /* 히라도 이스터에그 스타일 */
+    .hirado-easter-egg{
+      position:fixed;bottom:20px;right:20px;
+      background:linear-gradient(135deg,#ff6b6b,#ffa500);
+      color:white;padding:12px 16px;border-radius:25px;
+      font-size:13px;box-shadow:0 4px 15px rgba(255,107,107,0.3);
+      transform:translateY(100px);opacity:0;
+      transition:all 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+      cursor:pointer;z-index:1000;border:0;
+    }
+    .hirado-easter-egg.show{transform:translateY(0);opacity:1}
+    .hirado-easter-egg:hover{transform:translateY(0) scale(1.05)}
+    
+    @media (prefers-color-scheme: dark){
+      body{background:linear-gradient(135deg,#0b1020,#0f172a)}
+      header p, .hint, footer{color:#b8c0cc}
+      .card{background:#0f172a;border-color:#20283a;color:#e5e7eb}
+      .tag{border-color:#334155;background:#0b1220;color:#cbd5e1}
+      .idx{background:#111827;border-color:#334155;color:#d1d5db}
+      .search{background:#0f172a;border-color:#20283a}
+      .search input{background:transparent;color:#e5e7eb}
+      .lang-selector{background:#0f172a;border-color:#20283a}
+      .lang-selector select{color:#e5e7eb}
+      .thumb{border-color:#20283a;background:#0b1220}
+    }
+  </style>
+</head>
+<body>
+  <!-- 히라도 이스터에그 버튼 -->
+  <button id="hiradoEasterEgg" class="hirado-easter-egg" style="display:none">
+    🏯 히라도 발견! 클릭해보세요
+  </button>
+
+  <div class="lang-selector">
+    <label class="sr-only" for="langSelect">언어 선택</label>
+    <select id="langSelect" aria-label="언어 선택">
+      <option value="ja">🇯🇵 日本語</option>
+      <option value="zh">🇨🇳 中文</option>
+      <option value="en">🇺🇸 English</option>
+      <option value="ko" selected>🇰🇷 한국어</option>
+      <option value="es">🇪🇸 Español</option>
+      <option value="fr">🇫🇷 Français</option>
+    </select>
+  </div>
+
+  <header>
+    <h1>✨ Prompt Hub</h1>
+    <p id="subtitle">원하는 도구를 선택하세요. 숫자키 <b>1-4</b>로도 바로 열 수 있습니다.</p>
+  </header>
+
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="search" role="search" aria-label="앱 검색">
+        🔎&nbsp;<input id="q" placeholder="검색: 제목, 설명, 태그…" autocomplete="off" aria-label="검색어 입력">
+      </div>
+      <div class="hint" id="hint">새 앱을 추가하려면 아래 <code>apps</code> 배열에 항목만 더하세요.</div>
+    </div>
+
+    <div id="grid" class="grid" aria-live="polite"></div>
+
+    <footer id="footer">© Prompt Hub • 로컬에서 작동합니다.</footer>
+  </div>
+
+  <script>
+    // 콘솔 이스터에그 메시지
+    console.log(`
+🏯 히라도(平戸)의 아름다운 추억을 담은 사이트를 발견했군요!
+일본 나가사키현의 작은 섬 히라도는 16-17세기 동서양 문화 교류의 중심지였습니다.
+
+🌸 포르투갈과 네덜란드 상관들이 머물던 국제무역항
+⛩️  한국, 중국, 일본의 문화가 어우러진 독특한 매력
+🎌 프란시스코 사비에르가 처음 일본에 발을 디딘 곳
+
+히라도를 검색해보세요... 숨겨진 놀라움이 기다리고 있습니다! 🎁
+    `);
+
+    // ----- 유틸: 현재 index.html이 app 폴더 안/밖 어디에 있어도 동작하도록 경로 자동 계산 -----
+    const APP_PREFIX = (() => {
+      const p = location.pathname.replace(/\\/g, '/');
+      return /\/app(?:\/|$)/i.test(p) ? '' : 'app/';
+    })();
+
+    // ----- 다국어 텍스트 -----
+    const translations = {
+      ja:{subtitle:'使いたいツールを選択してください。数字キー<b>1-4</b>ですぐに開けます。',searchPlaceholder:'検索：タイトル、説明、タグ…',hint:'新しいアプリを追加するには、下の<code>apps</code>配列に項目を追加してください。',footer:'© Prompt Hub • ローカルで動作します。',apps:[
+        {title:'テンプレート生成器',desc:'GHES/CRISPE/CAPE/5W1Hなどで多言語プロンプトテンプレート生成',tags:['テンプレート','多言語','フレームワーク']},
+        {title:'プロンプトライブラリ',desc:'カテゴリ・タスク整理、ドラッグ&ドロップ、エクスポート/インポート',tags:['ライブラリ','ドラッグ','保存']},
+        {title:'Azure OpenAI ガイド',desc:'Azureベースのモデル(GPT-4.1/4o)の特徴、運用ヒント、API使用法のまとめ',tags:['ガイド','Azure','運用']},
+        {title:'Copilot GPT-5 ガイド',desc:'CopilotベースのGPT-5のマルチモーダル機能、高度な推論、ユースケースのまとめ',tags:['ガイド','Copilot','GPT-5']}
+      ]},
+      zh:{subtitle:'选择您想要的工具。也可以用数字键<b>1-4</b>直接打开。',searchPlaceholder:'搜索：标题、描述、标签…',hint:'要添加新应用，请在下面的<code>apps</code>数组中添加项目。',footer:'© Prompt Hub • 本地运行。',apps:[
+        {title:'模板生成器',desc:'使用GHES/CRISPE/CAPE/5W1H等框架生成多语言提示模板',tags:['模板','多语言','框架']},
+        {title:'提示库',desc:'分类任务整理，拖拽功能，导出/导入',tags:['库','拖拽','保存']},
+        {title:'Azure OpenAI 指南',desc:'基于Azure的模型(GPT-4.1/4o)的功能、操作技巧和API用法摘要',tags:['指南','Azure','操作']},
+        {title:'Copilot GPT-5 指南',desc:'基于Copilot的GPT-5的多模态功能、高级推理和用例摘要',tags:['指南','Copilot','GPT-5']}
+      ]},
+      en:{subtitle:'Choose the tool you want. You can also open directly with number keys <b>1-4</b>.',searchPlaceholder:'Search: title, description, tags…',hint:'To add new apps, just add items to the <code>apps</code> array below.',footer:'© Prompt Hub • Works locally.',apps:[
+        {title:'Template Generator',desc:'Generate multilingual prompt templates with GHES/CRISPE/CAPE/5W1H frameworks',tags:['template','multilingual','framework']},
+        {title:'Prompt Library',desc:'Category & task organization, drag & drop, export/import',tags:['library','drag','save']},
+        {title:'Azure OpenAI Guide',desc:'Summary of features, operational tips, and API usage for Azure-based models (GPT-4.1/4o)',tags:['guide','azure','operations']},
+        {title:'Copilot GPT-5 Guide',desc:'Summary of multimodal features, advanced reasoning, and use cases for Copilot-based GPT-5',tags:['guide','copilot','gpt-5']}
+      ]},
+      ko:{subtitle:'원하는 도구를 선택하세요. 숫자키 <b>1-4</b>로도 바로 열 수 있습니다.',searchPlaceholder:'검색: 제목, 설명, 태그…',hint:'새 앱을 추가하려면 아래 <code>apps</code> 배열에 항목만 더하세요.',footer:'© Prompt Hub • 로컬에서 작동합니다.',apps:[
+        {title:'템플릿 생성기',desc:'GHES/CRISPE/CAPE/5W1H 등으로 다국어 프롬프트 템플릿 생성',tags:['템플릿','다국어','프레임워크']},
+        {title:'프롬프트 라이브러리',desc:'카테고리·태스크 정리, 드래그&드롭, 내보내기/가져오기',tags:['라이브러리','드래그','저장']},
+        {title:'Azure OpenAI 가이드',desc:'Azure 기반 모델(GPT-4.1/4o)의 특징, 운영 팁, API 사용법 정리',tags:['가이드','Azure','운영']},
+        {title:'Copilot GPT-5 가이드',desc:'Copilot 기반 GPT-5의 멀티모달 기능, 고급 추론, 활용 사례 정리',tags:['가이드','Copilot','GPT-5']}
+      ]},
+      es:{subtitle:'Elige la herramienta que desees. También puedes abrir directamente con las teclas numéricas <b>1-4</b>.',searchPlaceholder:'Buscar: título, descripción, etiquetas…',hint:'Para agregar nuevas aplicaciones, simplemente agrega elementos al array <code>apps</code> a continuación.',footer:'© Prompt Hub • Funciona localmente.',apps:[
+        {title:'Generador de Plantillas',desc:'Genera plantillas de prompts multiidioma con marcos GHES/CRISPE/CAPE/5W1H',tags:['plantilla','multiidioma','marco']},
+        {title:'Biblioteca de Prompts',desc:'Organización de categorías y tareas, arrastrar y soltar, exportar/importar',tags:['biblioteca','arrastrar','guardar']},
+        {title:'Guía de Azure OpenAI',desc:'Resumen de características, consejos operativos y uso de la API para modelos basados en Azure (GPT-4.1/4o)',tags:['guía','azure','operaciones']},
+        {title:'Guía de Copilot GPT-5',desc:'Resumen de funciones multimodales, razonamiento avanzado y casos de uso para GPT-5 basado en Copilot',tags:['guía','copilot','gpt-5']}
+      ]},
+      fr:{subtitle:'Choisissez l\'outil que vous voulez. Vous pouvez aussi ouvrir directement avec les touches numériques <b>1-4</b>.',searchPlaceholder:'Rechercher : titre, description, étiquettes…',hint:'Pour ajouter de nouvelles applications, ajoutez simplement des éléments au tableau <code>apps</code> ci-dessous.',footer:'© Prompt Hub • Fonctionne en local.',apps:[
+        {title:'Générateur de Modèles',desc:'Générez des modèles de prompts multilingues avec les frameworks GHES/CRISPE/CAPE/5W1H',tags:['modèle','multilingue','framework']},
+        {title:'Bibliothèque de Prompts',desc:'Organisation par catégories et tâches, glisser-déposer, exporter/importer',tags:['bibliothèque','glisser','sauvegarder']},
+        {title:'Guide Azure OpenAI',desc:'Résumé des fonctionnalités, conseils opérationnels et utilisation de l\'API pour les modèles basés sur Azure (GPT-4.1/4o)',tags:['guide','azure','opérations']},
+        {title:'Guide Copilot GPT-5',desc:'Résumé des fonctionnalités multimodales, du raisonnement avancé et des cas d\'utilisation pour GPT-5 basé sur Copilot',tags:['guide','copilot','gpt-5']}
+      ]}
+    };
+
+    // ----- 앱 메타 (파일명은 app/ 폴더 기준) -----
+    const baseApps = [
+      { id:'template-gen',  emoji:'🚀', file:'prompt-template-generator.html', img:'' },
+      { id:'prompt-library',emoji:'📚', file:'prompt_lib.html',                 img:'' },
+      { id:'azure-guide',   emoji:'☁️', file:'azure_openai_guide.html',        img:'' },
+      { id:'copilot-guide', emoji:'🤖', file:'copilot_gpt5_guide.html',        img:'' }
+    ];
+
+    // 히라도 이스터에그 메시지들
+    const hiradoMessages = {
+      ko: [
+        "🏯 히라도(平戸)를 발견하셨군요!",
+        "🌸 일본 나가사키현의 아름다운 섬입니다",
+        "⛩️ 16-17세기 동서양 문화교류의 중심지였어요",
+        "🚢 포르투갈·네덜란드 상관이 있던 국제무역항",
+        "📿 프란시스코 사비에르가 처음 일본에 온 곳",
+        "🎌 한중일 문화가 어우러진 독특한 매력의 도시"
+      ],
+      en: [
+        "🏯 You discovered Hirado (平戸)!",
+        "🌸 A beautiful island in Nagasaki Prefecture, Japan",
+        "⛩️ Center of East-West cultural exchange in 16-17th centuries",
+        "🚢 International trading port with Portuguese & Dutch factories",
+        "📿 Where Francis Xavier first set foot in Japan",
+        "🎌 Unique city where Korean, Chinese & Japanese cultures blend"
+      ],
+      ja: [
+        "🏯 平戸を発見されましたね！",
+        "🌸 長崎県の美しい島です",
+        "⛩️ 16-17世紀の東西文化交流の中心地でした",
+        "🚢 ポルトガル・オランダ商館があった国際貿易港",
+        "📿 フランシスコ・ザビエルが初めて日本に来た場所",
+        "🎌 日中韓の文化が調和した独特な魅力の都市"
+      ]
+    };
+
+    // ----- DOM -----
+    const $grid = document.getElementById('grid');
+    const $q = document.getElementById('q');
+    const $langSelect = document.getElementById('langSelect');
+    const $subtitle = document.getElementById('subtitle');
+    const $hint = document.getElementById('hint');
+    const $footer = document.getElementById('footer');
+    const $hiradoEasterEgg = document.getElementById('hiradoEasterEgg');
+
+    let currentLang = 'ko';
+    let currentApps = [];
+    let hiradoClickCount = 0;
+
+    // 히라도 이스터에그 기능
+    function showHiradoEasterEgg() {
+      $hiradoEasterEgg.style.display = 'block';
+      setTimeout(() => $hiradoEasterEgg.classList.add('show'), 100);
+    }
+
+    function hideHiradoEasterEgg() {
+      $hiradoEasterEgg.classList.remove('show');
+      setTimeout(() => $hiradoEasterEgg.style.display = 'none', 500);
+    }
+
+    function showHiradoAlert() {
+      const messages = hiradoMessages[currentLang] || hiradoMessages.ko;
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      
+      hiradoClickCount++;
+      
+      if (hiradoClickCount === 1) {
+        alert(randomMessage + "\n\n🎁 숨겨진 기능을 발견했습니다!");
+      } else if (hiradoClickCount === 3) {
+        alert("🗾 히라도는 일본 최서단의 섬으로,\n한국과 가장 가까운 일본 땅 중 하나입니다!\n\n" + randomMessage);
+      } else if (hiradoClickCount === 5) {
+        alert("🎌 축하합니다! 히라도 마스터가 되셨습니다!\n이제 히라도의 모든 비밀을 알고 계시네요 ✨");
+        hideHiradoEasterEgg();
+      } else {
+        alert(randomMessage);
+      }
+    }
+
+    // 히라도 트리거 감지
+    function checkHiradoTrigger(searchTerm) {
+      const triggers = ['hirado', '평戸', 'hirado', '히라도', 'ひらど', 'heihu'];
+      return triggers.some(trigger => searchTerm.toLowerCase().includes(trigger.toLowerCase()));
+    }
+
+    function updateLanguage(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+
+      // 인터페이스 텍스트
+      $subtitle.innerHTML = t.subtitle;
+      $q.placeholder = t.searchPlaceholder;
+      $hint.innerHTML = t.hint;
+      $footer.innerHTML = t.footer;
+
+      // 앱 데이터(언어 적용)
+      currentApps = baseApps.map((app, i) => ({
+        ...app,
+        href: APP_PREFIX + app.file,
+        title: t.apps[i].title,
+        desc:  t.apps[i].desc,
+        tags:  t.apps[i].tags
+      }));
+
+      document.documentElement.lang = lang;
+      const titleSuffix = {ja:'選択ページ', zh:'选择页面', en:'Selection Page', ko:'선택 페이지', es:'Página de Selección', fr:'Page de Sélection'};
+      document.title = `✨ Prompt Hub — ${titleSuffix[lang]}`;
+      localStorage.setItem('prompthub-lang', lang);
+      filter();
+    }
+
+    function render(list) {
+      $grid.innerHTML = '';
+      list.forEach((app, i) => {
+        const a = document.createElement('a');
+        a.className = 'card';
+        a.href = app.href;
+        a.setAttribute('aria-label', `${app.title} 열기`);
+
+        const visual = app.img
+          ? `<img class="thumb" src="${app.img}" alt="" loading="lazy">`
+          : `<div class="emoji" aria-hidden="true">${app.emoji || '📦'}</div>`;
+
+        a.innerHTML = `
+          <div class="idx">#${i+1}</div>
+          <div class="visual">${visual}</div>
+          <div class="title">${app.title}</div>
+          <p class="desc">${app.desc}</p>
+          <div class="tags">${(app.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div>
+        `;
+        $grid.appendChild(a);
+      });
+    }
+
+    function filter() {
+      const key = ($q.value||'').trim().toLowerCase();
+      
+      // 히라도 이스터에그 체크
+      if (key && checkHiradoTrigger(key)) {
+        showHiradoEasterEgg();
+      } else if (!key) {
+        hideHiradoEasterEgg();
+      }
+      
+      if(!key){ render(currentApps); document.onkeydown=null; return; }
+      const out = currentApps.filter(a =>
+        a.title.toLowerCase().includes(key) ||
+        a.desc.toLowerCase().includes(key)  ||
+        (a.tags||[]).some(t => t.toLowerCase().includes(key))
+      );
+      render(out);
+      if(out.length===1){
+        document.onkeydown = e => { if(e.key==='Enter'){ location.href = out[0].href; } };
+      }else{
+        document.onkeydown = null;
+      }
+    }
+
+    // 숫자키로 앱 열기
+    document.addEventListener('keydown', e => {
+      if(/^[1-4]$/.test(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey){
+        const idx = Number(e.key)-1;
+        if(currentApps[idx]) location.href = currentApps[idx].href;
+      }
+    });
+
+    // 이벤트 바인딩
+    $langSelect.addEventListener('change', e => updateLanguage(e.target.value));
+    $q.addEventListener('input', filter);
+    $hiradoEasterEgg.addEventListener('click', showHiradoAlert);
+
+    // 초기화
+    const savedLang = localStorage.getItem('prompthub-lang') || 'ko';
+    $langSelect.value = savedLang;
+    updateLanguage(savedLang);
+  </script>
+</body>
+</html>
