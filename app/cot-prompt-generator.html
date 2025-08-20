@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COT 프롬프트 생성기</title>
+    <style>
+        /* 기본 스타일 초기화 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 전체 페이지 스타일 */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* 언어 선택기 */
+        .language-selector-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        .language-selector-container label {
+            margin-right: 8px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        #language-selector {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        #language-selector option {
+            background: #333;
+            color: white;
+        }
+
+        /* COT 설명 섹션 */
+        .framework-description {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .framework-description h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .framework-description p {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .framework-description ul {
+            margin-top: 10px;
+            margin-left: 20px;
+            color: #6c757d;
+        }
+
+        .framework-description li {
+            margin: 5px 0;
+        }
+
+        /* 컨텐츠 영역 */
+        .content {
+            padding: 30px;
+        }
+
+        /* 입력 그룹 */
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1.1em;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .input-group small {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        /* Scratchpad 섹션 */
+        .scratchpad-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 2px solid #ffc107;
+        }
+
+        .scratchpad-section h5 {
+            color: #856404;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .scratchpad-item {
+            margin-bottom: 15px;
+        }
+
+        .scratchpad-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #856404;
+            font-size: 0.95em;
+        }
+
+        .scratchpad-item textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            min-height: 60px;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* 출력 섹션 */
+        .output-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+            border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .output-section h3 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-size: 1.3em;
+        }
+
+        .output-text {
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            min-height: 250px;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid #e9ecef;
+        }
+
+        /* 버튼 그룹 */
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        /* 복사 알림 */
+        .copy-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .copy-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .container {
+                border-radius: 15px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .language-selector-container {
+                position: static;
+                margin-top: 15px;
+                justify-content: center;
+                background: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 data-translate-key="header_title">🧠 COT 프롬프트 생성기</h1>
+            <p data-translate-key="header_desc">Chain of Thought를 활용한 체계적인 프롬프트 작성</p>
+            <div class="language-selector-container">
+                <label for="language-selector" data-translate-key="language_label">언어:</label>
+                <select id="language-selector" onchange="changeLanguage()">
+                    <option value="ko">한국어</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                    <option value="zh">中文</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="framework-description">
+            <h4 data-translate-key="cot_framework">Chain of Thought (COT) 프레임워크</h4>
+            <p data-translate-key="cot_desc">체계적인 사고 과정을 통해 복잡한 문제를 단계별로 해결하는 프롬프트 기법</p>
+            <ul data-translate-key="cot_features">
+                <li>문제를 작은 단위로 분해하여 접근</li>
+                <li>각 단계별 가설과 근거를 명확히 제시</li>
+                <li>내부 사고 과정과 최종 결과를 분리</li>
+                <li>논리적이고 체계적인 답변 도출</li>
+            </ul>
+        </div>
+
+        <div class="content">
+            <!-- 기본 정보 입력 -->
+            <div class="input-group">
+                <label for="role" data-translate-key="role_label">[ROLE] 역할 정의</label>
+                <textarea id="role" data-translate-placeholder-key="role_placeholder" 
+                    placeholder="AI가 수행할 전문가 역할을 정의하세요. 예: 데이터 분석 전문가, 마케팅 컨설턴트 등"></textarea>
+                <small data-translate-key="role_desc">AI가 어떤 전문가로서 답변해야 하는지 명확히 정의합니다</small>
+            </div>
+
+            <div class="input-group">
+                <label for="goal" data-translate-key="goal_label">[GOAL] 목표</label>
+                <textarea id="goal" data-translate-placeholder-key="goal_placeholder" 
+                    placeholder="해결하고자 하는 과제나 목표를 명확히 입력하세요"></textarea>
+                <small data-translate-key="goal_desc">달성하고자 하는 구체적인 목표를 작성합니다</small>
+            </div>
+
+            <div class="input-group">
+                <label for="context" data-translate-key="context_label">[CONTEXT] 맥락/배경</label>
+                <textarea id="context" data-translate-placeholder-key="context_placeholder" 
+                    placeholder="관련 자료, 배경 정보, 참고사항 등을 입력하세요"></textarea>
+                <small data-translate-key="context_desc">문제 해결에 필요한 배경 정보와 관련 자료를 제공합니다</small>
+            </div>
+
+            <div class="input-group">
+                <label for="constraints" data-translate-key="constraints_label">[CONSTRAINTS] 제약사항</label>
+                <textarea id="constraints" data-translate-placeholder-key="constraints_placeholder" 
+                    placeholder="형식, 톤, 길이, 특별한 요구사항 등을 입력하세요"></textarea>
+                <small data-translate-key="constraints_desc">답변 형식, 톤, 길이 등의 제약사항을 명시합니다</small>
+            </div>
+
+            <!-- Scratchpad 섹션 -->
+            <div class="scratchpad-section">
+                <h5 data-translate-key="scratchpad_title">🔧 PROCESS_PRIVATE - 내부 사고 과정 (Scratchpad)</h5>
+                <p style="color: #856404; font-size: 0.9em; margin-bottom: 15px;" data-translate-key="scratchpad_info">
+                    ※ 이 섹션은 AI의 내부 사고 과정으로, 최종 출력에는 포함되지 않습니다
+                </p>
+                
+                <div class="scratchpad-item">
+                    <label for="decompose" data-translate-key="decompose_label">1) 문제 분해</label>
+                    <textarea id="decompose" data-translate-placeholder-key="decompose_placeholder" 
+                        placeholder="문제를 어떻게 하위 과제로 분해할지 입력 (선택사항)"></textarea>
+                </div>
+
+                <div class="scratchpad-item">
+                    <label for="hypothesis" data-translate-key="hypothesis_label">2) 가설·근거·대안</label>
+                    <textarea id="hypothesis" data-translate-placeholder-key="hypothesis_placeholder" 
+                        placeholder="각 과제별 가설, 근거, 대안 비교 방법 입력 (선택사항)"></textarea>
+                </div>
+
+                <div class="scratchpad-item">
+                    <label for="decision" data-translate-key="decision_label">3) 의사결정 과정</label>
+                    <textarea id="decision" data-translate-placeholder-key="decision_placeholder" 
+                        placeholder="최종 의사결정 과정과 이유 입력 (선택사항)"></textarea>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="final_output" data-translate-key="final_label">[FINAL] 최종 출력 지시사항</label>
+                <textarea id="final_output" data-translate-placeholder-key="final_placeholder" 
+                    placeholder="최종 답변에 포함되어야 할 특별한 지시사항이 있다면 입력하세요 (선택사항)"></textarea>
+                <small data-translate-key="final_desc">최종 답변 형식이나 특별한 요구사항을 추가로 명시할 수 있습니다</small>
+            </div>
+
+            <!-- 출력 섹션 -->
+            <div class="output-section">
+                <h3 data-translate-key="output_title">생성된 COT 프롬프트</h3>
+                <div id="output" class="output-text" data-translate-key="output_placeholder">생성된 프롬프트가 여기에 표시됩니다...</div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="generatePrompt()">
+                    <span>⚡</span> <span data-translate-key="button_generate">프롬프트 생성</span>
+                </button>
+                <button class="btn btn-success" onclick="copyToClipboard()">
+                    <span>📋</span> <span data-translate-key="button_copy">복사</span>
+                </button>
+                <button class="btn btn-secondary" onclick="clearFields()">
+                    <span>🔄</span> <span data-translate-key="button_clear">초기화</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="copy-notification" id="copyNotification" data-translate-key="copy_notification">
+        ✅ 클립보드에 복사되었습니다!
+    </div>
+
+    <script>
+        // 다국어 번역 데이터
+        const translations = {
+            ko: {
+                header_title: "🧠 COT 프롬프트 생성기",
+                header_desc: "Chain of Thought를 활용한 체계적인 프롬프트 작성",
+                language_label: "언어:",
+                cot_framework: "Chain of Thought (COT) 프레임워크",
+                cot_desc: "체계적인 사고 과정을 통해 복잡한 문제를 단계별로 해결하는 프롬프트 기법",
+                cot_features: `<li>문제를 작은 단위로 분해하여 접근</li>
+                              <li>각 단계별 가설과 근거를 명확히 제시</li>
+                              <li>내부 사고 과정과 최종 결과를 분리</li>
+                              <li>논리적이고 체계적인 답변 도출</li>`,
+                role_label: "[ROLE] 역할 정의",
+                role_placeholder: "AI가 수행할 전문가 역할을 정의하세요. 예: 데이터 분석 전문가, 마케팅 컨설턴트 등",
+                role_desc: "AI가 어떤 전문가로서 답변해야 하는지 명확히 정의합니다",
+                goal_label: "[GOAL] 목표",
+                goal_placeholder: "해결하고자 하는 과제나 목표를 명확히 입력하세요",
+                goal_desc: "달성하고자 하는 구체적인 목표를 작성합니다",
+                context_label: "[CONTEXT] 맥락/배경",
+                context_placeholder: "관련 자료, 배경 정보, 참고사항 등을 입력하세요",
+                context_desc: "문제 해결에 필요한 배경 정보와 관련 자료를 제공합니다",
+                constraints_label: "[CONSTRAINTS] 제약사항",
+                constraints_placeholder: "형식, 톤, 길이, 특별한 요구사항 등을 입력하세요",
+                constraints_desc: "답변 형식, 톤, 길이 등의 제약사항을 명시합니다",
+                scratchpad_title: "🔧 PROCESS_PRIVATE - 내부 사고 과정 (Scratchpad)",
+                scratchpad_info: "※ 이 섹션은 AI의 내부 사고 과정으로, 최종 출력에는 포함되지 않습니다",
+                decompose_label: "1) 문제 분해",
+                decompose_placeholder: "문제를 어떻게 하위 과제로 분해할지 입력 (선택사항)",
+                hypothesis_label: "2) 가설·근거·대안",
+                hypothesis_placeholder: "각 과제별 가설, 근거, 대안 비교 방법 입력 (선택사항)",
+                decision_label: "3) 의사결정 과정",
+                decision_placeholder: "최종 의사결정 과정과 이유 입력 (선택사항)",
+                final_label: "[FINAL] 최종 출력 지시사항",
+                final_placeholder: "최종 답변에 포함되어야 할 특별한 지시사항이 있다면 입력하세요 (선택사항)",
+                final_desc: "최종 답변 형식이나 특별한 요구사항을 추가로 명시할 수 있습니다",
+                output_title: "생성된 COT 프롬프트",
+                output_placeholder: "생성된 프롬프트가 여기에 표시됩니다...",
+                output_placeholder_empty: "입력된 내용이 없습니다. 위 필드를 채워주세요.",
+                button_generate: "프롬프트 생성",
+                button_copy: "복사",
+                button_clear: "초기화",
+                copy_notification: "✅ 클립보드에 복사되었습니다!",
+                copy_alert: "복사할 프롬프트가 없습니다. 먼저 내용을 입력하고 생성해주세요."
+            },
+            en: {
+                header_title: "🧠 COT Prompt Generator",
+                header_desc: "Systematic prompt creation using Chain of Thought",
+                language_label: "Language:",
+                cot_framework: "Chain of Thought (COT) Framework",
+                cot_desc: "A prompting technique that solves complex problems step by step through systematic thinking",
+                cot_features: `<li>Break down problems into smaller units</li>
+                              <li>Present clear hypotheses and evidence for each step</li>
+                              <li>Separate internal thinking process from final output</li>
+                              <li>Derive logical and systematic answers</li>`,
+                role_label: "[ROLE] Role Definition",
+                role_placeholder: "Define the expert role AI should perform. e.g., Data analyst, Marketing consultant",
+                role_desc: "Clearly define what expert role the AI should answer as",
+                goal_label: "[GOAL] Objective",
+                goal_placeholder: "Clearly enter the task or goal to be solved",
+                goal_desc: "Write the specific goal to be achieved",
+                context_label: "[CONTEXT] Context/Background",
+                context_placeholder: "Enter relevant materials, background information, references, etc.",
+                context_desc: "Provide background information and relevant materials needed for problem solving",
+                constraints_label: "[CONSTRAINTS] Constraints",
+                constraints_placeholder: "Enter format, tone, length, special requirements, etc.",
+                constraints_desc: "Specify constraints such as answer format, tone, length",
+                scratchpad_title: "🔧 PROCESS_PRIVATE - Internal Thinking Process (Scratchpad)",
+                scratchpad_info: "※ This section is AI's internal thinking process and will not be included in the final output",
+                decompose_label: "1) Problem Decomposition",
+                decompose_placeholder: "Enter how to break down the problem into subtasks (optional)",
+                hypothesis_label: "2) Hypotheses·Evidence·Alternatives",
+                hypothesis_placeholder: "Enter hypotheses, evidence, and alternative comparison methods for each task (optional)",
+                decision_label: "3) Decision-Making Process",
+                decision_placeholder: "Enter final decision-making process and reasons (optional)",
+                final_label: "[FINAL] Final Output Instructions",
+                final_placeholder: "Enter any special instructions to be included in the final answer (optional)",
+                final_desc: "You can additionally specify final answer format or special requirements",
+                output_title: "Generated COT Prompt",
+                output_placeholder: "The generated prompt will be displayed here...",
+                output_placeholder_empty: "No content entered. Please fill in the fields above.",
+                button_generate: "Generate Prompt",
+                button_copy: "Copy",
+                button_clear: "Clear",
+                copy_notification: "✅ Copied to clipboard!",
+                copy_alert: "No prompt to copy. Please enter content and generate first."
+            },
+            ja: {
+                header_title: "🧠 COTプロンプト生成器",
+                header_desc: "Chain of Thoughtを活用した体系的なプロンプト作成",
+                language_label: "言語:",
+                cot_framework: "Chain of Thought (COT) フレームワーク",
+                cot_desc: "体系的な思考過程を通じて複雑な問題を段階的に解決するプロンプト技法",
+                cot_features: `<li>問題を小さな単位に分解してアプローチ</li>
+                              <li>各段階の仮説と根拠を明確に提示</li>
+                              <li>内部思考過程と最終結果を分離</li>
+                              <li>論理的で体系的な回答を導出</li>`,
+                role_label: "[ROLE] 役割定義",
+                role_placeholder: "AIが実行する専門家の役割を定義してください。例：データ分析専門家、マーケティングコンサルタント等",
+                role_desc: "AIがどの専門家として回答すべきか明確に定義します",
+                goal_label: "[GOAL] 目標",
+                goal_placeholder: "解決したい課題や目標を明確に入力してください",
+                goal_desc: "達成したい具体的な目標を作成します",
+                context_label: "[CONTEXT] 文脈/背景",
+                context_placeholder: "関連資料、背景情報、参考事項等を入力してください",
+                context_desc: "問題解決に必要な背景情報と関連資料を提供します",
+                constraints_label: "[CONSTRAINTS] 制約事項",
+                constraints_placeholder: "形式、トーン、長さ、特別な要求事項等を入力してください",
+                constraints_desc: "回答形式、トーン、長さ等の制約事項を明記します",
+                scratchpad_title: "🔧 PROCESS_PRIVATE - 内部思考過程（Scratchpad）",
+                scratchpad_info: "※ このセクションはAIの内部思考過程で、最終出力には含まれません",
+                decompose_label: "1) 問題分解",
+                decompose_placeholder: "問題をどのようにサブタスクに分解するか入力（オプション）",
+                hypothesis_label: "2) 仮説・根拠・代案",
+                hypothesis_placeholder: "各課題の仮説、根拠、代案比較方法を入力（オプション）",
+                decision_label: "3) 意思決定過程",
+                decision_placeholder: "最終意思決定過程と理由を入力（オプション）",
+                final_label: "[FINAL] 最終出力指示事項",
+                final_placeholder: "最終回答に含めるべき特別な指示事項があれば入力してください（オプション）",
+                final_desc: "最終回答形式や特別な要求事項を追加で明記できます",
+                output_title: "生成されたCOTプロンプト",
+                output_placeholder: "生成されたプロンプトがここに表示されます...",
+                output_placeholder_empty: "入力された内容がありません。上のフィールドを埋めてください。",
+                button_generate: "プロンプト生成",
+                button_copy: "コピー",
+                button_clear: "クリア",
+                copy_notification: "✅ クリップボードにコピーされました！",
+                copy_alert: "コピーするプロンプトがありません。まず内容を入力して生成してください。"
+            },
+            zh: {
+                header_title: "🧠 COT提示词生成器",
+                header_desc: "使用思维链创建系统化的提示词",
+                language_label: "语言:",
+                cot_framework: "思维链（COT）框架",
+                cot_desc: "通过系统化的思考过程逐步解决复杂问题的提示技术",
+                cot_features: `<li>将问题分解为更小的单元</li>
+                              <li>为每个步骤提供明确的假设和证据</li>
+                              <li>分离内部思考过程和最终输出</li>
+                              <li>得出逻辑性和系统性的答案</li>`,
+                role_label: "[ROLE] 角色定义",
+                role_placeholder: "定义AI应执行的专家角色。例如：数据分析专家、营销顾问等",
+                role_desc: "明确定义AI应该以什么专家身份回答",
+                goal_label: "[GOAL] 目标",
+                goal_placeholder: "清楚地输入要解决的任务或目标",
+                goal_desc: "编写要实现的具体目标",
+                context_label: "[CONTEXT] 背景/上下文",
+                context_placeholder: "输入相关材料、背景信息、参考资料等",
+                context_desc: "提供解决问题所需的背景信息和相关材料",
+                constraints_label: "[CONSTRAINTS] 约束条件",
+                constraints_placeholder: "输入格式、语气、长度、特殊要求等",
+                constraints_desc: "指定答案格式、语气、长度等约束条件",
+                scratchpad_title: "🔧 PROCESS_PRIVATE - 内部思考过程（Scratchpad）",
+                scratchpad_info: "※ 本部分是AI的内部思考过程，不会包含在最终输出中",
+                decompose_label: "1) 问题分解",
+                decompose_placeholder: "输入如何将问题分解为子任务（可选）",
+                hypothesis_label: "2) 假设·证据·替代方案",
+                hypothesis_placeholder: "输入每个任务的假设、证据和替代方案比较方法（可选）",
+                decision_label: "3) 决策过程",
+                decision_placeholder: "输入最终决策过程和理由（可选）",
+                final_label: "[FINAL] 最终输出指示",
+                final_placeholder: "输入最终答案中应包含的任何特殊指示（可选）",
+                final_desc: "可以额外指定最终答案格式或特殊要求",
+                output_title: "生成的COT提示词",
+                output_placeholder: "生成的提示词将显示在这里...",
+                output_placeholder_empty: "未输入任何内容。请填写上面的字段。",
+                button_generate: "生成提示词",
+                button_copy: "复制",
+                button_clear: "清除",
+                copy_notification: "✅ 已复制到剪贴板！",
+                copy_alert: "没有可复制的提示词。请先输入内容并生成。"
+            }
+        };
+
+        // 언어 변경 함수
+        function changeLanguage() {
+            const lang = document.getElementById('language-selector').value;
+            document.documentElement.lang = lang;
+
+            // 텍스트 콘텐츠 번역
+            document.querySelectorAll('[data-translate-key]').forEach(el => {
+                const key = el.dataset.translateKey;
+                if (translations[lang] && translations[lang][key]) {
+                    if (key === 'cot_features') {
+                        el.innerHTML = translations[lang][key];
+                    } else {
+                        el.textContent = translations[lang][key];
+                    }
+                }
+            });
+
+            // 플레이스홀더 번역
+            document.querySelectorAll('[data-translate-placeholder-key]').forEach(el => {
+                const key = el.dataset.translatePlaceholderKey;
+                if (translations[lang] && translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+
+            // 언어 변경시 프롬프트 자동 갱신
+            generatePrompt();
+        }
+
+        // 프롬프트 생성 함수
+        function generatePrompt() {
+            const lang = document.getElementById('language-selector').value;
+            
+            // 입력값 가져오기
+            const role = document.getElementById('role').value;
+            const goal = document.getElementById('goal').value;
+            const context = document.getElementById('context').value;
+            const constraints = document.getElementById('constraints').value;
+            const decompose = document.getElementById('decompose').value;
+            const hypothesis = document.getElementById('hypothesis').value;
+            const decision = document.getElementById('decision').value;
+            const finalOutput = document.getElementById('final_output').value;
+
+            // 프롬프트 구성
+            let prompt = '';
+            const parts = [];
+
+            if (role) parts.push(`[ROLE] ${role}`);
+            if (goal) parts.push(`[GOAL] ${goal}`);
+            if (context) parts.push(`[CONTEXT] ${context}`);
+            if (constraints) parts.push(`[CONSTRAINTS] ${constraints}`);
+
+            // Scratchpad 섹션 구성
+            const scratchpadParts = [];
+            if (decompose || hypothesis || decision) {
+                scratchpadParts.push('[PROCESS_PRIVATE]');
+                scratchpadParts.push('  <scratchpad>');
+                if (decompose) scratchpadParts.push(`  1) 문제를 하위 과제로 분해\n     ${decompose}`);
+                if (hypothesis) scratchpadParts.push(`  2) 각 과제별 가설·근거·대안 비교\n     ${hypothesis}`);
+                if (decision) scratchpadParts.push(`  3) 최종 의사결정 및 이유\n     ${decision}`);
+                scratchpadParts.push('  </scratchpad>');
+            } else {
+                // 기본 Scratchpad 템플릿
+                scratchpadParts.push('[PROCESS_PRIVATE]');
+                scratchpadParts.push('  <scratchpad>');
+                scratchpadParts.push('  1) 문제를 하위 과제로 분해');
+                scratchpadParts.push('  2) 각 과제별 가설·근거·대안 비교');
+                scratchpadParts.push('  3) 최종 의사결정 및 이유');
+                scratchpadParts.push('  </scratchpad>');
+            }
+
+            if (scratchpadParts.length > 0) {
+                parts.push(scratchpadParts.join('\n'));
+            }
+
+            // Final Instructions 추가
+            parts.push('[FINAL_INSTRUCTIONS]');
+            parts.push('  - 위 scratchpad 내용은 출력하지 말 것');
+            parts.push('  - 아래 [FINAL]에만 사용자에게 보여줄 답을 쓰기');
+            
+            if (finalOutput) {
+                parts.push(`  - ${finalOutput}`);
+            }
+
+            parts.push('[FINAL]');
+
+            prompt = parts.join('\n');
+
+            // 출력
+            const outputElement = document.getElementById('output');
+            if (prompt.trim() === '[FINAL_INSTRUCTIONS]\n  - 위 scratchpad 내용은 출력하지 말 것\n  - 아래 [FINAL]에만 사용자에게 보여줄 답을 쓰기\n[FINAL]') {
+                outputElement.textContent = translations[lang].output_placeholder_empty;
+            } else {
+                outputElement.textContent = prompt;
+            }
+        }
+
+        // 클립보드에 복사
+        function copyToClipboard() {
+            const lang = document.getElementById('language-selector').value;
+            const outputText = document.getElementById('output').textContent;
+            
+            if (!outputText || outputText === translations[lang].output_placeholder_empty || outputText === translations[lang].output_placeholder) {
+                const copyButton = document.querySelector('.btn-success');
+                const originalText = copyButton.innerHTML;
+                copyButton.innerHTML = `<span>⚠️</span> ${translations[lang].copy_alert.substring(0, 10)}...`;
+                copyButton.style.background = '#dc3545';
+                setTimeout(() => {
+                    copyButton.innerHTML = originalText;
+                    copyButton.style.background = '#28a745';
+                }, 2000);
+                return;
+            }
+            
+            navigator.clipboard.writeText(outputText).then(() => {
+                const notification = document.getElementById('copyNotification');
+                notification.classList.add('show');
+                setTimeout(() => notification.classList.remove('show'), 2000);
+            }).catch(err => {
+                console.error('복사 실패:', err);
+            });
+        }
+
+        // 필드 초기화
+        function clearFields() {
+            const lang = document.getElementById('language-selector').value;
+            
+            document.querySelectorAll('textarea').forEach(textarea => {
+                textarea.value = '';
+            });
+            
+            document.getElementById('output').textContent = translations[lang].output_placeholder;
+        }
+
+        // 페이지 로드시 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            // 모든 textarea에 이벤트 리스너 추가
+            document.querySelectorAll('textarea').forEach(textarea => {
+                textarea.addEventListener('input', generatePrompt);
+            });
+            
+            // 초기 언어 설정
+            changeLanguage();
+        });
+    </script>
+</body>
+</html>
