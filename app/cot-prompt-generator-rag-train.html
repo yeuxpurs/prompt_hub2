@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>자동차 공학 문제 해결 프롬프트 생성기</title>
+  <style>
+    /* 기본 스타일 설정 */
+    :root {
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --ink: #212529;
+      --muted: #6c757d;
+      --brand: #0d6efd;
+      --ok: #198754;
+      --warn: #ffc107;
+      --danger: #dc3545;
+      --radius: 12px;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    /* 기본 박스 모델링 및 폰트 설정 */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* 레이아웃 및 카드 스타일 */
+    .wrap { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .title { font-weight: 700; font-size: 24px; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      border: 1px solid #dee2e6;
+    }
+    .card h3 { margin: 0 0 16px; font-size: 18px; font-weight: 600; }
+    /* 그리드 및 폼 요소 스타일 */
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .row:last-child { margin-bottom: 0; }
+    .row-stack { display: flex; flex-direction: column; gap: 10px; }
+    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 8px; font-weight: 500; }
+    input[type="text"], input[type="number"], input[type="date"], textarea, select {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #ced4da;
+      background: #fff;
+      font-size: 14px;
+      color: var(--ink);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    }
+    textarea { resize: vertical; min-height: 90px; }
+    /* 버튼 스타일 */
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+    .btn {
+      appearance: none;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--brand);
+      color: #fff;
+      transition: background-color 0.2s, transform 0.1s;
+      font-size: 14px;
+    }
+    .btn:hover { background: #0b5ed7; }
+    .btn:active { transform: translateY(1px); }
+    .btn.secondary { background: #e9ecef; color: #212529; }
+    .btn.secondary:hover { background: #d3d9df; }
+    /* 출력 영역 스타일 */
+    .out {
+      white-space: pre-wrap;
+      background: #212529;
+      color: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      font-family: "D2Coding", "Consolas", monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      overflow: auto;
+      min-height: 240px;
+      border: 1px solid #495057;
+    }
+    .pill { font-size: 12px; font-weight: 500; color: #495057; background: #e9ecef; border-radius: 999px; padding: 6px 10px; display: inline-block; }
+    .hr { height: 1px; background: #e9ecef; margin: 24px 0; }
+    .kbd { font-family: monospace; font-size: 12px; background: #e9ecef; color: #212529; padding: 3px 6px; border-radius: 4px; border: 1px solid #dee2e6;}
+    /* 알림 메시지(Toast) 스타일 */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 14px 24px;
+      border-radius: 50px;
+      font-size: 14px;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
+    }
+    #toast.show {
+      opacity: 1;
+      visibility: visible;
+      bottom: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <div class="title">🚗 자동차 공학 문제 해결 프롬프트 생성기</div>
+        <div class="subtitle">기술 문서 검색 및 보고서 생성을 위한 프롬프트를 체계적으로 구성합니다.</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- 입력 패널 -->
+      <section class="card">
+        <h3>1. 분석 목표 설정</h3>
+        <div class="row">
+          <div>
+            <label>나의 역할 (Persona)</label>
+            <input id="role" type="text" placeholder="예: 파워트레인 품질 엔지니어" oninput="buildPrompt()" />
+          </div>
+          <div>
+            <label>핵심 목표 (Goal)</label>
+            <input id="goal" type="text" placeholder="예: '피닉스' 프로젝트 엔진 과열 원인 분석 보고서 초안" oninput="buildPrompt()" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>주요 정보 (Context)</label>
+            <textarea id="context" placeholder="예: 피닉스(Phoenix) 프로젝트, 2.5L 가솔린 터보, 내구 시험 중 특정 조건에서 과열 발생" oninput="suggestQueries(); buildPrompt()"></textarea>
+          </div>
+          <div>
+            <label>결과물 제약 조건 (Constraints)</label>
+            <textarea id="constraints" placeholder="예: Markdown 형식, 표와 글머리 기호 사용, 원인-결과 구조로 명확히 서술" oninput="buildPrompt()"></textarea>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <h3>2. 검색 조건</h3>
+        <div class="row">
+          <div>
+            <label>핵심 엔티티/키워드 (쉼표 구분)</label>
+            <input id="entities" type="text" placeholder="예: 엔진 과열, 냉각수, 라디에이터, 서모스탯, 워터펌프" oninput="suggestQueries(); buildPrompt()" />
+          </div>
+          <div class="row">
+             <div>
+                <label>기간 (시작)</label>
+                <input id="time_from" type="date" oninput="buildPrompt()" />
+              </div>
+              <div>
+                <label>기간 (종료)</label>
+                <input id="time_to" type="date" oninput="buildPrompt()" />
+              </div>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label>검색 대상 데이터소스</label>
+            <div class="row-stack">
+              <div><input type="checkbox" id="src_tech_docs" checked onchange="buildPrompt()"/> <label for="src_tech_docs">기술 문서 서버</label></div>
+              <div><input type="checkbox" id="src_test_reports" checked onchange="buildPrompt()"/> <label for="src_test_reports">시험 결과 데이터베이스</label></div>
+              <div><input type="checkbox" id="src_email" onchange="buildPrompt()"/> <label for="src_email">이메일 아카이브</label></div>
+            </div>
+          </div>
+          <div>
+            <label>검색 정확도</label>
+            <select id="search_mode" onchange="buildPrompt()">
+              <option value="hybrid" selected>Hybrid (키워드 + 의미 기반)</option>
+              <option value="keyword">키워드 기반</option>
+              <option value="semantic">의미 기반 (Semantic)</option>
+            </select>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <h3>3. 상세 질의 생성</h3>
+        <div class="row">
+          <div>
+            <label>생성된 검색 질의 (필요시 수정)</label>
+            <textarea id="queries" placeholder="엔티티와 컨텍스트를 기반으로 자동 생성됩니다."></textarea>
+            <div class="btns">
+              <button class="btn secondary" onclick="suggestQueries()">질의 자동 생성</button>
+            </div>
+          </div>
+          <div>
+            <label>가상 답변 (Hypothetical Answer)</label>
+            <textarea id="hyde" placeholder="자동 생성된 질의에 대한 가상 답변이 여기에 표시됩니다." readonly></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- 출력 패널 -->
+      <section class="card">
+        <h3>최종 프롬프트</h3>
+        <div class="btns" style="margin-bottom:16px">
+          <button class="btn" onclick="buildPrompt()">재생성</button>
+          <button class="btn secondary" onclick="copyAll()">전체 복사</button>
+          <button class="btn secondary" onclick="clearAll()">초기화</button>
+        </div>
+
+        <div class="pill">[SYSTEM PROMPT]</div>
+        <div id="prompt_out" class="out" aria-label="prompt output"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 알림 메시지용 div -->
+  <div id="toast"></div>
+
+  <script>
+    // --- 유틸리티 함수 ---
+    /**
+     * 배열에서 중복된 요소를 제거합니다.
+     * @param {Array} arr - 중복을 제거할 배열
+     * @returns {Array} 중복이 제거된 새 배열
+     */
+    const uniq = (arr) => [...new Set(arr.filter(Boolean))];
+
+    /**
+     * 텍스트를 토큰화하고 불용어를 제거합니다.
+     * @param {string} text - 토큰화할 텍스트
+     * @returns {string[]} 토큰 배열
+     */
+    const tokenize = (text) => {
+      const STOPWORDS = new Set(["그리고", "또한", "및", "관련", "대해", "a", "the", "in", "on"]);
+      return uniq(
+        text
+          .toLowerCase()
+          .split(/[\s,./;()\[\]{}<>~]+/)
+          .map(t => t.trim())
+          .filter(t => t && t.length > 1 && !STOPWORDS.has(t))
+      );
+    };
+    
+    /**
+     * 화면에 알림 메시지를 표시합니다.
+     * @param {string} message - 표시할 메시지
+     * @param {number} duration - 메시지 표시 시간 (ms)
+     */
+    const showToast = (message, duration = 2000) => {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    };
+
+    // --- 핵심 로직 함수 ---
+
+    /**
+     * 입력된 정보를 바탕으로 검색 질의를 자동으로 제안합니다.
+     */
+    function suggestQueries() {
+      const role = document.getElementById('role').value.trim();
+      const goal = document.getElementById('goal').value.trim();
+      const context = document.getElementById('context').value.trim();
+      const entities = document.getElementById('entities').value.trim();
+      
+      const SYNONYMS = {
+          "엔진 과열": ["엔진 온도 상승", "overheating"],
+          "냉각수": ["coolant", "부동액"],
+          "라디에이터": ["radiator", "방열기"],
+          "서모스탯": ["thermostat", "온도조절장치"],
+          "피닉스": ["Phoenix", "PX"],
+      };
+
+      const tokens = uniq([
+        ...tokenize(role), ...tokenize(goal), ...tokenize(context), ...tokenize(entities)
+      ]);
+
+      // 동의어/약어 확장
+      const expanded = new Set(tokens);
+      tokens.forEach(t => {
+        if (SYNONYMS[t]) {
+          SYNONYMS[t].forEach(s => expanded.add(s));
+        }
+      });
+
+      const base = Array.from(expanded).slice(0, 10);
+      
+      // 간단한 질의 템플릿
+      const queries = [];
+      if (base.length > 2) {
+        queries.push(`'${base[0]}' 원인 분석 기술 문서`);
+        queries.push(`'${base[0]}' 관련 '${base[1]}' 시험 결과 보고서`);
+        queries.push(`'${base.slice(0, 3).join(' ')}' 문제 해결 이력`);
+      }
+      queries.push(`${goal}`);
+
+      document.getElementById('queries').value = uniq(queries).filter(Boolean).join('\n');
+
+      // HyDE (가상 답변) 생성
+      const hyde = `가상 답변(Hypothetical Answer) 예시:\n\n'피닉스' 프로젝트의 엔진 과열 문제는 주로 고부하 주행 조건에서 냉각 시스템의 효율 저하로 인해 발생했다. 특히, 라디에이터의 설계 용량 부족과 서모스탯의 오작동 사례가 주요 원인으로 지목되었다. 관련 내구 시험 데이터(Test-Report-11B)에서 해당 현상이 재현되었으며, 개선된 라디에이터 적용 후 문제가 해결된 것으로 기록되어 있다.`;
+      document.getElementById('hyde').value = hyde;
+    }
+
+    /**
+     * 선택된 데이터소스 목록을 반환합니다.
+     * @returns {string[]} 데이터소스 이름 배열
+     */
+    function getSelectedSources() {
+      const sources = [];
+      if (document.getElementById('src_tech_docs').checked) sources.push('기술 문서 서버');
+      if (document.getElementById('src_test_reports').checked) sources.push('시험 결과 DB');
+      if (document.getElementById('src_email').checked) sources.push('이메일 아카이브');
+      return sources;
+    }
+
+    /**
+     * 모든 입력값을 종합하여 최종 프롬프트를 생성합니다.
+     */
+    function buildPrompt() {
+      const role = document.getElementById('role').value.trim();
+      const goal = document.getElementById('goal').value.trim();
+      const context = document.getElementById('context').value.trim();
+      const constraints = document.getElementById('constraints').value.trim();
+      const entities = document.getElementById('entities').value.trim();
+      const timeFrom = document.getElementById('time_from').value;
+      const timeTo = document.getElementById('time_to').value;
+      const sources = getSelectedSources();
+      const searchMode = document.getElementById('search_mode').value;
+      const queries = document.getElementById('queries').value.trim().split(/\n+/).filter(Boolean);
+
+      // 각 섹션별로 프롬프트 내용을 구성합니다.
+      const systemInstructions = [
+        `너는 최고의 ${role || '자동차 공학 전문가'}다.`,
+        `주어진 정보와 검색 계획에 따라, 사용자의 목표 달성을 도와야 한다.`,
+        `모든 답변은 반드시 검색된 내부 기술 문서에 근거해야 하며, 추측은 금지된다.`,
+        `답변은 한국어로 작성한다.`
+      ].join('\n');
+
+      const goalAndContext = [
+        `## 1. 최종 목표 (GOAL)`,
+        `${goal || '(목표가 입력되지 않았습니다)'}`,
+        `\n## 2. 배경 정보 (CONTEXT)`,
+        `${context || '(배경 정보가 입력되지 않았습니다)'}`,
+        `\n## 3. 핵심 키워드`,
+        `${entities || '(키워드가 입력되지 않았습니다)'}`
+      ].join('\n');
+
+      const retrievalPlan = [
+        `## 4. 검색 계획 (RETRIEVAL PLAN)`,
+        `- 검색 기간: ${timeFrom || '전체'} ~ ${timeTo || '현재'}`,
+        `- 검색 대상: ${sources.join(', ') || '전체 데이터소스'}`,
+        `- 검색 방식: ${searchMode}`,
+        `- 상세 질의:`,
+        ...(queries.length ? queries.map((q, i) => `  - ${q}`) : ['  - (생성된 질의가 없습니다)'])
+      ].join('\n');
+
+      const outputFormat = [
+        `## 5. 결과물 형식 (OUTPUT FORMAT)`,
+        `아래 지침에 따라 최종 결과물을 생성해줘.`,
+        `- 모든 주장의 근거가 되는 문서 정보를 반드시 인용([Source 1], [Source 2] 형식)해야 한다.`,
+        `- 충분한 근거를 찾지 못했다면, '관련 정보를 찾을 수 없음'이라고 명확히 밝힌다.`,
+        `- ${constraints || 'Markdown을 사용하여 가독성 높게 작성한다.'}`
+      ].join('\n');
+
+      // 최종 프롬프트 조합
+      const finalPrompt = [
+        `[SYSTEM INSTRUCTIONS]`,
+        systemInstructions,
+        `\n--------------------------------\n`,
+        `[USER REQUEST]`,
+        goalAndContext,
+        `\n`,
+        retrievalPlan,
+        `\n`,
+        outputFormat,
+      ].join('\n');
+
+      document.getElementById('prompt_out').textContent = finalPrompt;
+    }
+
+    /**
+     * 생성된 프롬프트를 클립보드에 복사합니다.
+     */
+    function copyAll() {
+      const promptText = document.getElementById('prompt_out').textContent;
+      // execCommand는 오래된 방식이지만 iframe 환경에서 호환성이 더 좋을 수 있습니다.
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = promptText;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('✅ 프롬프트가 복사되었습니다.');
+      } catch (err) {
+        // navigator.clipboard가 실패할 경우를 대비한 폴백
+        console.error('Copy failed:', err);
+        showToast('❌ 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
+      }
+    }
+    
+    /**
+     * 모든 입력 필드를 초기화합니다.
+     */
+    function clearAll() {
+      const inputIds = ['role', 'goal', 'context', 'constraints', 'entities', 'time_from', 'time_to', 'queries', 'hyde'];
+      inputIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      // 체크박스 초기화
+      document.getElementById('src_tech_docs').checked = true;
+      document.getElementById('src_test_reports').checked = true;
+      document.getElementById('src_email').checked = false;
+      
+      buildPrompt();
+      showToast('🔄 입력 필드를 초기화했습니다.');
+    }
+
+    // --- 페이지 로드 시 초기화 ---
+    window.addEventListener('DOMContentLoaded', () => {
+      buildPrompt();
+    });
+  </script>
+</body>
+</html>
