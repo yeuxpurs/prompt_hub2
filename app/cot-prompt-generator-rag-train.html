@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>자동차 공학 문제 해결 프롬프트 생성기</title>
+  <title>RAG Prompt Generator</title>
   <style>
-    /* 기본 스타일 설정 */
+    /* --- Basic Styles --- */
     :root {
       --bg: #f8f9fa;
       --card: #ffffff;
@@ -18,18 +18,15 @@
       --radius: 12px;
       --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
-    /* 기본 박스 모델링 및 폰트 설정 */
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
     body {
       margin: 0;
       background: var(--bg);
       color: var(--ink);
-      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
-    /* 레이아웃 및 카드 스타일 */
     .wrap { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
     header {
       display: flex;
@@ -40,6 +37,17 @@
     }
     .title { font-weight: 700; font-size: 24px; }
     .subtitle { color: var(--muted); font-size: 14px; }
+    .controls { display: flex; gap: 12px; align-items: center; }
+    .controls label { font-size: 14px; font-weight: 500; color: var(--muted); }
+    .controls select {
+      width: auto;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #ced4da;
+      background: #fff;
+      font-size: 14px;
+      color: var(--ink);
+    }
     .grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
     @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
     .card {
@@ -50,12 +58,11 @@
       border: 1px solid #dee2e6;
     }
     .card h3 { margin: 0 0 16px; font-size: 18px; font-weight: 600; }
-    /* 그리드 및 폼 요소 스타일 */
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .row:last-child { margin-bottom: 0; }
     .row-stack { display: flex; flex-direction: column; gap: 10px; }
-    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 8px; font-weight: 500; }
-    input[type="text"], input[type="number"], input[type="date"], textarea, select {
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
+    input[type="text"], input[type="date"], textarea, select {
       width: 100%;
       padding: 10px 14px;
       border-radius: 8px;
@@ -71,55 +78,58 @@
       box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
     }
     textarea { resize: vertical; min-height: 90px; }
-    /* 버튼 스타일 */
     .btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
     .btn {
-      appearance: none;
-      border: 0;
+      border: none;
       border-radius: 8px;
       padding: 10px 16px;
       font-weight: 600;
       cursor: pointer;
       background: var(--brand);
       color: #fff;
-      transition: background-color 0.2s, transform 0.1s;
       font-size: 14px;
+      transition: background-color 0.2s, transform 0.1s;
     }
     .btn:hover { background: #0b5ed7; }
     .btn:active { transform: translateY(1px); }
-    .btn.secondary { background: #e9ecef; color: #212529; }
+    .btn.secondary {
+      background: #e9ecef;
+      color: #212529;
+    }
     .btn.secondary:hover { background: #d3d9df; }
-    /* 출력 영역 스타일 */
     .out {
       white-space: pre-wrap;
       background: #212529;
       color: #f8f9fa;
       padding: 16px;
       border-radius: 8px;
-      font-family: "D2Coding", "Consolas", monospace;
+      font-family: Consolas, monospace;
       font-size: 13px;
       line-height: 1.7;
       overflow: auto;
       min-height: 240px;
       border: 1px solid #495057;
     }
-    .pill { font-size: 12px; font-weight: 500; color: #495057; background: #e9ecef; border-radius: 999px; padding: 6px 10px; display: inline-block; }
+    .pill {
+      font-size: 12px;
+      font-weight: 500;
+      color: #495057;
+      background: #e9ecef;
+      border-radius: 999px;
+      padding: 6px 10px;
+      display: inline-block;
+    }
     .hr { height: 1px; background: #e9ecef; margin: 24px 0; }
-    .kbd { font-family: monospace; font-size: 12px; background: #e9ecef; color: #212529; padding: 3px 6px; border-radius: 4px; border: 1px solid #dee2e6;}
-    /* 알림 메시지(Toast) 스타일 */
+    .kbd { font-family: monospace; font-size: 12px; background: #e9ecef; color: #212529;
+           padding: 3px 6px; border-radius: 4px; border: 1px solid #dee2e6;}
     #toast {
-      position: fixed;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: #333;
-      color: #fff;
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background-color: #333; color: #fff;
       padding: 14px 24px;
       border-radius: 50px;
       font-size: 14px;
       z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
+      opacity: 0; visibility: hidden;
       transition: opacity 0.5s, visibility 0.5s, bottom 0.5s;
     }
     #toast.show {
@@ -133,277 +143,626 @@
   <div class="wrap">
     <header>
       <div>
-        <div class="title">🚗 자동차 공학 문제 해결 프롬프트 생성기</div>
-        <div class="subtitle">기술 문서 검색 및 보고서 생성을 위한 프롬프트를 체계적으로 구성합니다.</div>
+        <div id="app_title" class="title">🚗 자동차 공학 문제 해결 프롬프트 생성기</div>
+        <div id="app_subtitle" class="subtitle">
+          기술 문서 검색 및 보고서 생성을 위한 프롬프트를 체계적으로 구성합니다.
+        </div>
+      </div>
+      <div class="controls">
+        <label for="language">Language:</label>
+        <select id="language">
+          <option value="ko">한국어 (KO)</option>
+          <option value="en">English (EN)</option>
+        </select>
+        <label for="domain">Domain:</label>
+        <select id="domain">
+          <option value="auto">Automotive</option>
+          <option value="finance">Finance</option>
+          <option value="medical">Medical</option>
+          <option value="general">General</option>
+        </select>
+        <label for="model">Model:</label>
+        <select id="model">
+          <option value="GPT-4">GPT-4</option>
+          <option value="GPT-3.5">GPT-3.5</option>
+          <option value="LLaMA2 13B">LLaMA2 13B</option>
+          <option value="LLaMA2 7B">LLaMA2 7B</option>
+          <option value="Other">Custom/Other</option>
+        </select>
       </div>
     </header>
 
     <div class="grid">
-      <!-- 입력 패널 -->
+      <!-- Input Panel -->
       <section class="card">
         <h3>1. 분석 목표 설정</h3>
         <div class="row">
           <div>
-            <label>나의 역할 (Persona)</label>
-            <input id="role" type="text" placeholder="예: 파워트레인 품질 엔지니어" oninput="buildPrompt()" />
+            <label id="label_role">나의 역할 (Persona)</label>
+            <input id="role" type="text" placeholder="예: 파워트레인 품질 엔지니어" />
           </div>
           <div>
-            <label>핵심 목표 (Goal)</label>
-            <input id="goal" type="text" placeholder="예: '피닉스' 프로젝트 엔진 과열 원인 분석 보고서 초안" oninput="buildPrompt()" />
+            <label id="label_goal">핵심 목표 (Goal)</label>
+            <input id="goal" type="text" placeholder="예: '피닉스' 프로젝트 엔진 과열 원인 분석 보고서 초안" />
           </div>
         </div>
         <div class="row">
           <div>
-            <label>주요 정보 (Context)</label>
-            <textarea id="context" placeholder="예: 피닉스(Phoenix) 프로젝트, 2.5L 가솔린 터보, 내구 시험 중 특정 조건에서 과열 발생" oninput="suggestQueries(); buildPrompt()"></textarea>
+            <label id="label_context">주요 정보 (Context)</label>
+            <textarea id="context" placeholder="예: 피닉스 프로젝트, 2.5L 터보 엔진, 내구 테스트 중 과열 현상 발생"></textarea>
           </div>
           <div>
-            <label>결과물 제약 조건 (Constraints)</label>
-            <textarea id="constraints" placeholder="예: Markdown 형식, 표와 글머리 기호 사용, 원인-결과 구조로 명확히 서술" oninput="buildPrompt()"></textarea>
+            <label id="label_constraints">결과물 제약 조건 (Constraints)</label>
+            <textarea id="constraints" placeholder="예: Markdown 형식, 표와 bullet 사용, 원인-결과 관계로 서술"></textarea>
           </div>
         </div>
         <div class="hr"></div>
         <h3>2. 검색 조건</h3>
         <div class="row">
           <div>
-            <label>핵심 엔티티/키워드 (쉼표 구분)</label>
-            <input id="entities" type="text" placeholder="예: 엔진 과열, 냉각수, 라디에이터, 서모스탯, 워터펌프" oninput="suggestQueries(); buildPrompt()" />
+            <label id="label_entities">핵심 엔티티/키워드</label>
+            <input id="entities" type="text" placeholder="예: 엔진 과열, 냉각수, 라디에이터, 서모스탯" />
           </div>
           <div class="row">
-             <div>
-                <label>기간 (시작)</label>
-                <input id="time_from" type="date" oninput="buildPrompt()" />
-              </div>
-              <div>
-                <label>기간 (종료)</label>
-                <input id="time_to" type="date" oninput="buildPrompt()" />
-              </div>
+            <div>
+              <label id="label_time_from">기간 (시작)</label>
+              <input id="time_from" type="date" />
+            </div>
+            <div>
+              <label id="label_time_to">기간 (종료)</label>
+              <input id="time_to" type="date" />
+            </div>
           </div>
         </div>
         <div class="row">
           <div>
-            <label>검색 대상 데이터소스</label>
+            <label id="label_sources">검색 대상 데이터소스</label>
             <div class="row-stack">
-              <div><input type="checkbox" id="src_tech_docs" checked onchange="buildPrompt()"/> <label for="src_tech_docs">기술 문서 서버</label></div>
-              <div><input type="checkbox" id="src_test_reports" checked onchange="buildPrompt()"/> <label for="src_test_reports">시험 결과 데이터베이스</label></div>
-              <div><input type="checkbox" id="src_email" onchange="buildPrompt()"/> <label for="src_email">이메일 아카이브</label></div>
+              <div><input type="checkbox" id="src_tech_docs" /> <label for="src_tech_docs">기술 문서 서버</label></div>
+              <div><input type="checkbox" id="src_test_reports" /> <label for="src_test_reports">시험 결과 DB</label></div>
+              <div><input type="checkbox" id="src_email" /> <label for="src_email">이메일 아카이브</label></div>
             </div>
           </div>
           <div>
-            <label>검색 정확도</label>
-            <select id="search_mode" onchange="buildPrompt()">
-              <option value="hybrid" selected>Hybrid (키워드 + 의미 기반)</option>
+            <label id="label_search_mode">검색 방식</label>
+            <select id="search_mode">
+              <option value="hybrid">Hybrid (키워드 + 의미 기반)</option>
               <option value="keyword">키워드 기반</option>
               <option value="semantic">의미 기반 (Semantic)</option>
             </select>
           </div>
         </div>
         <div class="hr"></div>
-        <h3>3. 상세 질의 생성</h3>
+        <h3>3. 상세 질의 및 HyDE 생성</h3>
         <div class="row">
           <div>
-            <label>생성된 검색 질의 (필요시 수정)</label>
+            <label id="label_queries">생성된 검색 질의 (필요시 수정)</label>
             <textarea id="queries" placeholder="엔티티와 컨텍스트를 기반으로 자동 생성됩니다."></textarea>
             <div class="btns">
-              <button class="btn secondary" onclick="suggestQueries()">질의 자동 생성</button>
+              <button class="btn secondary" id="btn_gen_queries">질의 자동 생성</button>
             </div>
           </div>
           <div>
-            <label>가상 답변 (Hypothetical Answer)</label>
-            <textarea id="hyde" placeholder="자동 생성된 질의에 대한 가상 답변이 여기에 표시됩니다." readonly></textarea>
+            <label id="label_hyde">가상 답변 (Hypothetical Answer)</label>
+            <textarea id="hyde" placeholder="자동 생성된 가상 답변이 여기에 표시됩니다."></textarea>
+            <div class="btns">
+              <button class="btn secondary" id="btn_gen_hyde">가상 답변 생성</button>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- 출력 패널 -->
+      <!-- Output Panel -->
       <section class="card">
-        <h3>최종 프롬프트</h3>
-        <div class="btns" style="margin-bottom:16px">
-          <button class="btn" onclick="buildPrompt()">재생성</button>
-          <button class="btn secondary" onclick="copyAll()">전체 복사</button>
-          <button class="btn secondary" onclick="clearAll()">초기화</button>
+        <h3 id="label_final_prompt">최종 프롬프트</h3>
+        <div class="btns" style="margin-bottom: 16px;">
+          <button class="btn" id="btn_build">재생성</button>
+          <button class="btn secondary" id="btn_copy">전체 복사</button>
+          <button class="btn secondary" id="btn_clear">초기화</button>
         </div>
-
+        <div class="btns">
+          <button class="btn secondary" id="btn_export_json">Export JSON</button>
+          <button class="btn secondary" id="btn_export_csv">Export CSV</button>
+          <button class="btn secondary" id="btn_export_instr">Export Instruct JSON</button>
+        </div>
         <div class="pill">[SYSTEM PROMPT]</div>
         <div id="prompt_out" class="out" aria-label="prompt output"></div>
       </section>
     </div>
   </div>
 
-  <!-- 알림 메시지용 div -->
   <div id="toast"></div>
 
   <script>
-    // --- 유틸리티 함수 ---
-    /**
-     * 배열에서 중복된 요소를 제거합니다.
-     * @param {Array} arr - 중복을 제거할 배열
-     * @returns {Array} 중복이 제거된 새 배열
-     */
-    const uniq = (arr) => [...new Set(arr.filter(Boolean))];
-
-    /**
-     * 텍스트를 토큰화하고 불용어를 제거합니다.
-     * @param {string} text - 토큰화할 텍스트
-     * @returns {string[]} 토큰 배열
-     */
-    const tokenize = (text) => {
-      const STOPWORDS = new Set(["그리고", "또한", "및", "관련", "대해", "a", "the", "in", "on"]);
-      return uniq(
-        text
-          .toLowerCase()
-          .split(/[\s,./;()\[\]{}<>~]+/)
-          .map(t => t.trim())
-          .filter(t => t && t.length > 1 && !STOPWORDS.has(t))
-      );
-    };
-    
-    /**
-     * 화면에 알림 메시지를 표시합니다.
-     * @param {string} message - 표시할 메시지
-     * @param {number} duration - 메시지 표시 시간 (ms)
-     */
-    const showToast = (message, duration = 2000) => {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, duration);
-    };
-
-    // --- 핵심 로직 함수 ---
-
-    /**
-     * 입력된 정보를 바탕으로 검색 질의를 자동으로 제안합니다.
-     */
-    function suggestQueries() {
-      const role = document.getElementById('role').value.trim();
-      const goal = document.getElementById('goal').value.trim();
-      const context = document.getElementById('context').value.trim();
-      const entities = document.getElementById('entities').value.trim();
-      
-      const SYNONYMS = {
-          "엔진 과열": ["엔진 온도 상승", "overheating"],
-          "냉각수": ["coolant", "부동액"],
+    // --- Configuration for domains and translations ---
+    const domainConfigs = {
+      auto: {
+        icon: "🚗",
+        title: { ko: "자동차 공학 문제 해결", en: "Automotive Problem Solving" },
+        subtitle: {
+          ko: "기술 문서 검색 및 보고서 생성을 위한 프롬프트를 체계적으로 구성합니다.",
+          en: "Structuring prompts for technical document search and report generation."
+        },
+        defaultRole: { ko: "자동차 공학 전문가", en: "automotive engineering expert" },
+        knowledgeSource: { ko: "기술 문서", en: "technical documents" },  // used in system instruction line about evidence
+        sourceLabels: {
+          ko: { tech_docs: "기술 문서 서버", test_reports: "시험 결과 DB", email: "이메일 아카이브" },
+          en: { tech_docs: "Technical Docs Server", test_reports: "Test Results DB", email: "Email Archive" }
+        },
+        defaultSources: { tech_docs: true, test_reports: true, email: false },  // default checkbox states
+        // Domain-specific synonyms for query expansion (keys and values cover Korean and English where appropriate)
+        synonyms: {
+          "엔진": ["엔진과열", "overheating"],  // sample entry linking engine overheating
+          "엔진과열": ["엔진 과열", "engine overheating"],
+          "냉각수": ["부동액", "coolant"],
           "라디에이터": ["radiator", "방열기"],
           "서모스탯": ["thermostat", "온도조절장치"],
-          "피닉스": ["Phoenix", "PX"],
-      };
+          "테스트": ["시험", "test"],
+          "프로젝트": ["project"]
+        },
+        example: { // Example preset scenario for automotive domain
+          role: "파워트레인 품질 엔지니어",
+          goal: "'피닉스' 프로젝트 엔진 과열 원인 분석 보고서 초안",
+          context: "피닉스 프로젝트 차량의 2.5L 가솔린 터보 엔진이 내구 시험 중 특정 고부하 조건에서 과열되는 현상이 발생함",
+          constraints: "Markdown 형식, bullet 포인트로 원인 및 해결 방안 정리",
+          entities: "엔진 과열, 냉각수, 라디에이터, 서모스탯, 워터펌프",
+          time_from: "", time_to: "",  // no specific date range
+          search_mode: "hybrid",
+          sources: { tech_docs: true, test_reports: true, email: false }
+        }
+      },
+      finance: {
+        icon: "💼",
+        title: { ko: "금융 분석", en: "Financial Analysis" },
+        subtitle: {
+          ko: "내부 재무 데이터 검색 및 요약 보고서 작성을 위한 프롬프트 생성기.",
+          en: "Structuring prompts for financial data retrieval and summary report generation."
+        },
+        defaultRole: { ko: "재무 분석가", en: "financial analyst" },
+        knowledgeSource: { ko: "재무 문서", en: "financial documents" },
+        sourceLabels: {
+          ko: { tech_docs: "재무 보고서 DB", test_reports: "시장 데이터베이스", email: "이메일 아카이브" },
+          en: { tech_docs: "Financial Reports DB", test_reports: "Market Data DB", email: "Email Archive" }
+        },
+        defaultSources: { tech_docs: true, test_reports: true, email: false },
+        synonyms: {
+          "시장": ["마켓", "market"],
+          "변동성": ["volatility"],
+          "금리": ["이자율", "interest rate"],
+          "인플레이션": ["물가상승", "inflation"],
+          "주가": ["stock price", "share price"]
+        },
+        example: {
+          role: "재무 분석가",
+          goal: "2025년 3분기 시장 변동성 분석 보고서 초안",
+          context: "2025년 3분기 주식 시장에서 금리 상승과 지정학적 긴장으로 인해 큰 폭의 변동성이 관찰됨",
+          constraints: "Markdown 표 포함, 원인과 영향으로 구분하여 작성",
+          entities: "시장 변동성, 금리 상승, 지정학적 리스크, 인플레이션, 주가 지수",
+          time_from: "2025-07-01", time_to: "2025-09-30",
+          search_mode: "hybrid",
+          sources: { tech_docs: true, test_reports: true, email: false }
+        }
+      },
+      medical: {
+        icon: "💊",
+        title: { ko: "의료 연구", en: "Medical Research" },
+        subtitle: {
+          ko: "의료 문헌 검색 및 결과 보고서 생성을 위한 프롬프트 생성기.",
+          en: "Structuring prompts for medical literature search and findings report generation."
+        },
+        defaultRole: { ko: "임상 연구원", en: "clinical researcher" },
+        knowledgeSource: { ko: "의료 자료", en: "medical literature" },
+        sourceLabels: {
+          ko: { tech_docs: "의학 저널 DB", test_reports: "임상시험 데이터", email: "케이스 기록 보관소" },
+          en: { tech_docs: "Medical Journals DB", test_reports: "Clinical Trials DB", email: "Case Archive" }
+        },
+        defaultSources: { tech_docs: true, test_reports: true, email: false },
+        synonyms: {
+          "임상시험": ["clinical trial"],
+          "부작용": ["이상 반응", "side effect", "adverse event"],
+          "약물": ["drug", "medication"],
+          "환자": ["patient"],
+          "데이터": ["data"]
+        },
+        example: {
+          role: "임상 연구원",
+          goal: "신약 X 임상시험 부작용 원인 분석 보고서 초안",
+          context: "신약 X에 대한 3상 임상시험 중 다수의 환자에서 심각하지는 않지만 공통된 부작용(두통, 어지러움)이 보고됨",
+          constraints: "결과는 표로 정리, 원인 가능성별로 섹션 구분",
+          entities: "임상시험, 부작용, 약물 대사, 환자 데이터, 통계 분석",
+          time_from: "", time_to: "",
+          search_mode: "hybrid",
+          sources: { tech_docs: true, test_reports: true, email: false }
+        }
+      },
+      general: {
+        icon: "📝",
+        title: { ko: "범용 RAG", en: "General RAG" },
+        subtitle: {
+          ko: "범용 정보 검색 및 생성형 응답을 위한 프롬프트를 구성합니다.",
+          en: "Structuring prompts for general retrieval-augmented generation tasks."
+        },
+        defaultRole: { ko: "지식 전문가", en: "domain expert" },
+        knowledgeSource: { ko: "문서", en: "documents" },
+        sourceLabels: {
+          ko: { tech_docs: "문서 데이터베이스", test_reports: "기록 저장소", email: "이메일 아카이브" },
+          en: { tech_docs: "Document Database", test_reports: "Records Repository", email: "Email Archive" }
+        },
+        defaultSources: { tech_docs: true, test_reports: true, email: false },
+        synonyms: {
+          // General synonyms can be minimal or none; users can add as needed
+        },
+        example: {
+          role: "",
+          goal: "",
+          context: "",
+          constraints: "",
+          entities: "",
+          time_from: "", time_to: "",
+          search_mode: "hybrid",
+          sources: { tech_docs: true, test_reports: true, email: false }
+        }
+      }
+    };
 
-      const tokens = uniq([
-        ...tokenize(role), ...tokenize(goal), ...tokenize(context), ...tokenize(entities)
+    // Static translations for UI labels and prompt section titles in each language
+    const translations = {
+      ko: {
+        labels: {
+          role: "나의 역할 (Persona)",
+          goal: "핵심 목표 (Goal)",
+          context: "주요 정보 (Context)",
+          constraints: "결과물 제약 조건 (Constraints)",
+          entities: "핵심 엔티티/키워드",
+          time_from: "기간 (시작)",
+          time_to: "기간 (종료)",
+          sources: "검색 대상 데이터소스",
+          search_mode: "검색 방식",
+          queries: "생성된 검색 질의 (필요시 수정)",
+          hyde: "가상 답변 (Hypothetical Answer)",
+          final_prompt: "최종 프롬프트"
+        },
+        // Search mode option text (to set <option> display)
+        modes: {
+          hybrid: "Hybrid (키워드 + 의미 기반)",
+          keyword: "키워드 기반",
+          semantic: "의미 기반 (Semantic)"
+        },
+        // Prompt section titles and default "not provided" placeholders
+        promptSections: {
+          goal: "## 1. 최종 목표 (GOAL)",
+          context: "## 2. 배경 정보 (CONTEXT)",
+          entities: "## 3. 핵심 키워드",
+          retrievalPlan: "## 4. 검색 계획 (RETRIEVAL PLAN)",
+          outputFormat: "## 5. 결과물 형식 (OUTPUT FORMAT)",
+          noGoal: "(목표가 입력되지 않았습니다)",
+          noContext: "(배경 정보가 입력되지 않았습니다)",
+          noEntities: "(키워드가 입력되지 않았습니다)",
+          noQueries: "생성된 질의가 없습니다"
+        },
+        outputGuidelines: [
+          "- 모든 주장의 근거가 되는 문서 정보를 반드시 인용([Source 1], [Source 2] 형식)해야 합니다.",
+          "- 충분한 근거를 찾지 못했다면, '관련 정보를 찾을 수 없음'이라고 명확히 밝히세요.",
+          "- Markdown을 사용하여 가독성을 높게 작성하세요."
+        ]
+      },
+      en: {
+        labels: {
+          role: "Your Role (Persona)",
+          goal: "Main Goal",
+          context: "Background Info (Context)",
+          constraints: "Output Constraints",
+          entities: "Key Entities/Keywords",
+          time_from: "Date Range (Start)",
+          time_to: "Date Range (End)",
+          sources: "Data Sources",
+          search_mode: "Search Mode",
+          queries: "Generated Search Queries (edit if needed)",
+          hyde: "Hypothetical Answer (HyDE)",
+          final_prompt: "Final Prompt"
+        },
+        modes: {
+          hybrid: "Hybrid (keyword + semantic)",
+          keyword: "Keyword-based",
+          semantic: "Semantic-based"
+        },
+        promptSections: {
+          goal: "## 1. Final Goal (GOAL)",
+          context: "## 2. Background Info (CONTEXT)",
+          entities: "## 3. Key Entities",
+          retrievalPlan: "## 4. Retrieval Plan",
+          outputFormat: "## 5. Output Format",
+          noGoal: "(No goal provided)",
+          noContext: "(No background info provided)",
+          noEntities: "(No keywords provided)",
+          noQueries: "No queries generated"
+        },
+        outputGuidelines: [
+          "- Cite the source document for every claim (e.g., [Source 1], [Source 2]).",
+          "- If sufficient evidence is not found, state 'No relevant information found.' clearly.",
+          "- Use Markdown formatting (tables, lists) for readability."
+        ]
+      }
+    };
+
+    // --- State Variables ---
+    let currentLanguage = "ko";
+    let currentDomain = "auto";
+    let currentModel = "GPT-4";
+    let queriesModified = false;
+    let hydeModified = false;
+
+    // --- Utility Functions ---
+    /** Removes duplicates and falsy values from an array */
+    const uniq = arr => [...new Set(arr.filter(Boolean))];
+    /** Tokenizes text into keywords (splits on whitespace/punctuation, filters stopwords and short tokens) */
+    const tokenize = text => {
+      const STOPWORDS = new Set([
+        "그리고","또한","및","관련","대해",
+        "the","and","in","on","of","for","to"
       ]);
+      return text
+        .toLowerCase()
+        .split(/[\s,./;()\[\]{}<>~]+/)
+        .map(t => t.trim())
+        .filter(t => t && t.length > 1 && !STOPWORDS.has(t));
+    };
+    /** Displays a temporary toast message */
+    const showToast = (message, duration = 2000) => {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    };
 
-      // 동의어/약어 확장
+    // --- Core Logic Functions ---
+
+    /** Applies the selected language and domain to UI text (labels, placeholders, titles, etc.) */
+    function updateUI() {
+      const lang = currentLanguage;
+      const domain = currentDomain;
+      const config = domainConfigs[domain];
+      const t = translations[lang];
+
+      // Update page title and subtitle with domain-specific text and icon
+      const titleEl = document.getElementById('app_title');
+      const subtitleEl = document.getElementById('app_subtitle');
+      titleEl.textContent = `${config.icon} ${config.title[lang]} 프롬프트 생성기`;
+      subtitleEl.textContent = config.subtitle[lang];
+
+      // Update all input labels
+      document.getElementById('label_role').innerText = t.labels.role;
+      document.getElementById('label_goal').innerText = t.labels.goal;
+      document.getElementById('label_context').innerText = t.labels.context;
+      document.getElementById('label_constraints').innerText = t.labels.constraints;
+      document.getElementById('label_entities').innerText = t.labels.entities;
+      document.getElementById('label_time_from').innerText = t.labels.time_from;
+      document.getElementById('label_time_to').innerText = t.labels.time_to;
+      document.getElementById('label_sources').innerText = t.labels.sources;
+      document.getElementById('label_search_mode').innerText = t.labels.search_mode;
+      document.getElementById('label_queries').innerText = t.labels.queries;
+      document.getElementById('label_hyde').innerText = t.labels.hyde;
+      document.getElementById('label_final_prompt').innerText = t.labels.final_prompt;
+
+      // Update source checkbox labels to domain-specific names in current language
+      document.querySelector('label[for="src_tech_docs"]').innerText = config.sourceLabels[lang].tech_docs;
+      document.querySelector('label[for="src_test_reports"]').innerText = config.sourceLabels[lang].test_reports;
+      document.querySelector('label[for="src_email"]').innerText = config.sourceLabels[lang].email;
+
+      // Update search mode select option texts for current language
+      const modeSelect = document.getElementById('search_mode');
+      modeSelect.options[0].text = t.modes.hybrid;
+      modeSelect.options[1].text = t.modes.keyword;
+      modeSelect.options[2].text = t.modes.semantic;
+
+      // Update input placeholders for domain/language
+      const roleInput = document.getElementById('role');
+      const goalInput = document.getElementById('goal');
+      const contextInput = document.getElementById('context');
+      const constraintsInput = document.getElementById('constraints');
+      const entitiesInput = document.getElementById('entities');
+      // Set placeholder examples from domain's example config (if available)
+      const example = config.example;
+      roleInput.placeholder = example.role ? `예: ${example.role}` : (lang === 'ko' ? "예: 전문가 또는 직책" : "e.g. Subject Matter Expert");
+      goalInput.placeholder = example.goal ? `예: ${example.goal}` : (lang === 'ko' ? "예: 프로젝트 목표 혹은 질문" : "e.g. project goal or question");
+      contextInput.placeholder = example.context ? `예: ${example.context}` : (lang === 'ko' ? "예: 추가 배경 정보나 상황 설명" : "e.g. background information or context");
+      constraintsInput.placeholder = example.constraints ? `예: ${example.constraints}` : (lang === 'ko' ? "예: 형식이나 톤에 대한 요구사항" : "e.g. format or tone constraints");
+      entitiesInput.placeholder = example.entities ? `예: ${example.entities}` : (lang === 'ko' ? "예: 키워드1, 키워드2" : "e.g. keyword1, keyword2");
+    }
+
+    /** Suggests search queries based on current inputs (role, goal, context, entities) using domain-specific synonyms. */
+    function suggestQueries() {
+      const config = domainConfigs[currentDomain];
+      const textInputs = [
+        document.getElementById('role').value,
+        document.getElementById('goal').value,
+        document.getElementById('context').value,
+        document.getElementById('entities').value
+      ].join(" ");
+      // Tokenize and expand synonyms
+      let tokens = uniq(tokenize(textInputs));
+      const synMap = config.synonyms || {};
       const expanded = new Set(tokens);
-      tokens.forEach(t => {
-        if (SYNONYMS[t]) {
-          SYNONYMS[t].forEach(s => expanded.add(s));
+      tokens.forEach(tok => {
+        if (synMap[tok]) {
+          synMap[tok].forEach(syn => expanded.add(syn));
         }
       });
+      const keywords = Array.from(expanded);
+      // Limit to top 10 tokens for query generation
+      const base = keywords.slice(0, 10);
 
-      const base = Array.from(expanded).slice(0, 10);
-      
-      // 간단한 질의 템플릿
       const queries = [];
       if (base.length > 2) {
-        queries.push(`'${base[0]}' 원인 분석 기술 문서`);
-        queries.push(`'${base[0]}' 관련 '${base[1]}' 시험 결과 보고서`);
-        queries.push(`'${base.slice(0, 3).join(' ')}' 문제 해결 이력`);
+        // Create a few templated queries using top keywords (translated template remains in Korean/English as is)
+        // Use currentLanguage to decide query language if needed (for simplicity, we keep queries in the language of input or domain context)
+        if (currentLanguage === 'ko') {
+          queries.push(`'${base[0]}' 원인 분석 관련 문서`);
+          queries.push(`'${base[0]}' 관련 '${base[1]}' 시험 결과 보고서`);
+          queries.push(`'${base.slice(0, 3).join(' ')}' 문제 해결 사례`);
+        } else {
+          // English query patterns
+          queries.push(`"${base[0]}" root cause analysis documents`);
+          queries.push(`"${base[0]}" and "${base[1]}" related test reports`);
+          queries.push(`"${base.slice(0, 3).join(' ')}" issue resolution history`);
+        }
       }
-      queries.push(`${goal}`);
-
-      document.getElementById('queries').value = uniq(queries).filter(Boolean).join('\n');
-
-      // HyDE (가상 답변) 생성
-      const hyde = `가상 답변(Hypothetical Answer) 예시:\n\n'피닉스' 프로젝트의 엔진 과열 문제는 주로 고부하 주행 조건에서 냉각 시스템의 효율 저하로 인해 발생했다. 특히, 라디에이터의 설계 용량 부족과 서모스탯의 오작동 사례가 주요 원인으로 지목되었다. 관련 내구 시험 데이터(Test-Report-11B)에서 해당 현상이 재현되었으며, 개선된 라디에이터 적용 후 문제가 해결된 것으로 기록되어 있다.`;
-      document.getElementById('hyde').value = hyde;
+      // Always include the goal itself as a query (if not empty)
+      const goalText = document.getElementById('goal').value.trim();
+      if (goalText) queries.push(goalText);
+      // Remove duplicates and empty, then join into textarea
+      const uniqueQueries = uniq(queries).filter(Boolean);
+      document.getElementById('queries').value = uniqueQueries.join('\n');
     }
 
-    /**
-     * 선택된 데이터소스 목록을 반환합니다.
-     * @returns {string[]} 데이터소스 이름 배열
-     */
-    function getSelectedSources() {
-      const sources = [];
-      if (document.getElementById('src_tech_docs').checked) sources.push('기술 문서 서버');
-      if (document.getElementById('src_test_reports').checked) sources.push('시험 결과 DB');
-      if (document.getElementById('src_email').checked) sources.push('이메일 아카이브');
-      return sources;
-    }
-
-    /**
-     * 모든 입력값을 종합하여 최종 프롬프트를 생성합니다.
-     */
-    function buildPrompt() {
-      const role = document.getElementById('role').value.trim();
+    /** Generates a hypothetical answer (HyDE) based on current inputs, adapting length/style to selected model. */
+    function generateHyde() {
+      const lang = currentLanguage;
+      const config = domainConfigs[currentDomain];
       const goal = document.getElementById('goal').value.trim();
       const context = document.getElementById('context').value.trim();
-      const constraints = document.getElementById('constraints').value.trim();
       const entities = document.getElementById('entities').value.trim();
-      const timeFrom = document.getElementById('time_from').value;
-      const timeTo = document.getElementById('time_to').value;
-      const sources = getSelectedSources();
-      const searchMode = document.getElementById('search_mode').value;
-      const queries = document.getElementById('queries').value.trim().split(/\n+/).filter(Boolean);
+      // Compile text for tokenization (goal + context + entities)
+      const textInputs = [goal, context, entities].join(" ");
+      let tokens = uniq(tokenize(textInputs));
+      // Expand domain synonyms for tokens (to ensure we catch domain terms)
+      const synMap = config.synonyms || {};
+      const expanded = new Set(tokens);
+      tokens.forEach(tok => {
+        if (synMap[tok]) {
+          synMap[tok].forEach(syn => expanded.add(syn));
+        }
+      });
+      const keywords = Array.from(expanded);
+      // Determine model capability (for simplicity, treat smaller models as needing simpler output)
+      const model = currentModel;
+      let useComplexAnswer = true;
+      if (model.includes("7B") || model.includes("13B")) {
+        useComplexAnswer = false;  // assume smaller model -> simpler/shorter HyDE
+      }
+      // Construct a hypothetical answer using up to 2-3 top keywords
+      let hydeText = "";
+      if (keywords.length === 0) {
+        // If no info to go on, produce a generic "no info" or blank
+        hydeText = (lang === 'ko')
+          ? "관련 정보를 찾기 위한 충분한 단서가 제공되지 않았습니다."
+          : "Not enough information was provided to generate a hypothetical answer.";
+      } else {
+        const k1 = keywords[0] || ""; 
+        const k2 = keywords[1] || "";
+        const subject = goal || context || k1;  // use goal or context as subject if available
+        if (lang === 'ko') {
+          // Korean HyDE: craft 1-2 sentence summary
+          if (useComplexAnswer) {
+            hydeText = `${subject} 문제는 주로 ${k1}${k2 ? " 및 " + k2 : ""} 요인으로 인해 발생한 것으로 보입니다. ` +
+                       `${k1 ? k1 + " 관련 데이터에서 " : ""}${k2 ? k2 + " 사례에서도 " : ""}유사한 현상이 관찰되었으며, ` +
+                       `해당 원인을 개선하면 문제가 해결될 가능성이 높습니다.`;
+          } else {
+            // Simpler/shorter answer for less capable model
+            hydeText = `${subject} 현상의 주요 원인은 ${k1}${k2 ? "와 " + k2 + " 때문" : " 때문"}으로 추정됩니다.`;
+          }
+        } else {
+          // English HyDE
+          if (useComplexAnswer) {
+            hydeText = `The ${subject} is likely caused by ${k1}${k2 ? " and " + k2 : ""}. ` +
+                       `In particular, factors related to ${k1}${k2 ? " as well as " + k2 : ""} have been observed, ` +
+                       `and addressing these could potentially resolve the issue.`;
+          } else {
+            hydeText = `The primary cause of the ${subject} appears to be ${k1}${k2 ? " and " + k2 : ""}.`;
+          }
+        }
+      }
+      document.getElementById('hyde').value = hydeText;
+    }
 
-      // 각 섹션별로 프롬프트 내용을 구성합니다.
-      const systemInstructions = [
-        `너는 최고의 ${role || '자동차 공학 전문가'}다.`,
-        `주어진 정보와 검색 계획에 따라, 사용자의 목표 달성을 도와야 한다.`,
-        `모든 답변은 반드시 검색된 내부 기술 문서에 근거해야 하며, 추측은 금지된다.`,
-        `답변은 한국어로 작성한다.`
-      ].join('\n');
+    /** Builds the final prompt text from all inputs and templates. */
+    function buildPrompt() {
+      const lang = currentLanguage;
+      const domain = currentDomain;
+      const config = domainConfigs[domain];
+      const tSec = translations[lang].promptSections;  // prompt section titles / placeholders
+      // Gather user inputs (using placeholders if empty)
+      const role = document.getElementById('role').value.trim() || config.defaultRole[lang];
+      const goal = document.getElementById('goal').value.trim() || "";
+      const context = document.getElementById('context').value.trim() || "";
+      const constraints = document.getElementById('constraints').value.trim();
+      const entities = document.getElementById('entities').value.trim() || "";
+      const timeFrom = document.getElementById('time_from').value || (lang === 'ko' ? "전체" : "All");
+      const timeTo = document.getElementById('time_to').value || (lang === 'ko' ? "현재" : "Present");
+      // Data sources list or 'all' if none unchecked
+      const selectedSources = [];
+      if (document.getElementById('src_tech_docs').checked) selectedSources.push(config.sourceLabels[lang].tech_docs);
+      if (document.getElementById('src_test_reports').checked) selectedSources.push(config.sourceLabels[lang].test_reports);
+      if (document.getElementById('src_email').checked) selectedSources.push(config.sourceLabels[lang].email);
+      const sourcesText = (selectedSources.length > 0)
+        ? selectedSources.join(', ')
+        : (lang === 'ko' ? "전체 데이터소스" : "All data sources");
+      // Search mode text (use selected option's text to include proper language)
+      const modeSelect = document.getElementById('search_mode');
+      const searchModeText = modeSelect.selectedOptions[0].text;
+      // Compile queries from textarea (one per line)
+      const queryLines = document.getElementById('queries').value.trim().split(/\n+/).filter(Boolean);
+      // Build each section of the prompt
+      // 1. System Instructions (persona and rules)
+      let systemInstructions = "";
+      if (lang === 'ko') {
+        systemInstructions += `너는 최고의 ${role}다.\n`;
+        systemInstructions += `주어진 정보와 검색 계획에 따라 사용자의 목표 달성을 도와야 한다.\n`;
+        systemInstructions += `모든 답변은 반드시 검색된 내부 ${config.knowledgeSource.ko}에 근거해야 하며, 추측은 금지된다.\n`;
+        systemInstructions += `답변은 한국어로 작성한다.`;
+      } else {
+        systemInstructions += `You are the best ${role}.\n`;
+        systemInstructions += `Following the given information and retrieval plan, your job is to help achieve the user's goal.\n`;
+        systemInstructions += `All answers must be based on retrieved internal ${config.knowledgeSource.en}, and speculation is forbidden.\n`;
+        systemInstructions += `Provide the answer in English.`;
+      }
+      // 2. User Request (Goal, Context, Keywords)
+      let userRequest = `${tSec.goal}\n${goal || tSec.noGoal}\n\n` +
+                        `${tSec.context}\n${context || tSec.noContext}\n\n` +
+                        `${tSec.entities}\n${entities || tSec.noEntities}`;
+      // 3. Retrieval Plan
+      let retrievalPlan = `${tSec.retrievalPlan}\n`;
+      retrievalPlan += (lang === 'ko'
+                        ? `- 검색 기간: ${timeFrom} ~ ${timeTo}\n`
+                        : `- Time range: ${timeFrom} ~ ${timeTo}\n`);
+      retrievalPlan += (lang === 'ko'
+                        ? `- 검색 대상: ${sourcesText}\n`
+                        : `- Data sources: ${sourcesText}\n`);
+      retrievalPlan += (lang === 'ko'
+                        ? `- 검색 방식: ${searchModeText}\n`
+                        : `- Search mode: ${searchModeText}\n`);
+      retrievalPlan += (lang === 'ko' ? `- 상세 질의:\n` : `- Search queries:\n`);
+      if (queryLines.length) {
+        // Prefix each query with "  - "
+        retrievalPlan += queryLines.map(q => "  - " + q).join("\n");
+      } else {
+        retrievalPlan += "  - " + (lang === 'ko' ? `(${tSec.noQueries})` : `(${tSec.noQueries})`);
+      }
+      // 4. Output Format Guidelines
+      const guideLines = translations[lang].outputGuidelines;
+      let outputFormat = `${tSec.outputFormat}\n${(lang === 'ko' 
+                        ? "아래 지침에 따라 최종 결과물을 생성하세요." 
+                        : "Follow these guidelines to produce the final answer.")}\n`;
+      guideLines.forEach(line => { outputFormat += line + "\n"; });
+      if (constraints) {
+        outputFormat += (lang === 'ko' ? "- 추가 요구사항: " : "- Additional Constraints: ") + constraints;
+      } else {
+        // If no extra constraints given, for Korean we might use default Markdown suggestion already included in guideLines.
+        // For English, already covered general instructions.
+      }
 
-      const goalAndContext = [
-        `## 1. 최종 목표 (GOAL)`,
-        `${goal || '(목표가 입력되지 않았습니다)'}`,
-        `\n## 2. 배경 정보 (CONTEXT)`,
-        `${context || '(배경 정보가 입력되지 않았습니다)'}`,
-        `\n## 3. 핵심 키워드`,
-        `${entities || '(키워드가 입력되지 않았습니다)'}`
-      ].join('\n');
-
-      const retrievalPlan = [
-        `## 4. 검색 계획 (RETRIEVAL PLAN)`,
-        `- 검색 기간: ${timeFrom || '전체'} ~ ${timeTo || '현재'}`,
-        `- 검색 대상: ${sources.join(', ') || '전체 데이터소스'}`,
-        `- 검색 방식: ${searchMode}`,
-        `- 상세 질의:`,
-        ...(queries.length ? queries.map((q, i) => `  - ${q}`) : ['  - (생성된 질의가 없습니다)'])
-      ].join('\n');
-
-      const outputFormat = [
-        `## 5. 결과물 형식 (OUTPUT FORMAT)`,
-        `아래 지침에 따라 최종 결과물을 생성해줘.`,
-        `- 모든 주장의 근거가 되는 문서 정보를 반드시 인용([Source 1], [Source 2] 형식)해야 한다.`,
-        `- 충분한 근거를 찾지 못했다면, '관련 정보를 찾을 수 없음'이라고 명확히 밝힌다.`,
-        `- ${constraints || 'Markdown을 사용하여 가독성 높게 작성한다.'}`
-      ].join('\n');
-
-      // 최종 프롬프트 조합
-      const finalPrompt = [
-        `[SYSTEM INSTRUCTIONS]`,
-        systemInstructions,
-        `\n--------------------------------\n`,
-        `[USER REQUEST]`,
-        goalAndContext,
-        `\n`,
-        retrievalPlan,
-        `\n`,
-        outputFormat,
-      ].join('\n');
-
+      // Combine all parts into final prompt string
+      const finalPrompt = `[SYSTEM INSTRUCTIONS]\n${systemInstructions}\n` +
+                          `--------------------------------\n` +
+                          `[USER REQUEST]\n${userRequest}\n\n${retrievalPlan}\n\n${outputFormat}`;
       document.getElementById('prompt_out').textContent = finalPrompt;
     }
 
-    /**
-     * 생성된 프롬프트를 클립보드에 복사합니다.
-     */
+    /** Copies the final prompt to clipboard. */
     function copyAll() {
       const promptText = document.getElementById('prompt_out').textContent;
-      // execCommand는 오래된 방식이지만 iframe 환경에서 호환성이 더 좋을 수 있습니다.
       try {
         const textarea = document.createElement('textarea');
         textarea.value = promptText;
@@ -411,34 +770,242 @@
         textarea.select();
         document.execCommand('copy');
         document.body.removeChild(textarea);
-        showToast('✅ 프롬프트가 복사되었습니다.');
+        showToast(currentLanguage === 'ko' ? '✅ 프롬프트가 복사되었습니다.' : '✅ Prompt copied to clipboard.');
       } catch (err) {
-        // navigator.clipboard가 실패할 경우를 대비한 폴백
         console.error('Copy failed:', err);
-        showToast('❌ 복사에 실패했습니다. 브라우저 설정을 확인해주세요.');
+        showToast(currentLanguage === 'ko' ? '❌ 복사에 실패했습니다.' : '❌ Failed to copy. Please check browser settings.');
       }
     }
-    
-    /**
-     * 모든 입력 필드를 초기화합니다.
-     */
+
+    /** Clears all input fields and resets to defaults (preserves domain/language selection). */
     function clearAll() {
-      const inputIds = ['role', 'goal', 'context', 'constraints', 'entities', 'time_from', 'time_to', 'queries', 'hyde'];
-      inputIds.forEach(id => {
+      const fields = ['role','goal','context','constraints','entities','time_from','time_to','queries','hyde'];
+      fields.forEach(id => { 
         const el = document.getElementById(id);
-        if (el) el.value = '';
+        if (el) el.value = ''; 
       });
-      // 체크박스 초기화
-      document.getElementById('src_tech_docs').checked = true;
-      document.getElementById('src_test_reports').checked = true;
-      document.getElementById('src_email').checked = false;
-      
+      // Reset source checkboxes to domain default
+      const defaults = domainConfigs[currentDomain].defaultSources;
+      document.getElementById('src_tech_docs').checked = !!defaults.tech_docs;
+      document.getElementById('src_test_reports').checked = !!defaults.test_reports;
+      document.getElementById('src_email').checked = !!defaults.email;
+      // Reset modification flags
+      queriesModified = false;
+      hydeModified = false;
+      // Build prompt with empty fields (will show "(not provided)" placeholders)
       buildPrompt();
-      showToast('🔄 입력 필드를 초기화했습니다.');
+      showToast(currentLanguage === 'ko' ? '🔄 입력 필드를 초기화했습니다.' : '🔄 All fields have been cleared.');
     }
 
-    // --- 페이지 로드 시 초기화 ---
+    /** Exports the current scenario as a JSON file with all fields. */
+    function exportJSON() {
+      const data = {
+        domain: currentDomain,
+        language: currentLanguage,
+        model: currentModel,
+        role: document.getElementById('role').value,
+        goal: document.getElementById('goal').value,
+        context: document.getElementById('context').value,
+        constraints: document.getElementById('constraints').value,
+        entities: document.getElementById('entities').value,
+        time_from: document.getElementById('time_from').value,
+        time_to: document.getElementById('time_to').value,
+        sources: {
+          tech_docs: document.getElementById('src_tech_docs').checked,
+          test_reports: document.getElementById('src_test_reports').checked,
+          email: document.getElementById('src_email').checked
+        },
+        search_mode: document.getElementById('search_mode').value,
+        queries: document.getElementById('queries').value.trim().split(/\n+/).filter(Boolean),
+        hyde: document.getElementById('hyde').value,
+        prompt: document.getElementById('prompt_out').textContent
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `prompt_${currentDomain}_${currentLanguage}.json`;
+      a.click();
+    }
+
+    /** Exports the current scenario as a single-line CSV (with header row). */
+    function exportCSV() {
+      // Define CSV columns and gather values (escaping quotes and newlines appropriately)
+      const cols = ["domain","language","model","role","goal","context","constraints","entities",
+                    "time_from","time_to","sources_selected","search_mode","queries","hyde","prompt"];
+      const data = {
+        domain: currentDomain,
+        language: currentLanguage,
+        model: currentModel,
+        role: document.getElementById('role').value,
+        goal: document.getElementById('goal').value,
+        context: document.getElementById('context').value,
+        constraints: document.getElementById('constraints').value,
+        entities: document.getElementById('entities').value,
+        time_from: document.getElementById('time_from').value,
+        time_to: document.getElementById('time_to').value,
+        sources_selected: (() => {
+          let arr = [];
+          if(document.getElementById('src_tech_docs').checked) arr.push("tech_docs");
+          if(document.getElementById('src_test_reports').checked) arr.push("test_reports");
+          if(document.getElementById('src_email').checked) arr.push("email");
+          return arr.join("|");
+        })(),
+        search_mode: document.getElementById('search_mode').value,
+        queries: document.getElementById('queries').value.trim().split(/\n+/).join("|"),
+        hyde: document.getElementById('hyde').value,
+        prompt: document.getElementById('prompt_out').textContent
+      };
+      // Escape any double quotes by doubling them, wrap each field in quotes
+      let header = cols.join(",") + "\n";
+      let row = cols.map(col => {
+        let val = data[col] || "";
+        // Replace any newline in value with space to keep CSV one-line (except prompt which might be multiline - also flatten it)
+        if (typeof val === 'string') {
+          val = val.replace(/\r?\n/g, ' '); 
+        }
+        // Escape quotes
+        val = `"${val.replace(/"/g, '""')}"`;
+        return val;
+      }).join(",");
+      const csvContent = header + row;
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `prompt_${currentDomain}_${currentLanguage}.csv`;
+      a.click();
+    }
+
+    /** Exports the current scenario in an instruction-tuning friendly JSON format. */
+    function exportInstructJSON() {
+      // Using Alpaca-style format: instruction + input + output
+      const goal = document.getElementById('goal').value;
+      const context = document.getElementById('context').value;
+      const instructionText = goal || "(No goal)"; 
+      const inputText = context || "";
+      // No ground-truth output available (this is for user to possibly fill in later with an answer)
+      const outputText = "";
+      const instObj = {
+        instruction: instructionText,
+        input: inputText,
+        output: outputText
+      };
+      const blob = new Blob([JSON.stringify(instObj, null, 2)], { type: "application/json" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `instruction_${currentDomain}_${currentLanguage}.json`;
+      a.click();
+    }
+
+    // --- Event Listeners for dynamic behavior ---
+    // Track manual edits to queries and hyde
+    document.getElementById('queries').addEventListener('input', () => {
+      queriesModified = true;
+    });
+    document.getElementById('hyde').addEventListener('input', () => {
+      hydeModified = true;
+    });
+    // Generate queries when user clicks the button
+    document.getElementById('btn_gen_queries').addEventListener('click', () => {
+      suggestQueries();
+      // After auto-generating, consider it system-generated (user not modified yet)
+      queriesModified = false;
+      // If user hasn't manually edited HyDE, we can also refresh it to match new queries
+      if (!hydeModified) {
+        generateHyde();
+      }
+      buildPrompt();
+    });
+    // Generate HyDE when button clicked
+    document.getElementById('btn_gen_hyde').addEventListener('click', () => {
+      generateHyde();
+      hydeModified = false; // now it's auto-generated
+    });
+    // Re-build prompt manually
+    document.getElementById('btn_build').addEventListener('click', () => {
+      buildPrompt();
+    });
+    // Copy prompt
+    document.getElementById('btn_copy').addEventListener('click', copyAll);
+    // Clear all fields
+    document.getElementById('btn_clear').addEventListener('click', clearAll);
+    // Export buttons
+    document.getElementById('btn_export_json').addEventListener('click', exportJSON);
+    document.getElementById('btn_export_csv').addEventListener('click', exportCSV);
+    document.getElementById('btn_export_instr').addEventListener('click', exportInstructJSON);
+    // Domain selection change
+    document.getElementById('domain').addEventListener('change', (e) => {
+      currentDomain = e.target.value;
+      // Reset source checkboxes to new domain defaults
+      const defaults = domainConfigs[currentDomain].defaultSources;
+      document.getElementById('src_tech_docs').checked = !!defaults.tech_docs;
+      document.getElementById('src_test_reports').checked = !!defaults.test_reports;
+      document.getElementById('src_email').checked = !!defaults.email;
+      // If queries or hyde were manually modified, we discard those modifications on domain change (different context)
+      queriesModified = false;
+      hydeModified = false;
+      // Update UI labels/placeholders for new domain
+      updateUI();
+      // Regenerate suggestions based on existing inputs (if any) for the new domain
+      suggestQueries();
+      generateHyde();
+      // Rebuild prompt with possibly new domain-specific text
+      buildPrompt();
+    });
+    // Language selection change
+    document.getElementById('language').addEventListener('change', (e) => {
+      currentLanguage = e.target.value;
+      // Update UI text for new language (keep domain and content same)
+      updateUI();
+      // Rebuild prompt in the new language
+      buildPrompt();
+    });
+    // Model selection change
+    document.getElementById('model').addEventListener('change', (e) => {
+      currentModel = e.target.value;
+      // If needed, one could adjust suggestions based on model here. We'll just regenerate HyDE if not manually edited.
+      if (!hydeModified) {
+        generateHyde();
+      }
+      // (No direct prompt text change on model selection, so no buildPrompt call needed apart from HyDE update)
+    });
+    // Input fields on-the-fly suggestions:
+    // When goal/context/entities change, auto-suggest queries/HyDE if user hasn't overridden them manually
+    ['goal','context','entities'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        if (!queriesModified) {
+          suggestQueries();
+        }
+        if (!hydeModified) {
+          generateHyde();
+        }
+        buildPrompt();
+      });
+    });
+    // Other inputs (role, constraints, dates, search_mode, source checks) directly trigger prompt rebuild on change
+    ['role','constraints','time_from','time_to','search_mode','src_tech_docs','src_test_reports','src_email']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const eventName = el.type === 'checkbox' || el.tagName === 'SELECT' ? 'change' : 'input';
+        el.addEventListener(eventName, () => {
+          buildPrompt();
+        });
+      });
+
+    // --- Initialization on page load ---
     window.addEventListener('DOMContentLoaded', () => {
+      // Set initial selections (Korean & Automotive by default)
+      document.getElementById('language').value = currentLanguage;
+      document.getElementById('domain').value = currentDomain;
+      document.getElementById('model').value = currentModel;
+      // Apply UI text for defaults and set default checkboxes
+      updateUI();
+      // Initialize sources checkboxes default state
+      const defaults = domainConfigs[currentDomain].defaultSources;
+      document.getElementById('src_tech_docs').checked = !!defaults.tech_docs;
+      document.getElementById('src_test_reports').checked = !!defaults.test_reports;
+      document.getElementById('src_email').checked = !!defaults.email;
+      // Build initial prompt (with placeholders indicating empty inputs)
       buildPrompt();
     });
   </script>
