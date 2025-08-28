@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="ko">
+<html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>✨ Prompt Hub — 선택 페이지</title>
+  <title>✨ Prompt Hub — 選択ページ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     *{box-sizing:border-box}
@@ -32,7 +32,7 @@
     footer{margin-top:28px;color:#667085;font-size:13px;text-align:center}
     
     @media (prefers-color-scheme: dark){
-      body{background:linear-gradient(135deg,#0b1020,#0f172a)}
+      body{background:linear-gradient(135deg,#0b1020,#0f172a); color: #e5e7eb;}
       header p, .hint, footer{color:#b8c0cc}
       .card{background:#0f172a;border-color:#20283a;color:#e5e7eb}
       .tag{border-color:#334155;background:#0b1220;color:#cbd5e1}
@@ -47,43 +47,44 @@
 </head>
 <body>
   <div class="lang-selector">
-    <label class="sr-only" for="langSelect">언어 선택</label>
-    <select id="langSelect" aria-label="언어 선택">
-      <option value="ja">🇯🇵 日本語</option>
+    <label class="sr-only" for="langSelect">言語選択</label>
+    <select id="langSelect" aria-label="言語選択">
+      <option value="ja" selected>🇯🇵 日本語</option>
       <option value="zh">🇨🇳 中文</option>
       <option value="en">🇺🇸 English</option>
-      <option value="ko" selected>🇰🇷 한국어</option>
+      <option value="ko">🇰🇷 한국어</option>
       <option value="es">🇪🇸 Español</option>
+      <option value="th">🇹🇭 ภาษาไทย</option>
       <option value="fr">🇫🇷 Français</option>
     </select>
   </div>
 
   <header>
     <h1>✨ Prompt Hub</h1>
-    <p id="subtitle">원하는 도구를 선택하세요. 숫자키 <b>1-6</b>으로도 바로 열 수 있습니다.</p>
+    <p id="subtitle">使いたいツールを選択してください。数字キー<b>1-6</b>ですぐに開けます。</p>
   </header>
 
   <div class="wrap">
     <div class="toolbar">
-      <div class="search" role="search" aria-label="앱 검색">
-        🔎&nbsp;<input id="q" placeholder="검색: 제목, 설명, 태그…" autocomplete="off" aria-label="검색어 입력">
+      <div class="search" role="search" aria-label="アプリ検索">
+        🔎&nbsp;<input id="q" placeholder="検索：タイトル、説明、タグ…" autocomplete="off" aria-label="検索語入力">
       </div>
-      <div class="hint" id="hint">새 앱을 추가하려면 아래 <code>apps</code> 배열에 항목만 더하세요.</div>
+      <div class="hint" id="hint">新しいアプリを追加するには、下の <code>apps</code> 配列に項目を追加してください。</div>
     </div>
 
     <div id="grid" class="grid" aria-live="polite"></div>
 
-    <footer id="footer">© Prompt Hub • 로컬에서 작동합니다.</footer>
+    <footer id="footer">© Prompt Hub • ローカルで動作します。</footer>
   </div>
 
   <script>
-    // ----- 유틸: 현재 index.html이 app 폴더 안/밖 어디에 있어도 동작하도록 경로 자동 계산 -----
+    // ----- ユーティリティ: 現在のindex.htmlがappフォルダの内外どちらにあっても動作するようにパスを自動計算 -----
     const APP_PREFIX = (() => {
       const p = location.pathname.replace(/\\/g, '/');
       return /\/app(?:\/|$)/i.test(p) ? '' : 'app/';
     })();
 
-    // ----- 다국어 텍스트 -----
+    // ----- 多言語テキスト -----
     const translations = {
       ja:{subtitle:'使いたいツールを選択してください。数字キー<b>1-6</b>ですぐに開けます。',searchPlaceholder:'検索：タイトル、説明、タグ…',hint:'新しいアプリを追加するには、下の<code>apps</code>配列に項目を追加してください。',footer:'© Prompt Hub • ローカルで動作します。',apps:[
         {title:'テンプレート生成器',desc:'GHES/CRISPE/CAPE/5W1Hなどで多言語プロンプトテンプレート生成',tags:['テンプレート','多言語','フレームワーク']},
@@ -125,6 +126,14 @@
         {title:'Generador de Prompts CoT',desc:'Genera prompts lógicos utilizando la técnica de Cadena de Pensamiento (Chain of Thought).',tags:['CoT','razonamiento','cadena de pensamiento']},
         {title:'Generador de Prompts para Solución de Problemas de Ingeniería Automotriz',desc:'Construye sistemáticamente prompts para la búsqueda de documentos técnicos y la generación de informes.',tags:['automotriz','ingeniería','solución de problemas','RAG']}
       ]},
+      th:{subtitle:'เลือกเครื่องมือที่คุณต้องการ คุณยังสามารถเปิดได้โดยตรงด้วยปุ่มตัวเลข <b>1-6</b>',searchPlaceholder:'ค้นหา: ชื่อ, คำอธิบาย, แท็ก…',hint:'หากต้องการเพิ่มแอปใหม่ เพียงเพิ่มรายการลงในอาร์เรย์ <code>apps</code> ด้านล่าง',footer:'© Prompt Hub • ทำงานในเครื่อง',apps:[
+        {title:'เครื่องมือสร้างเทมเพลต',desc:'สร้างเทมเพลตพรอมต์หลายภาษาด้วยเฟรมเวิร์ก GHES/CRISPE/CAPE/5W1H',tags:['เทมเพลต','หลายภาษา','เฟรมเวิร์ก']},
+        {title:'ไลบรารีพรอมต์',desc:'การจัดหมวดหมู่และงาน, ลากและวาง, ส่งออก/นำเข้า',tags:['ไลบรารี','ลาก','บันทึก']},
+        {title:'คู่มือ Azure OpenAI',desc:'สรุปคุณสมบัติ เคล็ดลับการปฏิบัติงาน และการใช้ API สำหรับโมเดลบน Azure (GPT-4.1/4o)',tags:['คู่มือ','azure','การปฏิบัติงาน']},
+        {title:'คู่มือ Copilot GPT-5',desc:'สรุปคุณสมบัติหลายรูปแบบ การให้เหตุผลขั้นสูง และกรณีการใช้งานสำหรับ GPT-5 ที่ใช้ Copilot',tags:['คู่มือ','copilot','gpt-5']},
+        {title:'เครื่องมือสร้างพรอมต์ CoT',desc:'สร้างพรอมต์เชิงตรรกะโดยใช้เทคนิค Chain of Thought (CoT)',tags:['CoT','การให้เหตุผล','chain of thought']},
+        {title:'เครื่องมือแก้ปัญหาด้านวิศวกรรมยานยนต์',desc:'สร้างพรอมต์สำหรับการค้นหาเอกสารทางเทคนิคและการสร้างรายงานอย่างเป็นระบบ',tags:['ยานยนต์','วิศวกรรม','การแก้ปัญหา','RAG']}
+      ]},
       fr:{subtitle:'Choisissez l\'outil que vous voulez. Vous pouvez aussi ouvrir directement avec les touches numériques <b>1-6</b>.',searchPlaceholder:'Rechercher : titre, description, étiquettes…',hint:'Pour ajouter de nouvelles applications, ajoutez simplement des éléments au tableau <code>apps</code> ci-dessous.',footer:'© Prompt Hub • Fonctionne en local.',apps:[
         {title:'Générateur de Modèles',desc:'Générez des modèles de prompts multilingues avec les frameworks GHES/CRISPE/CAPE/5W1H',tags:['modèle','multilingue','framework']},
         {title:'Bibliothèque de Prompts',desc:'Organisation par catégories et tâches, glisser-déposer, exporter/importer',tags:['bibliothèque','glisser','sauvegarder']},
@@ -135,7 +144,7 @@
       ]}
     };
 
-    // ----- 앱 메타 (파일명은 app/ 폴더 기준) -----
+    // ----- アプリのメタデータ (ファイル名は app/ フォルダ基準) -----
     const baseApps = [
       { id:'template-gen',  emoji:'🚀', file:'prompt-template-generator.html' },
       { id:'prompt-library',emoji:'📚', file:'prompt_lib.html' },
@@ -145,7 +154,7 @@
       { id:'auto-solver',   emoji:'🚗', file:'cot-prompt-generator-rag-train.html' }
     ];
 
-    // ----- DOM -----
+    // ----- DOM要素 -----
     const $grid = document.getElementById('grid');
     const $q = document.getElementById('q');
     const $langSelect = document.getElementById('langSelect');
@@ -153,20 +162,20 @@
     const $hint = document.getElementById('hint');
     const $footer = document.getElementById('footer');
 
-    let currentLang = 'ko';
+    let currentLang = 'ja';
     let currentApps = [];
 
     function updateLanguage(lang) {
       currentLang = lang;
       const t = translations[lang];
 
-      // 인터페이스 텍스트
+      // インターフェースのテキスト更新
       $subtitle.innerHTML = t.subtitle;
       $q.placeholder = t.searchPlaceholder;
       $hint.innerHTML = t.hint;
       $footer.innerHTML = t.footer;
 
-      // 앱 데이터(언어 적용)
+      // アプリデータ（言語を適用）
       currentApps = baseApps.map((app, i) => ({
         ...app,
         href: APP_PREFIX + app.file,
@@ -176,7 +185,7 @@
       }));
 
       document.documentElement.lang = lang;
-      const titleSuffix = {ja:'選択ページ', zh:'选择页面', en:'Selection Page', ko:'선택 페이지', es:'Página de Selección', fr:'Page de Sélection'};
+      const titleSuffix = {ja:'選択ページ', zh:'选择页面', en:'Selection Page', ko:'선택 페이지', es:'Página de Selección', th:'หน้าเลือก', fr:'Page de Sélection'};
       document.title = `✨ Prompt Hub — ${titleSuffix[lang]}`;
       localStorage.setItem('prompthub-lang', lang);
       filter();
@@ -188,7 +197,7 @@
         const a = document.createElement('a');
         a.className = 'card';
         a.href = app.href;
-        a.setAttribute('aria-label', `${app.title} 열기`);
+        a.setAttribute('aria-label', `${app.title} を開く`);
 
         const visual = app.img
           ? `<img class="thumb" src="${app.img}" alt="" loading="lazy">`
@@ -222,7 +231,7 @@
       }
     }
 
-    // 숫자키로 앱 열기
+    // 数字キーでアプリを開く
     document.addEventListener('keydown', e => {
       if(/^[1-6]$/.test(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey){
         const idx = Number(e.key)-1;
@@ -230,12 +239,12 @@
       }
     });
 
-    // 이벤트 바인딩
+    // イベントリスナーの設定
     $langSelect.addEventListener('change', e => updateLanguage(e.target.value));
     $q.addEventListener('input', filter);
 
-    // 초기화
-    const savedLang = localStorage.getItem('prompthub-lang') || 'ko';
+    // 初期化
+    const savedLang = localStorage.getItem('prompthub-lang') || 'ja';
     $langSelect.value = savedLang;
     updateLanguage(savedLang);
   </script>
