@@ -166,7 +166,8 @@
       border: 1px solid #e0e0e0;
       border-radius: 8px;
       padding: 12px;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, opacity 0.2s;
+      cursor: move;
     }
     .variable-item-vertical:hover {
       border-color: #007bff;
@@ -175,6 +176,27 @@
     .variable-item-vertical:focus-within {
       border-color: #007bff;
       box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+    }
+    .variable-item-vertical.dragging {
+      opacity: 0.5;
+      transform: scale(0.98);
+    }
+    .variable-item-vertical.drag-over {
+      border: 2px dashed #007bff !important;
+      background: #e7f3ff;
+    }
+    .variable-drag-handle {
+      color: #999;
+      cursor: grab;
+      padding: 0 8px 0 0;
+      font-size: 1.1em;
+      user-select: none;
+    }
+    .variable-drag-handle:hover {
+      color: #333;
+    }
+    .variable-drag-handle:active {
+      cursor: grabbing;
     }
     .variable-textarea {
       resize: vertical;
@@ -361,6 +383,7 @@ const translations = {
     variableExists: "この変数名は既に存在します。",
     confirmDeleteVariable: "変数「{0}」を削除しますか？",
     deleteFromPromptsWarning: "⚠️ この変数はプロンプト内で使用されています。削除するとプロンプトからも[変数名]が削除されます。",
+    dragToReorder: "ドラッグして順序を変更",
     viewRaw: "📝 原文",
     viewMarkdown: "📄 Markdown"
   },
@@ -420,6 +443,7 @@ const translations = {
     variableExists: "This variable name already exists.",
     confirmDeleteVariable: "Delete variable \"{0}\"?",
     deleteFromPromptsWarning: "⚠️ This variable is used in prompts. Deleting it will also remove [variable] from all prompts.",
+    dragToReorder: "Drag to reorder",
     viewRaw: "📝 Raw",
     viewMarkdown: "📄 Markdown"
   },
@@ -479,6 +503,7 @@ const translations = {
     variableExists: "此变量名已存在。",
     confirmDeleteVariable: "删除变量「{0}」吗？",
     deleteFromPromptsWarning: "⚠️ 此变量在提示词中使用。删除后，[变量名]也将从所有提示词中移除。",
+    dragToReorder: "拖动以重新排序",
     viewRaw: "📝 原文",
     viewMarkdown: "📄 Markdown"
   },
@@ -538,6 +563,7 @@ const translations = {
     variableExists: "이 변수명은 이미 존재합니다.",
     confirmDeleteVariable: "변수 \"{0}\"을(를) 삭제하시겠습니까?",
     deleteFromPromptsWarning: "⚠️ 이 변수는 프롬프트에서 사용 중입니다. 삭제하면 모든 프롬프트에서 [변수명]도 함께 제거됩니다.",
+    dragToReorder: "드래그하여 순서 변경",
     viewRaw: "📝 원본",
     viewMarkdown: "📄 Markdown"
   },
@@ -597,6 +623,7 @@ const translations = {
     variableExists: "Ce nom de variable existe déjà.",
     confirmDeleteVariable: "Supprimer la variable «{0}»?",
     deleteFromPromptsWarning: "⚠️ Cette variable est utilisée dans les prompts. La supprimer supprimera également [variable] de tous les prompts.",
+    dragToReorder: "Glisser pour réorganiser",
     viewRaw: "📝 Brut",
     viewMarkdown: "📄 Markdown"
   },
@@ -656,6 +683,7 @@ const translations = {
     variableExists: "Este nombre de variable ya existe.",
     confirmDeleteVariable: "¿Eliminar la variable \"{0}\"?",
     deleteFromPromptsWarning: "⚠️ Esta variable se usa en los prompts. Eliminarla también eliminará [variable] de todos los prompts.",
+    dragToReorder: "Arrastra para reordenar",
     viewRaw: "📝 Original",
     viewMarkdown: "📄 Markdown"
   }
@@ -809,8 +837,21 @@ function showDetail(catId, taskId, onlySilent) {
     }
   });
 
-  // 2. 수동 추가된 변수와 자동 감지된 변수 병합 (중복 제거, 빈 문자열 제외)
-  const allVars = new Set([...task.variables.filter(v => v && v.trim()), ...autoDetectedVars]);
+  // 2. 변수 순서 관리 - variableOrder 배열 사용
+  if (!task.variableOrder) task.variableOrder = [];
+  
+  // 자동 감지 + 수동 추가 변수 병합 (빈 문자열 제외)
+  const allVarsSet = new Set([...task.variables.filter(v => v && v.trim()), ...autoDetectedVars]);
+  
+  // 순서 배열에 없는 새 변수 추가, 삭제된 변수 제거
+  const validOrder = task.variableOrder.filter(v => allVarsSet.has(v));
+  allVarsSet.forEach(v => {
+    if (!validOrder.includes(v)) validOrder.push(v);
+  });
+  task.variableOrder = validOrder;
+  
+  // 정렬된 변수 배열
+  const allVars = task.variableOrder;
 
   // 3. 변수 관리 영역 HTML 구성 (세로 레이아웃 + textarea)
   let inputsHtml = `
@@ -824,15 +865,16 @@ function showDetail(catId, taskId, onlySilent) {
       <div id="variables-container">
   `;
 
-  if (allVars.size > 0) {
-    allVars.forEach(v => {
+  if (allVars.length > 0) {
+    allVars.forEach((v, idx) => {
       const isManual = task.variables.includes(v);
       const isAutoDetected = autoDetectedVars.has(v);
       const currentValue = currentVarState[v] || '';
       
       inputsHtml += `
-        <div class="variable-item-vertical mb-3" data-var="${escapeHtml(v)}">
+        <div class="variable-item-vertical mb-3" data-var="${escapeHtml(v)}" data-idx="${idx}" draggable="true">
           <div class="d-flex align-items-center mb-1">
+            <span class="variable-drag-handle" title="${t('dragToReorder')}">⋮⋮</span>
             <span class="text-primary fw-bold" style="font-size:0.95em;">
               [${escapeHtml(v)}]
               ${isAutoDetected ? '<span class="text-muted" style="font-size:0.7em; margin-left:3px;" title="Auto-detected from prompt">⚡</span>' : ''}
@@ -872,6 +914,7 @@ function showDetail(catId, taskId, onlySilent) {
   `;
   
   renderPrompts(task.prompts);
+  initVariableDragAndDrop(); // 변수 드래그 앤 드롭 초기화
 }
 
 // [신규] 뷰 모드 변경
@@ -1043,6 +1086,73 @@ function escapeRegex(str) {
 function autoResizeTextarea(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 300) + 'px';
+}
+
+// [신규] 변수 드래그 앤 드롭 초기화
+function initVariableDragAndDrop() {
+  const container = document.getElementById('variables-container');
+  if (!container) return;
+  
+  const items = container.querySelectorAll('.variable-item-vertical');
+  let draggedItem = null;
+  
+  items.forEach(item => {
+    item.addEventListener('dragstart', (e) => {
+      draggedItem = item;
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', item.dataset.var);
+    });
+    
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      items.forEach(i => i.classList.remove('drag-over'));
+      draggedItem = null;
+    });
+    
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (item !== draggedItem) {
+        item.classList.add('drag-over');
+      }
+    });
+    
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over');
+    });
+    
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      
+      if (!draggedItem || draggedItem === item) return;
+      
+      const fromVar = draggedItem.dataset.var;
+      const toVar = item.dataset.var;
+      
+      reorderVariable(fromVar, toVar);
+    });
+  });
+}
+
+// [신규] 변수 순서 변경
+function reorderVariable(fromVar, toVar) {
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task || !task.variableOrder) return;
+  
+  const fromIdx = task.variableOrder.indexOf(fromVar);
+  const toIdx = task.variableOrder.indexOf(toVar);
+  
+  if (fromIdx === -1 || toIdx === -1) return;
+  
+  // 배열에서 제거 후 새 위치에 삽입
+  task.variableOrder.splice(fromIdx, 1);
+  task.variableOrder.splice(toIdx, 0, fromVar);
+  
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask);
 }
 
 // [신규] 개별 변수 업데이트 함수
