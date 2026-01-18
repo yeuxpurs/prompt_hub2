@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title data-i18n="appTitle">プロンプトライブラリ</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     body { background:#f5f6fa; }
     .sidebar   { min-width:350px; max-width:420px; background:#fff; border-radius:18px; padding:24px; margin:22px 0 22px 28px; box-shadow:0 3px 15px rgba(0,0,0,.08);}
@@ -77,6 +79,115 @@
     
     /* 언어선택바 스타일 */
     #langBar { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #eee; }
+
+    /* ▼ 마크다운 렌더링 관련 스타일 */
+    .markdown-rendered { 
+      padding: 10px 15px; 
+      background: #fff; 
+      border-radius: 6px; 
+      border: 1px solid #e0e0e0;
+      line-height: 1.6;
+    }
+    .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, 
+    .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 {
+      margin-top: 0.8em; margin-bottom: 0.5em; font-weight: 600;
+    }
+    .markdown-rendered h1 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+    .markdown-rendered h2 { font-size: 1.3em; }
+    .markdown-rendered h3 { font-size: 1.15em; }
+    .markdown-rendered p { margin-bottom: 0.8em; }
+    .markdown-rendered ul, .markdown-rendered ol { padding-left: 1.5em; margin-bottom: 0.8em; }
+    .markdown-rendered li { margin-bottom: 0.3em; }
+    .markdown-rendered code { 
+      background: #f0f0f0; padding: 2px 6px; border-radius: 3px; 
+      font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em;
+    }
+    .markdown-rendered pre { 
+      background: #2d2d2d; color: #f8f8f2; padding: 12px 15px; 
+      border-radius: 6px; overflow-x: auto; margin-bottom: 0.8em;
+    }
+    .markdown-rendered pre code { background: transparent; color: inherit; padding: 0; }
+    .markdown-rendered blockquote { 
+      border-left: 4px solid #007bff; padding-left: 15px; 
+      color: #666; margin: 0.8em 0; font-style: italic;
+    }
+    .markdown-rendered table { border-collapse: collapse; width: 100%; margin-bottom: 0.8em; }
+    .markdown-rendered th, .markdown-rendered td { 
+      border: 1px solid #ddd; padding: 8px 12px; text-align: left; 
+    }
+    .markdown-rendered th { background: #f5f5f5; font-weight: 600; }
+    .markdown-rendered a { color: #007bff; text-decoration: none; }
+    .markdown-rendered a:hover { text-decoration: underline; }
+    .markdown-rendered img { max-width: 100%; height: auto; border-radius: 4px; }
+    .markdown-rendered hr { border: none; border-top: 1px solid #ddd; margin: 1em 0; }
+
+    /* ▼ 뷰 모드 토글 버튼 스타일 */
+    .view-mode-toggle { 
+      display: inline-flex; 
+      border: 1px solid #dee2e6; 
+      border-radius: 5px; 
+      overflow: hidden;
+      margin-right: 10px;
+    }
+    .view-mode-btn { 
+      padding: 4px 10px; 
+      font-size: 0.8em; 
+      border: none; 
+      background: #f8f9fa; 
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .view-mode-btn:hover { background: #e9ecef; }
+    .view-mode-btn.active { background: #007bff; color: white; }
+    .view-mode-btn:first-child { border-right: 1px solid #dee2e6; }
+
+    /* ▼ 프롬프트 박스 세로 레이아웃 (마크다운용) */
+    .prompt-box-vertical { 
+      display: flex; 
+      flex-direction: column; 
+      padding-top: 45px;
+    }
+    .prompt-content-area { 
+      margin-top: 10px; 
+      min-height: 80px;
+    }
+    .prompt-bottom-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
+
+    /* ▼ 변수 입력 세로 레이아웃 스타일 */
+    .variable-item-vertical {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .variable-item-vertical:hover {
+      border-color: #007bff;
+      box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+    }
+    .variable-item-vertical:focus-within {
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+    }
+    .variable-textarea {
+      resize: vertical;
+      min-height: 60px;
+      max-height: 300px;
+      font-family: inherit;
+      line-height: 1.5;
+      transition: height 0.1s ease;
+    }
+    .variable-textarea:focus {
+      border-color: #86b7fe;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
     
     @media (max-width:900px){
       .sidebar, .main-pane{ margin:10px; padding:12px; }
@@ -189,6 +300,8 @@ let currentFontSize; // 현재 글꼴 크기
 let selectedPrompt = null; // {cat, task, idx} 또는 null
 let currentLang = 'ja'; // 현재 언어
 let draggedElement = null, dragType = null, dragContext = null; // 드래그 앤 드롭 관련 변수
+let currentVarState = {}; // 변수들의 입력값을 저장할 객체 (예: { 주제: "AI", 수신인: "팀장" })
+let currentViewMode = 'raw'; // 'raw' 또는 'markdown'
 
 /* ---------- 다국어 리소스 ---------- */
 const translations = {
@@ -238,7 +351,18 @@ const translations = {
     importFailed: "インポートに失敗しました: {0}",
     fileReadError: "ファイル読み込み中にエラーが発生しました。",
     exportComplete: "📤 エクスポート完了: {0}",
-    exportFailed: "❌ エクスポート失敗: {0}"
+    exportFailed: "❌ エクスポート失敗: {0}",
+    variablesLabel: "変数を入力 (Variables)",
+    variablePlaceholder: "{0}を入力",
+    noVariables: "※ このタスクには入力する変数がありません。",
+    addVariable: "変数追加",
+    enterVariableName: "追加する変数名を入力してください:",
+    enterNewVariableName: "新しい変数名を入力してください:",
+    variableExists: "この変数名は既に存在します。",
+    confirmDeleteVariable: "変数「{0}」を削除しますか？",
+    deleteFromPromptsWarning: "⚠️ この変数はプロンプト内で使用されています。削除するとプロンプトからも[変数名]が削除されます。",
+    viewRaw: "📝 原文",
+    viewMarkdown: "📄 Markdown"
   },
   en: {
     langName: "English",
@@ -286,7 +410,18 @@ const translations = {
     importFailed: "Import failed: {0}",
     fileReadError: "An error occurred while reading the file.",
     exportComplete: "📤 Export complete: {0}",
-    exportFailed: "❌ Export failed: {0}"
+    exportFailed: "❌ Export failed: {0}",
+    variablesLabel: "Enter Variables",
+    variablePlaceholder: "Enter {0}",
+    noVariables: "※ There are no variables to enter for this task.",
+    addVariable: "Add Variable",
+    enterVariableName: "Enter variable name to add:",
+    enterNewVariableName: "Enter new variable name:",
+    variableExists: "This variable name already exists.",
+    confirmDeleteVariable: "Delete variable \"{0}\"?",
+    deleteFromPromptsWarning: "⚠️ This variable is used in prompts. Deleting it will also remove [variable] from all prompts.",
+    viewRaw: "📝 Raw",
+    viewMarkdown: "📄 Markdown"
   },
   zh: {
     langName: "简体中文",
@@ -334,7 +469,18 @@ const translations = {
     importFailed: "导入失败：{0}",
     fileReadError: "读取文件时发生错误。",
     exportComplete: "📤 导出完成: {0}",
-    exportFailed: "❌ 导出失败: {0}"
+    exportFailed: "❌ 导出失败: {0}",
+    variablesLabel: "输入变量 (Variables)",
+    variablePlaceholder: "输入{0}",
+    noVariables: "※ 此任务没有需要输入的变量。",
+    addVariable: "添加变量",
+    enterVariableName: "请输入要添加的变量名:",
+    enterNewVariableName: "请输入新的变量名:",
+    variableExists: "此变量名已存在。",
+    confirmDeleteVariable: "删除变量「{0}」吗？",
+    deleteFromPromptsWarning: "⚠️ 此变量在提示词中使用。删除后，[变量名]也将从所有提示词中移除。",
+    viewRaw: "📝 原文",
+    viewMarkdown: "📄 Markdown"
   },
   ko: {
     langName: "한국어",
@@ -382,7 +528,18 @@ const translations = {
     importFailed: "가져오기에 실패했습니다: {0}",
     fileReadError: "파일을 읽는 중 오류가 발생했습니다.",
     exportComplete: "📤 내보내기 완료: {0}",
-    exportFailed: "❌ 내보내기 실패: {0}"
+    exportFailed: "❌ 내보내기 실패: {0}",
+    variablesLabel: "변수 입력 (Variables)",
+    variablePlaceholder: "{0}을(를) 입력",
+    noVariables: "※ 이 태스크에는 입력할 변수가 없습니다.",
+    addVariable: "변수 추가",
+    enterVariableName: "추가할 변수명을 입력하세요:",
+    enterNewVariableName: "새 변수명을 입력하세요:",
+    variableExists: "이 변수명은 이미 존재합니다.",
+    confirmDeleteVariable: "변수 \"{0}\"을(를) 삭제하시겠습니까?",
+    deleteFromPromptsWarning: "⚠️ 이 변수는 프롬프트에서 사용 중입니다. 삭제하면 모든 프롬프트에서 [변수명]도 함께 제거됩니다.",
+    viewRaw: "📝 원본",
+    viewMarkdown: "📄 Markdown"
   },
   fr: {
     langName: "Français",
@@ -430,7 +587,18 @@ const translations = {
     importFailed: "Échec de l'importation : {0}",
     fileReadError: "Une erreur s'est produite lors de la lecture du fichier.",
     exportComplete: "📤 Exportation terminée : {0}",
-    exportFailed: "❌ Échec de l'exportation : {0}"
+    exportFailed: "❌ Échec de l'exportation : {0}",
+    variablesLabel: "Saisir les variables",
+    variablePlaceholder: "Saisir {0}",
+    noVariables: "※ Il n'y a pas de variables à saisir pour cette tâche.",
+    addVariable: "Ajouter variable",
+    enterVariableName: "Entrez le nom de la variable à ajouter:",
+    enterNewVariableName: "Entrez le nouveau nom de la variable:",
+    variableExists: "Ce nom de variable existe déjà.",
+    confirmDeleteVariable: "Supprimer la variable «{0}»?",
+    deleteFromPromptsWarning: "⚠️ Cette variable est utilisée dans les prompts. La supprimer supprimera également [variable] de tous les prompts.",
+    viewRaw: "📝 Brut",
+    viewMarkdown: "📄 Markdown"
   },
   es: {
     langName: "Español",
@@ -478,7 +646,18 @@ const translations = {
     importFailed: "Importación fallida: {0}",
     fileReadError: "Ocurrió un error al leer el archivo.",
     exportComplete: "📤 Exportación completa: {0}",
-    exportFailed: "❌ Exportación fallida: {0}"
+    exportFailed: "❌ Exportación fallida: {0}",
+    variablesLabel: "Introducir variables",
+    variablePlaceholder: "Introducir {0}",
+    noVariables: "※ No hay variables que introducir para esta tarea.",
+    addVariable: "Añadir variable",
+    enterVariableName: "Introduce el nombre de la variable a añadir:",
+    enterNewVariableName: "Introduce el nuevo nombre de la variable:",
+    variableExists: "Este nombre de variable ya existe.",
+    confirmDeleteVariable: "¿Eliminar la variable \"{0}\"?",
+    deleteFromPromptsWarning: "⚠️ Esta variable se usa en los prompts. Eliminarla también eliminará [variable] de todos los prompts.",
+    viewRaw: "📝 Original",
+    viewMarkdown: "📄 Markdown"
   }
 };
 
@@ -591,11 +770,16 @@ function toggleCat(id) {
   localStorage.setItem('catToggleState', JSON.stringify(catToggleState));
 }
 
-/* ---------- 상세 영역 표시 ---------- */
+/* ---------- 상세 영역 표시 (수정됨) ---------- */
 function showDetail(catId, taskId, onlySilent) {
+  // 태스크가 변경될 때만 currentVarState 초기화
+  if (currentCat !== catId || currentTask !== taskId) {
+    currentVarState = {};
+  }
+  
   currentCat = catId;
   currentTask = taskId;
-  selectedPrompt = null; // 다른 태스크로 이동 시 프롬프트 선택 해제
+  selectedPrompt = null;
 
   const $area = document.getElementById('detail-area');
   const cat = data.cats.find(c => c.id === catId);
@@ -608,22 +792,269 @@ function showDetail(catId, taskId, onlySilent) {
     return;
   }
 
+  // 태스크에 variables 배열이 없으면 초기화
+  if (!task.variables) {
+    task.variables = [];
+  }
+
+  // 1. 프롬프트 내의 모든 변수([abc]) 추출 및 중복 제거 (자동 감지)
+  const autoDetectedVars = new Set();
+  task.prompts.forEach(p => {
+    const matches = p.match(/\[([^\[\]]+)\]/g); // 빈 대괄호 [] 제외
+    if (matches) {
+      matches.forEach(m => {
+        const varName = m.replace(/[\[\]]/g, '').trim();
+        if (varName) autoDetectedVars.add(varName); // 빈 문자열 제외
+      });
+    }
+  });
+
+  // 2. 수동 추가된 변수와 자동 감지된 변수 병합 (중복 제거, 빈 문자열 제외)
+  const allVars = new Set([...task.variables.filter(v => v && v.trim()), ...autoDetectedVars]);
+
+  // 3. 변수 관리 영역 HTML 구성 (세로 레이아웃 + textarea)
+  let inputsHtml = `
+    <div class="card p-3 mb-3 bg-light border-0">
+      <div class="d-flex align-items-center mb-2">
+        <h6 class="mb-0 text-secondary" style="font-size:0.9em">👇 ${t('variablesLabel')}</h6>
+        <button class="btn btn-outline-primary btn-sm ms-auto" onclick="openAddVariableModal()">
+          <span style="font-size:0.85em;">+ ${t('addVariable')}</span>
+        </button>
+      </div>
+      <div id="variables-container">
+  `;
+
+  if (allVars.size > 0) {
+    allVars.forEach(v => {
+      const isManual = task.variables.includes(v);
+      const isAutoDetected = autoDetectedVars.has(v);
+      const currentValue = currentVarState[v] || '';
+      
+      inputsHtml += `
+        <div class="variable-item-vertical mb-3" data-var="${escapeHtml(v)}">
+          <div class="d-flex align-items-center mb-1">
+            <span class="text-primary fw-bold" style="font-size:0.95em;">
+              [${escapeHtml(v)}]
+              ${isAutoDetected ? '<span class="text-muted" style="font-size:0.7em; margin-left:3px;" title="Auto-detected from prompt">⚡</span>' : ''}
+            </span>
+            <div class="ms-auto">
+              <button class="btn btn-outline-secondary btn-sm py-0 px-2" type="button" onclick="editVariable('${escapeHtml(v)}')" title="${t('edit')}" style="font-size:0.75em;">✏️</button>
+              <button class="btn btn-outline-danger btn-sm py-0 px-2" type="button" onclick="deleteVariable('${escapeHtml(v)}')" title="${t('delete')}" style="font-size:0.75em;">🗑️</button>
+            </div>
+          </div>
+          <textarea class="form-control variable-textarea" 
+                    rows="2" 
+                    placeholder="${t('variablePlaceholder', v)}" 
+                    oninput="updateVariable('${escapeHtml(v)}', this.value); autoResizeTextarea(this);">${escapeHtml(currentValue)}</textarea>
+        </div>
+      `;
+    });
+  } else {
+    inputsHtml += `<div class="text-secondary small">${t('noVariables')}</div>`;
+  }
+
+  inputsHtml += `</div></div>`;
+
   $area.innerHTML = `
-    <h3 style="font-weight:700; font-size:1.35em; margin-bottom:18px;">${task.name}</h3>
-    <div class="mb-3">
-      <textarea class="form-control mb-1" rows="4" placeholder="${t('taskContentPlaceholder')}" oninput="updatePreview(this.value)"></textarea>
-      <div class="form-text">${t('taskContentHint')}</div>
-    </div>
-    <div class="d-flex align-items-center mb-2 mt-2" style="gap:10px;">
+    <h3 style="font-weight:700; font-size:1.35em; margin-bottom:10px;">${task.name}</h3>
+    
+    ${inputsHtml}
+
+    <div class="d-flex align-items-center mb-2 mt-2" style="gap:10px; flex-wrap: wrap;">
       <div style="font-weight:600; font-size:1.13em;">${t('completedPrompt')}</div>
+      <div class="view-mode-toggle ms-2">
+        <button class="view-mode-btn ${currentViewMode === 'raw' ? 'active' : ''}" onclick="setViewMode('raw')">${t('viewRaw')}</button>
+        <button class="view-mode-btn ${currentViewMode === 'markdown' ? 'active' : ''}" onclick="setViewMode('markdown')">${t('viewMarkdown')}</button>
+      </div>
       <button class="btn btn-primary btn-prompt-add btn-sm ms-auto" onclick="openPromptModal('${cat.id}','${task.id}')">${t('addPrompt')}</button>
     </div>
     <div id="prompts-list"></div>
   `;
+  
   renderPrompts(task.prompts);
 }
 
-function renderPrompts(prompts, val = '') {
+// [신규] 뷰 모드 변경
+function setViewMode(mode) {
+  currentViewMode = mode;
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  
+  // 버튼 상태 업데이트
+  document.querySelectorAll('.view-mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.trim() === (mode === 'raw' ? t('viewRaw') : t('viewMarkdown')));
+  });
+  
+  if (task) renderPrompts(task.prompts);
+}
+
+// [신규] 변수 추가 모달 열기
+function openAddVariableModal() {
+  const varName = prompt(t('enterVariableName'));
+  if (varName && varName.trim()) {
+    addVariable(varName.trim());
+  }
+}
+
+// [신규] 변수 추가
+function addVariable(varName) {
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task) return;
+
+  if (!task.variables) task.variables = [];
+  
+  // 자동 감지된 변수 목록 가져오기
+  const autoDetectedVars = new Set();
+  task.prompts.forEach(p => {
+    const matches = p.match(/\[([^\[\]]+)\]/g);
+    if (matches) {
+      matches.forEach(m => {
+        const v = m.replace(/[\[\]]/g, '').trim();
+        if (v) autoDetectedVars.add(v);
+      });
+    }
+  });
+  
+  // 중복 체크 (수동 + 자동 감지 모두)
+  if (task.variables.includes(varName) || autoDetectedVars.has(varName)) {
+    alert(t('variableExists'));
+    return;
+  }
+
+  task.variables.push(varName);
+  currentVarState[varName] = '';
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask);
+}
+
+// [신규] 변수 삭제
+function deleteVariable(varName) {
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task) return;
+
+  // 자동 감지 변수인지 확인
+  const autoDetectedVars = new Set();
+  task.prompts.forEach(p => {
+    const matches = p.match(/\[([^\[\]]+)\]/g);
+    if (matches) {
+      matches.forEach(m => {
+        const v = m.replace(/[\[\]]/g, '').trim();
+        if (v) autoDetectedVars.add(v);
+      });
+    }
+  });
+  
+  const isAutoDetected = autoDetectedVars.has(varName);
+  const isManual = task.variables && task.variables.includes(varName);
+  
+  // 확인 메시지 (자동 감지 변수면 프롬프트에서도 제거됨을 알림)
+  let confirmMsg = t('confirmDeleteVariable', varName);
+  if (isAutoDetected) {
+    confirmMsg += '\n\n' + t('deleteFromPromptsWarning');
+  }
+  
+  if (!confirm(confirmMsg)) return;
+
+  // 1. 수동 추가된 변수 목록에서 제거
+  if (task.variables) {
+    task.variables = task.variables.filter(v => v !== varName);
+  }
+
+  // 2. 자동 감지 변수인 경우, 모든 프롬프트에서 [변수명] 제거
+  if (isAutoDetected) {
+    task.prompts = task.prompts.map(p => 
+      p.replace(new RegExp(`\\[${escapeRegex(varName)}\\]`, 'g'), '')
+    );
+  }
+
+  // 3. 상태에서도 제거
+  delete currentVarState[varName];
+
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask);
+}
+
+// [신규] 변수 이름 수정
+function editVariable(oldName) {
+  const newName = prompt(t('enterNewVariableName'), oldName);
+  if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
+
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task) return;
+
+  const trimmedNewName = newName.trim();
+
+  // 자동 감지된 변수 목록 가져오기
+  const autoDetectedVars = new Set();
+  task.prompts.forEach(p => {
+    const matches = p.match(/\[([^\[\]]+)\]/g); // 빈 대괄호 [] 제외
+    if (matches) {
+      matches.forEach(m => {
+        const v = m.replace(/[\[\]]/g, '').trim();
+        if (v) autoDetectedVars.add(v);
+      });
+    }
+  });
+
+  // 중복 체크 (수동 + 자동 감지 모두, 단 자기 자신은 제외)
+  const existsInManual = task.variables && task.variables.includes(trimmedNewName);
+  const existsInAuto = autoDetectedVars.has(trimmedNewName) && trimmedNewName !== oldName;
+  
+  if (existsInManual || existsInAuto) {
+    alert(t('variableExists'));
+    return;
+  }
+
+  // 1. 수동 변수 목록 업데이트
+  if (task.variables) {
+    const idx = task.variables.indexOf(oldName);
+    if (idx !== -1) {
+      task.variables[idx] = trimmedNewName;
+    } else {
+      // 자동 감지된 변수를 수정하는 경우, 수동 목록에 새 이름 추가
+      task.variables.push(trimmedNewName);
+    }
+  }
+
+  // 2. 모든 프롬프트에서 [oldName] → [newName] 치환
+  task.prompts = task.prompts.map(p => 
+    p.replace(new RegExp(`\\[${escapeRegex(oldName)}\\]`, 'g'), `[${trimmedNewName}]`)
+  );
+
+  // 3. 상태 값 이전
+  if (currentVarState[oldName] !== undefined) {
+    currentVarState[trimmedNewName] = currentVarState[oldName];
+    delete currentVarState[oldName];
+  }
+
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask); // saveAndRerender 대신 직접 호출
+}
+
+// 정규식 이스케이프 헬퍼
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// [신규] textarea 자동 크기 조절
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 300) + 'px';
+}
+
+// [신규] 개별 변수 업데이트 함수
+function updateVariable(key, value) {
+  currentVarState[key] = value; // 상태 업데이트
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (task) renderPrompts(task.prompts); // 렌더링 갱신
+}
+
+/* ---------- 프롬프트 렌더링 (마크다운 지원) ---------- */
+function renderPrompts(prompts) {
   const $list = document.getElementById('prompts-list');
   if (!$list) return;
   $list.innerHTML = '';
@@ -633,25 +1064,44 @@ function renderPrompts(prompts, val = '') {
       return; // 선택된 프롬프트가 있으면 다른 것은 렌더링하지 않음
     }
 
-    const txt = val ? replacePH(p, val) : p;
+    // replacePH 호출 시 현재 저장된 변수 상태(currentVarState) 전달
+    const txt = replacePH(p, currentVarState);
+    
     const box = document.createElement('div');
-    box.className = 'prompt-box position-relative mb-2';
+    box.className = 'prompt-box prompt-box-vertical position-relative mb-3';
 
     const isChecked = selectedPrompt && selectedPrompt.cat === currentCat && selectedPrompt.task === currentTask && selectedPrompt.idx === i;
-    const lineCount = (txt.match(/\n/g) || []).length + 1;
-    const shouldCollapse = lineCount > 3 || txt.length > 150;
-    const collapseClass = shouldCollapse ? 'collapsed' : '';
-    const toggleButton = shouldCollapse ? `<button class="toggle-btn" onclick="togglePromptText(this)">${t('showMore')}</button>` : '';
+    
+    // 마크다운 모드 여부에 따라 콘텐츠 생성
+    let contentHtml = '';
+    if (currentViewMode === 'markdown') {
+      // 마크다운 렌더링
+      const renderedMarkdown = marked.parse(txt);
+      contentHtml = `<div class="markdown-rendered prompt-content-area">${renderedMarkdown}</div>`;
+    } else {
+      // 원본 텍스트 (기존 방식)
+      const lineCount = (txt.match(/\n/g) || []).length + 1;
+      const shouldCollapse = lineCount > 5 || txt.length > 300;
+      const collapseClass = shouldCollapse ? 'collapsed' : '';
+      const toggleButton = shouldCollapse ? `<button class="toggle-btn" onclick="togglePromptText(this)">${t('showMore')}</button>` : '';
+      contentHtml = `
+        <pre class="prompt-text prompt-content-area ${collapseClass}">${escapeHtml(txt)}</pre>
+        ${toggleButton}
+      `;
+    }
 
     box.innerHTML = `
       <input class="form-check-input prompt-select" type="checkbox" onchange="togglePromptSelect(${i}, this)" ${isChecked ? 'checked' : ''}>
       <div class="prompt-drag-handle">⋮</div>
-      <pre class="prompt-text ${collapseClass}">${escapeHtml(txt)}</pre>
-      ${toggleButton}
       <div class="prompt-actions">
-        <button class="btn btn-secondary btn-sm" onclick="copyPrompt(this)">${t('copy')}</button>
         <button class="btn btn-edit btn-sm" onclick="openPromptModal(currentCat,currentTask,${i})">${t('edit')}</button>
         <button class="btn btn-del btn-sm" onclick="deletePrompt(currentCat,currentTask,${i})">${t('delete')}</button>
+      </div>
+      
+      ${contentHtml}
+      
+      <div class="prompt-bottom-actions">
+        <button class="btn btn-outline-secondary btn-sm" onclick="copyPrompt(this)" data-raw-text="${escapeHtml(txt).replace(/"/g, '&quot;')}">${t('copy')}</button>
       </div>
     `;
     $list.appendChild(box);
@@ -663,32 +1113,48 @@ function renderPrompts(prompts, val = '') {
   }
 }
 
-function updatePreview(v) {
-  const cat = data.cats.find(c => c.id === currentCat);
-  const task = cat && cat.tasks.find(t => t.id === currentTask);
-  if (task) renderPrompts(task.prompts, v);
-}
-
+/* ---------- 토글 선택 함수 (수정됨) ---------- */
 function togglePromptSelect(idx, cb) {
   selectedPrompt = cb.checked ? { cat: currentCat, task: currentTask, idx } : null;
-  const inputVal = document.querySelector('#detail-area textarea')?.value || '';
   const cat = data.cats.find(c => c.id === currentCat);
   const task = cat && cat.tasks.find(t => t.id === currentTask);
-  if (task) renderPrompts(task.prompts, inputVal);
+  if (task) renderPrompts(task.prompts);
 }
 
-/* ---------- 유틸리티 함수 ---------- */
-function replacePH(tpl, input) { return tpl.replace(/\[([^\]]*)\]/g, input || ''); }
+/* ---------- 유틸리티 함수 (수정됨) ---------- */
+// 변수 상태 객체를 받아 해당하는 키가 있으면 치환, 없으면 대괄호 그대로 유지
+function replacePH(tpl, varState) { 
+  return tpl.replace(/\[(.*?)\]/g, (match, p1) => {
+    // p1은 대괄호 안의 텍스트 (예: '주제')
+    // varState에 값이 있고 빈 문자열이 아니면 치환, 아니면 원래 대괄호 문자열 반환
+    return (varState[p1] !== undefined && varState[p1] !== '') ? varState[p1] : match;
+  }); 
+}
 function escapeHtml(txt) { return txt.replace(/[<>"']/g, m => ({ "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[m]); }
+function unescapeHtml(txt) { 
+  return txt.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'); 
+}
 function copyPrompt(btn) {
-  const promptBox = btn.closest('.prompt-box');
-  const promptText = promptBox.querySelector('.prompt-text').textContent;
-  navigator.clipboard.writeText(promptText)
+  let textToCopy;
+  
+  // data-raw-text 속성이 있으면 그것을 사용 (마크다운 모드)
+  if (btn.dataset.rawText) {
+    textToCopy = unescapeHtml(btn.dataset.rawText);
+  } else {
+    // 기존 방식: prompt-text 요소에서 가져옴
+    const promptBox = btn.closest('.prompt-box');
+    const promptTextEl = promptBox.querySelector('.prompt-text');
+    textToCopy = promptTextEl ? promptTextEl.textContent : '';
+  }
+  
+  navigator.clipboard.writeText(textToCopy)
     .then(() => { btn.textContent = t('copyComplete'); setTimeout(() => btn.textContent = t('copy'), 900); })
     .catch(() => alert(t('copyFailed')));
 }
 function togglePromptText(btn) {
-  const promptText = btn.parentElement.querySelector('.prompt-text');
+  const promptBox = btn.closest('.prompt-box');
+  const promptText = promptBox.querySelector('.prompt-text');
+  if (!promptText) return;
   const isCollapsed = promptText.classList.toggle('collapsed');
   btn.innerHTML = isCollapsed ? t('showMore') : t('showLess');
 }
