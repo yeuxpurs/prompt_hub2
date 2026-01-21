@@ -5,1045 +5,736 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>多国語プロンプトテンプレート生成器</title>
     <style>
-        /* 基本スタイル初期化 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+            --primary-color: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --success-hover: #059669;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            --border-color: #e5e7eb;
+            --border-focus: #6366f1;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        /* 全体ページスタイル */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans CJK JP', sans-serif;
+            background: var(--primary-gradient);
             min-height: 100vh;
             padding: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
+            line-height: 1.6;
         }
-
-        /* メインコンテナ */
         .container {
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1100px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
             overflow: hidden;
+            animation: slideUp 0.6s ease-out;
         }
-
-        /* ヘッダー */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        /* 言語選択器 */
-        .language-selector-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px 10px;
-            border-radius: 10px;
-        }
-
-        .language-selector-container label {
-            margin-right: 8px;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        #language-selector {
-            background: transparent;
-            border: none;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        #language-selector option {
-            background: #333;
-            color: white;
-        }
-
-        /* タブメニュー */
-        .tabs {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 3px solid #e9ecef;
-            overflow-x: auto;
-            scrollbar-width: thin;
-        }
-
-        .tab-button {
-            padding: 15px 25px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 600;
-            color: #495057;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            position: relative;
-        }
-
-        .tab-button:hover {
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-        }
-
-        .tab-button.active {
-            color: #667eea;
-            background: white;
-        }
-
-        .tab-button.active::after {
-            content: '';
-            position: absolute;
-            bottom: -3px;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-        }
-
-        /* タブコンテンツ */
-        .tab-content {
-            display: none;
-            padding: 30px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* 入力グループ */
-        .input-group { margin-bottom: 25px; }
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 32px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .header-content { position: relative; z-index: 1; }
+        .header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.025em; }
+        .header p { font-size: 1rem; opacity: 0.9; }
+        .language-selector-wrapper { position: absolute; top: 24px; right: 24px; z-index: 10; }
+        .language-select {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            color: white;
             font-weight: 600;
-            color: #495057;
-            font-size: 1.1em;
-        }
-        .input-group input, .input-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-        .input-group input:focus, .input-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        .input-group textarea { min-height: 100px; resize: vertical; }
-        .input-group small {
-            display: block;
-            margin-top: 5px;
-            color: #6c757d;
-            font-size: 0.9em;
-        }
-
-        /* 出力セクション */
-        .output-section {
-            margin-top: 30px;
-            padding: 25px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-            border-radius: 15px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-        }
-        .output-section h3 {
-            margin-bottom: 15px;
-            color: #495057;
-            font-size: 1.3em;
-        }
-        .output-text {
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            min-height: 150px;
-            font-family: 'Courier New', monospace;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            border: 1px solid #e9ecef;
-        }
-
-        /* ボタングループ */
-        .button-group {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
+            transition: var(--transition);
+            min-width: 140px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        .language-select:hover { background: rgba(255, 255, 255, 0.3); }
+        .language-select:focus { outline: none; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3); }
+        .language-select option { background: #333; color: white; padding: 10px; }
+        .tabs-wrapper { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 0 16px; }
+        .tabs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 12px 0; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-button {
+            flex-shrink: 0;
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+        .tab-button:hover { color: var(--primary-color); background: rgba(99, 102, 241, 0.08); }
+        .tab-button.active { color: var(--primary-color); background: var(--bg-primary); box-shadow: var(--shadow-sm); }
+        .tab-content { display: none; padding: 32px; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .framework-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.08));
+            padding: 20px 24px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 28px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .framework-card h4 { color: var(--primary-color); font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; }
+        .framework-card p { color: var(--text-secondary); font-size: 0.95rem; }
+        .input-grid { display: grid; gap: 24px; }
+        .input-group { position: relative; }
+        .input-group label {
+            display: flex;
             align-items: center;
             gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
         }
-        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3); }
-        .btn-success { background: #28a745; color: white; }
-        .btn-success:hover { background: #218838; transform: translateY(-2px); }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5a6268; transform: translateY(-2px); }
-
-        /* コピー通知 */
-        .copy-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
+        .input-group label .label-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-gradient);
             color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .input-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-family: inherit;
+            min-height: 100px;
+            resize: vertical;
+            transition: var(--transition);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .input-group textarea:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        .input-group textarea::placeholder { color: var(--text-muted); }
+        .input-group small { display: block; margin-top: 8px; color: var(--text-muted); font-size: 0.85rem; }
+        .output-wrapper { padding: 0 32px 32px; }
+        .output-section {
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+        .output-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .output-header h3 { display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-size: 1.1rem; font-weight: 700; }
+        .output-stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-secondary); }
+        .output-stats span { display: flex; align-items: center; gap: 4px; }
+        .output-text {
+            padding: 20px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-md);
+            min-height: 150px;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .output-text.empty { color: var(--text-muted); font-style: italic; }
+        .button-group { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-primary { background: var(--primary-gradient); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4); }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-success:hover { background: var(--success-hover); transform: translateY(-2px); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--border-color); transform: translateY(-2px); }
+        .btn-icon { font-size: 1.1rem; }
+        .notification {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
             opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.3s ease;
+            transform: translateX(100%);
+            transition: var(--transition);
             z-index: 1000;
         }
-        .copy-notification.show { opacity: 1; transform: translateY(0); }
-
-        /* フレームワーク説明 */
-        .framework-description {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            border-left: 4px solid #667eea;
+        .notification.show { opacity: 1; transform: translateX(0); }
+        .notification-success { background: var(--success-color); color: white; }
+        .notification-warning { background: var(--warning-color); color: white; }
+        .footer {
+            padding: 16px 32px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
-        .framework-description h4 { color: #667eea; margin-bottom: 8px; }
-        .framework-description p { color: #6c757d; line-height: 1.6; }
-
-        /* レスポンシブデザイン */
+        .footer-links { display: flex; gap: 16px; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; transition: var(--transition); }
+        .footer-links a:hover { color: var(--primary-color); }
         @media (max-width: 768px) {
-            body { padding: 10px; }
-            .header h1 { font-size: 1.8em; }
-            .tab-button { padding: 12px 15px; font-size: 0.9em; }
-            .container { border-radius: 15px; }
+            body { padding: 12px; }
+            .header { padding: 24px 20px 60px; }
+            .header h1 { font-size: 1.5rem; }
+            .language-selector-wrapper { position: static; margin-top: 16px; }
+            .language-btn { width: 100%; justify-content: center; }
+            .language-menu { left: 0; right: 0; }
+            .tabs-wrapper { padding: 0 12px; }
+            .tab-button { padding: 8px 14px; font-size: 0.85rem; }
+            .tab-content { padding: 20px; }
+            .output-wrapper { padding: 0 20px 20px; }
             .button-group { flex-direction: column; }
-            .btn { width: 100%; justify-content: center; }
-            .language-selector-container {
-                position: static;
-                margin-top: 15px;
-                justify-content: center;
-                background: none;
-            }
+            .btn { width: 100%; }
+            .output-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .footer { flex-direction: column; gap: 12px; text-align: center; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1 data-translate-key="header_title">🚀 AIプロンプトテンプレートジェネレーター</h1>
-            <p data-translate-key="header_desc">様々なフレームワークを活用して完璧なプロンプトを作成しましょう</p>
-            <div class="language-selector-container">
-                <label for="language-selector" data-translate-key="language_label">言語:</label>
-                <select id="language-selector" onchange="changeLanguage()">
-                    <option value="ja">日本語</option>
-                    <option value="zh">中文</option>
-                    <option value="en">English</option>
-                    <option value="ko">한국어</option>
-                    <option value="es">Español</option>
-                    <option value="fr">Français</option>
+            <div class="header-content">
+                <h1 data-translate-key="header_title">🚀 AIプロンプトテンプレートジェネレーター</h1>
+                <p data-translate-key="header_desc">様々なフレームワークを活用して完璧なプロンプトを作成しましょう</p>
+            </div>
+            <div class="language-selector-wrapper">
+                <select class="language-select" id="languageSelector" onchange="selectLanguage(this.value)">
+                    <option value="ja">🇯🇵 日本語</option>
+                    <option value="zh">🇨🇳 中文</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="ko">🇰🇷 한국어</option>
+                    <option value="fr">🇫🇷 Français</option>
+                    <option value="es">🇪🇸 Español</option>
                 </select>
             </div>
         </div>
-
-        <div class="tabs">
-            <button class="tab-button active" onclick="showTab('ghes')">GHES</button>
-            <button class="tab-button" onclick="showTab('crispe')">CRISPE</button>
-            <button class="tab-button" onclick="showTab('cape')">CAPE</button>
-            <button class="tab-button" onclick="showTab('prompt')">PROMPT</button>
-            <button class="tab-button" onclick="showTab('5w1h')">5W1H</button>
-            <button class="tab-button" onclick="showTab('aida')">AIDA</button>
-            <button class="tab-button" onclick="showTab('storytelling')">Storytelling</button>
+        <div class="tabs-wrapper">
+            <div class="tabs">
+                <button class="tab-button active" onclick="showTab('ghes')">GHES</button>
+                <button class="tab-button" onclick="showTab('crispe')">CRISPE</button>
+                <button class="tab-button" onclick="showTab('cape')">CAPE</button>
+                <button class="tab-button" onclick="showTab('prompt')">PROMPT</button>
+                <button class="tab-button" onclick="showTab('5w1h')">5W1H</button>
+                <button class="tab-button" onclick="showTab('aida')">AIDA</button>
+                <button class="tab-button" onclick="showTab('storytelling')">Storytelling</button>
+            </div>
         </div>
-
-        <!-- GHES タブ -->
+        <!-- GHES Tab -->
         <div id="ghes" class="tab-content active">
-            <div class="framework-description">
-                <h4 data-translate-key="ghes_framework">GHESフレームワーク</h4>
+            <div class="framework-card">
+                <h4 data-translate-key="ghes_framework">📋 GHESフレームワーク</h4>
                 <p data-translate-key="ghes_desc">Goal(目的)→Hint(条件)→Example(例)→Style(スタイル)で構成された明確なプロンプト作成法</p>
             </div>
-            <div class="input-group">
-                <label for="ghes-goal" data-translate-key="ghes_goal_label">Goal (目的)</label>
-                <textarea id="ghes-goal" data-translate-placeholder-key="ghes_goal_placeholder" placeholder="達成したい目標を入力してください"></textarea>
-                <small data-translate-key="ghes_goal_desc">AIが実行すべき主な目的を明確に記述してください</small>
-            </div>
-            <div class="input-group">
-                <label for="ghes-hint" data-translate-key="ghes_hint_label">Hint (条件)</label>
-                <textarea id="ghes-hint" data-translate-placeholder-key="ghes_hint_placeholder" placeholder="制約事項や条件を入力してください"></textarea>
-                <small data-translate-key="ghes_hint_desc">特別な条件や制約事項を明記してください</small>
-            </div>
-            <div class="input-group">
-                <label for="ghes-example" data-translate-key="ghes_example_label">Example (例)</label>
-                <textarea id="ghes-example" data-translate-placeholder-key="ghes_example_placeholder" placeholder="参考にする例を入力してください"></textarea>
-                <small data-translate-key="ghes_example_desc">希望する結果の例を提供してください</small>
-            </div>
-            <div class="input-group">
-                <label for="ghes-style" data-translate-key="ghes_style_label">Style (スタイル)</label>
-                <textarea id="ghes-style" data-translate-placeholder-key="ghes_style_placeholder" placeholder="希望するスタイルを入力してください"></textarea>
-                <small data-translate-key="ghes_style_desc">トーン、形式、スタイルなどを指定してください</small>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label><span class="label-icon">G</span><span data-translate-key="ghes_goal_label">Goal (目的)</span></label>
+                    <textarea id="ghes-goal" data-translate-placeholder-key="ghes_goal_placeholder" placeholder="達成したい目標を入力してください"></textarea>
+                    <small data-translate-key="ghes_goal_desc">AIが実行すべき主な目的を明確に記述してください</small>
+                </div>
+                <div class="input-group">
+                    <label><span class="label-icon">H</span><span data-translate-key="ghes_hint_label">Hint (条件)</span></label>
+                    <textarea id="ghes-hint" data-translate-placeholder-key="ghes_hint_placeholder" placeholder="制約事項や条件を入力してください"></textarea>
+                    <small data-translate-key="ghes_hint_desc">特別な条件や制約事項を明記してください</small>
+                </div>
+                <div class="input-group">
+                    <label><span class="label-icon">E</span><span data-translate-key="ghes_example_label">Example (例)</span></label>
+                    <textarea id="ghes-example" data-translate-placeholder-key="ghes_example_placeholder" placeholder="参考にする例を入力してください"></textarea>
+                    <small data-translate-key="ghes_example_desc">希望する結果の例を提供してください</small>
+                </div>
+                <div class="input-group">
+                    <label><span class="label-icon">S</span><span data-translate-key="ghes_style_label">Style (スタイル)</span></label>
+                    <textarea id="ghes-style" data-translate-placeholder-key="ghes_style_placeholder" placeholder="希望するスタイルを入力してください"></textarea>
+                    <small data-translate-key="ghes_style_desc">トーン、形式、スタイルなどを指定してください</small>
+                </div>
             </div>
         </div>
-
-        <!-- CRISPE タブ -->
+        <!-- CRISPE Tab -->
         <div id="crispe" class="tab-content">
-            <div class="framework-description">
-                <h4 data-translate-key="crispe_framework">CRISPEフレームワーク</h4>
+            <div class="framework-card">
+                <h4 data-translate-key="crispe_framework">📋 CRISPEフレームワーク</h4>
                 <p data-translate-key="crispe_desc">Context→Role→Input→Steps→Personality→Exampleで構成された体系的なプロンプト</p>
             </div>
-            <div class="input-group">
-                <label for="crispe-context" data-translate-key="crispe_context_label">Context (文脈)</label>
-                <textarea id="crispe-context" data-translate-placeholder-key="crispe_context_placeholder" placeholder="背景情報を入力してください"></textarea>
-            </div>
-            <div class="input-group">
-                <label for="crispe-role" data-translate-key="crispe_role_label">Role (役割)</label>
-                <textarea id="crispe-role" data-translate-placeholder-key="crispe_role_placeholder" placeholder="AIの役割を定義してください"></textarea>
-            </div>
-            <div class="input-group">
-                <label for="crispe-input" data-translate-key="crispe_input_label">Input (入力)</label>
-                <textarea id="crispe-input" data-translate-placeholder-key="crispe_input_placeholder" placeholder="提供する情報を入力してください"></textarea>
-            </div>
-            <div class="input-group">
-                <label for="crispe-steps" data-translate-key="crispe_steps_label">Steps (段階)</label>
-                <textarea id="crispe-steps" data-translate-placeholder-key="crispe_steps_placeholder" placeholder="実行段階を入力してください"></textarea>
-            </div>
-            <div class="input-group">
-                <label for="crispe-personality" data-translate-key="crispe_personality_label">Personality (性格)</label>
-                <textarea id="crispe-personality" data-translate-placeholder-key="crispe_personality_placeholder" placeholder="AIの性格や口調を定義してください"></textarea>
-            </div>
-            <div class="input-group">
-                <label for="crispe-example" data-translate-key="crispe_example_label">Example (例)</label>
-                <textarea id="crispe-example" data-translate-placeholder-key="crispe_example_placeholder" placeholder="参考例を入力してください"></textarea>
+            <div class="input-grid">
+                <div class="input-group"><label><span class="label-icon">C</span><span data-translate-key="crispe_context_label">Context (文脈)</span></label><textarea id="crispe-context" data-translate-placeholder-key="crispe_context_placeholder" placeholder="背景情報を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">R</span><span data-translate-key="crispe_role_label">Role (役割)</span></label><textarea id="crispe-role" data-translate-placeholder-key="crispe_role_placeholder" placeholder="AIの役割を定義してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">I</span><span data-translate-key="crispe_input_label">Input (入力)</span></label><textarea id="crispe-input" data-translate-placeholder-key="crispe_input_placeholder" placeholder="提供する情報を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">S</span><span data-translate-key="crispe_steps_label">Steps (段階)</span></label><textarea id="crispe-steps" data-translate-placeholder-key="crispe_steps_placeholder" placeholder="実行段階を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">P</span><span data-translate-key="crispe_personality_label">Personality (性格)</span></label><textarea id="crispe-personality" data-translate-placeholder-key="crispe_personality_placeholder" placeholder="AIの性格や口調を定義してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">E</span><span data-translate-key="crispe_example_label">Example (例)</span></label><textarea id="crispe-example" data-translate-placeholder-key="crispe_example_placeholder" placeholder="参考例を入力してください"></textarea></div>
             </div>
         </div>
-        
         <!-- CAPE Tab -->
         <div id="cape" class="tab-content">
-            <div class="framework-description">
-                <h4 data-translate-key="cape_framework">CAPEフレームワーク</h4>
+            <div class="framework-card">
+                <h4 data-translate-key="cape_framework">📋 CAPEフレームワーク</h4>
                 <p data-translate-key="cape_desc">Context→Action→Purpose→Expectationで構成された迅速な下書き設計</p>
             </div>
-            <div class="input-group"><label for="cape-context" data-translate-key="cape_context_label">Context (背景)</label><textarea id="cape-context" data-translate-placeholder-key="cape_context_placeholder" placeholder="状況や背景を入力してください"></textarea></div>
-            <div class="input-group"><label for="cape-action" data-translate-key="cape_action_label">Action (行動)</label><textarea id="cape-action" data-translate-placeholder-key="cape_action_placeholder" placeholder="実行する行動を入力してください"></textarea></div>
-            <div class="input-group"><label for="cape-purpose" data-translate-key="cape_purpose_label">Purpose (目的)</label><textarea id="cape-purpose" data-translate-placeholder-key="cape_purpose_placeholder" placeholder="目的を入力してください"></textarea></div>
-            <div class="input-group"><label for="cape-expectation" data-translate-key="cape_expectation_label">Expectation (期待される結果)</label><textarea id="cape-expectation" data-translate-placeholder-key="cape_expectation_placeholder" placeholder="期待する結果を入力してください"></textarea></div>
+            <div class="input-grid">
+                <div class="input-group"><label><span class="label-icon">C</span><span data-translate-key="cape_context_label">Context (背景)</span></label><textarea id="cape-context" data-translate-placeholder-key="cape_context_placeholder" placeholder="状況や背景を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">A</span><span data-translate-key="cape_action_label">Action (行動)</span></label><textarea id="cape-action" data-translate-placeholder-key="cape_action_placeholder" placeholder="実行する行動を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">P</span><span data-translate-key="cape_purpose_label">Purpose (目的)</span></label><textarea id="cape-purpose" data-translate-placeholder-key="cape_purpose_placeholder" placeholder="目的を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">E</span><span data-translate-key="cape_expectation_label">Expectation (期待される結果)</span></label><textarea id="cape-expectation" data-translate-placeholder-key="cape_expectation_placeholder" placeholder="期待する結果を入力してください"></textarea></div>
+            </div>
         </div>
-
         <!-- PROMPT Tab -->
         <div id="prompt" class="tab-content">
-            <div class="framework-description">
-                <h4 data-translate-key="prompt_framework">PROMPTフレームワーク</h4>
+            <div class="framework-card">
+                <h4 data-translate-key="prompt_framework">📋 PROMPTフレームワーク</h4>
                 <p data-translate-key="prompt_desc">Purpose→Role→Output→Mode→Persona→Toneで構成された詳細なプロンプト</p>
             </div>
-            <div class="input-group"><label for="prompt-purpose" data-translate-key="prompt_purpose_label">Purpose (目的)</label><textarea id="prompt-purpose" data-translate-placeholder-key="prompt_purpose_placeholder" placeholder="目的を入力してください"></textarea></div>
-            <div class="input-group"><label for="prompt-role" data-translate-key="prompt_role_label">Role (役割)</label><textarea id="prompt-role" data-translate-placeholder-key="prompt_role_placeholder" placeholder="役割を入力してください"></textarea></div>
-            <div class="input-group"><label for="prompt-output" data-translate-key="prompt_output_label">Output (出力)</label><textarea id="prompt-output" data-translate-placeholder-key="prompt_output_placeholder" placeholder="希望する出力形式を入力してください"></textarea></div>
-            <div class="input-group"><label for="prompt-mode" data-translate-key="prompt_mode_label">Mode (モード)</label><textarea id="prompt-mode" data-translate-placeholder-key="prompt_mode_placeholder" placeholder="作業モードを入力してください"></textarea></div>
-            <div class="input-group"><label for="prompt-persona" data-translate-key="prompt_persona_label">Persona (ペルソナ)</label><textarea id="prompt-persona" data-translate-placeholder-key="prompt_persona_placeholder" placeholder="AIのペルソナを入力してください"></textarea></div>
-            <div class="input-group"><label for="prompt-tone" data-translate-key="prompt_tone_label">Tone (トーン)</label><textarea id="prompt-tone" data-translate-placeholder-key="prompt_tone_placeholder" placeholder="口調やトーンを入力してください"></textarea></div>
+            <div class="input-grid">
+                <div class="input-group"><label><span class="label-icon">P</span><span data-translate-key="prompt_purpose_label">Purpose (目的)</span></label><textarea id="prompt-purpose" data-translate-placeholder-key="prompt_purpose_placeholder" placeholder="目的を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">R</span><span data-translate-key="prompt_role_label">Role (役割)</span></label><textarea id="prompt-role" data-translate-placeholder-key="prompt_role_placeholder" placeholder="役割を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">O</span><span data-translate-key="prompt_output_label">Output (出力)</span></label><textarea id="prompt-output" data-translate-placeholder-key="prompt_output_placeholder" placeholder="希望する出力形式を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">M</span><span data-translate-key="prompt_mode_label">Mode (モード)</span></label><textarea id="prompt-mode" data-translate-placeholder-key="prompt_mode_placeholder" placeholder="作業モードを入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">P</span><span data-translate-key="prompt_persona_label">Persona (ペルソナ)</span></label><textarea id="prompt-persona" data-translate-placeholder-key="prompt_persona_placeholder" placeholder="AIのペルソナを入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">T</span><span data-translate-key="prompt_tone_label">Tone (トーン)</span></label><textarea id="prompt-tone" data-translate-placeholder-key="prompt_tone_placeholder" placeholder="口調やトーンを入力してください"></textarea></div>
+            </div>
         </div>
-
         <!-- 5W1H Tab -->
         <div id="5w1h" class="tab-content">
-            <div class="framework-description">
-                <h4 data-translate-key="5w1h_framework">5W1Hフレームワーク</h4>
+            <div class="framework-card">
+                <h4 data-translate-key="5w1h_framework">📋 5W1Hフレームワーク</h4>
                 <p data-translate-key="5w1h_desc">Who, What, When, Where, Why, Howで構成された分析的プロンプト</p>
             </div>
-            <div class="input-group"><label for="w1h-who" data-translate-key="5w1h_who_label">Who (誰が)</label><textarea id="w1h-who" data-translate-placeholder-key="5w1h_who_placeholder" placeholder="主体や対象を入力してください"></textarea></div>
-            <div class="input-group"><label for="w1h-what" data-translate-key="5w1h_what_label">What (何を)</label><textarea id="w1h-what" data-translate-placeholder-key="5w1h_what_placeholder" placeholder="内容や主題を入力してください"></textarea></div>
-            <div class="input-group"><label for="w1h-when" data-translate-key="5w1h_when_label">When (いつ)</label><textarea id="w1h-when" data-translate-placeholder-key="5w1h_when_placeholder" placeholder="時間や時期を入力してください"></textarea></div>
-            <div class="input-group"><label for="w1h-where" data-translate-key="5w1h_where_label">Where (どこで)</label><textarea id="w1h-where" data-translate-placeholder-key="5w1h_where_placeholder" placeholder="場所や環境を入力してください"></textarea></div>
-            <div class="input-group"><label for="w1h-why" data-translate-key="5w1h_why_label">Why (なぜ)</label><textarea id="w1h-why" data-translate-placeholder-key="5w1h_why_placeholder" placeholder="理由や目的を入力してください"></textarea></div>
-            <div class="input-group"><label for="w1h-how" data-translate-key="5w1h_how_label">How (どのように)</label><textarea id="w1h-how" data-translate-placeholder-key="5w1h_how_placeholder" placeholder="方法や過程を入力してください"></textarea></div>
+            <div class="input-grid">
+                <div class="input-group"><label><span class="label-icon">W</span><span data-translate-key="5w1h_who_label">Who (誰が)</span></label><textarea id="w1h-who" data-translate-placeholder-key="5w1h_who_placeholder" placeholder="主体や対象を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">W</span><span data-translate-key="5w1h_what_label">What (何を)</span></label><textarea id="w1h-what" data-translate-placeholder-key="5w1h_what_placeholder" placeholder="内容や主題を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">W</span><span data-translate-key="5w1h_when_label">When (いつ)</span></label><textarea id="w1h-when" data-translate-placeholder-key="5w1h_when_placeholder" placeholder="時間や時期を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">W</span><span data-translate-key="5w1h_where_label">Where (どこで)</span></label><textarea id="w1h-where" data-translate-placeholder-key="5w1h_where_placeholder" placeholder="場所や環境を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">W</span><span data-translate-key="5w1h_why_label">Why (なぜ)</span></label><textarea id="w1h-why" data-translate-placeholder-key="5w1h_why_placeholder" placeholder="理由や目的を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">H</span><span data-translate-key="5w1h_how_label">How (どのように)</span></label><textarea id="w1h-how" data-translate-placeholder-key="5w1h_how_placeholder" placeholder="方法や過程を入力してください"></textarea></div>
+            </div>
         </div>
-
         <!-- AIDA Tab -->
         <div id="aida" class="tab-content">
-            <div class="framework-description">
-                <h4 data-translate-key="aida_framework">AIDAフレームワーク</h4>
+            <div class="framework-card">
+                <h4 data-translate-key="aida_framework">📋 AIDAフレームワーク</h4>
                 <p data-translate-key="aida_desc">Attention→Interest→Desire→Actionで構成されたマーケティング/説得型プロンプト</p>
             </div>
-            <div class="input-group"><label for="aida-attention" data-translate-key="aida_attention_label">Attention (注目)</label><textarea id="aida-attention" data-translate-placeholder-key="aida_attention_placeholder" placeholder="注目を引く内容を入力してください"></textarea></div>
-            <div class="input-group"><label for="aida-interest" data-translate-key="aida_interest_label">Interest (関心)</label><textarea id="aida-interest" data-translate-placeholder-key="aida_interest_placeholder" placeholder="関心を引く内容を入力してください"></textarea></div>
-            <div class="input-group"><label for="aida-desire" data-translate-key="aida_desire_label">Desire (欲求)</label><textarea id="aida-desire" data-translate-placeholder-key="aida_desire_placeholder" placeholder="欲求を刺激する内容を入力してください"></textarea></div>
-            <div class="input-group"><label for="aida-action" data-translate-key="aida_action_label">Action (行動)</label><textarea id="aida-action" data-translate-placeholder-key="aida_action_placeholder" placeholder="行動を促す内容を入力してください"></textarea></div>
+            <div class="input-grid">
+                <div class="input-group"><label><span class="label-icon">A</span><span data-translate-key="aida_attention_label">Attention (注目)</span></label><textarea id="aida-attention" data-translate-placeholder-key="aida_attention_placeholder" placeholder="注目を引く内容を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">I</span><span data-translate-key="aida_interest_label">Interest (関心)</span></label><textarea id="aida-interest" data-translate-placeholder-key="aida_interest_placeholder" placeholder="関心を引く内容を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">D</span><span data-translate-key="aida_desire_label">Desire (欲求)</span></label><textarea id="aida-desire" data-translate-placeholder-key="aida_desire_placeholder" placeholder="欲求を刺激する内容を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">A</span><span data-translate-key="aida_action_label">Action (行動)</span></label><textarea id="aida-action" data-translate-placeholder-key="aida_action_placeholder" placeholder="行動を促す内容を入力してください"></textarea></div>
+            </div>
         </div>
-
         <!-- Storytelling Tab -->
         <div id="storytelling" class="tab-content">
-            <div class="framework-description">
-                <h4 data-translate-key="storytelling_framework">ストーリーテリング3幕構成</h4>
+            <div class="framework-card">
+                <h4 data-translate-key="storytelling_framework">📋 ストーリーテリング3幕構成</h4>
                 <p data-translate-key="storytelling_desc">Beginning→Middle→Endで構成された物語展開型プロンプト</p>
             </div>
-            <div class="input-group"><label for="story-beginning" data-translate-key="storytelling_beginning_label">Beginning (始まり)</label><textarea id="story-beginning" data-translate-placeholder-key="storytelling_beginning_placeholder" placeholder="物語の始まりの部分を入力してください"></textarea></div>
-            <div class="input-group"><label for="story-middle" data-translate-key="storytelling_middle_label">Middle (中間)</label><textarea id="story-middle" data-translate-placeholder-key="storytelling_middle_placeholder" placeholder="物語の展開部分を入力してください"></textarea></div>
-            <div class="input-group"><label for="story-end" data-translate-key="storytelling_end_label">End (終わり)</label><textarea id="story-end" data-translate-placeholder-key="storytelling_end_placeholder" placeholder="物語の結末部分を入力してください"></textarea></div>
+            <div class="input-grid">
+                <div class="input-group"><label><span class="label-icon">B</span><span data-translate-key="storytelling_beginning_label">Beginning (始まり)</span></label><textarea id="story-beginning" data-translate-placeholder-key="storytelling_beginning_placeholder" placeholder="物語の始まりの部分を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">M</span><span data-translate-key="storytelling_middle_label">Middle (中間)</span></label><textarea id="story-middle" data-translate-placeholder-key="storytelling_middle_placeholder" placeholder="物語の展開部分を入力してください"></textarea></div>
+                <div class="input-group"><label><span class="label-icon">E</span><span data-translate-key="storytelling_end_label">End (終わり)</span></label><textarea id="story-end" data-translate-placeholder-key="storytelling_end_placeholder" placeholder="物語の結末部分を入力してください"></textarea></div>
+            </div>
         </div>
-
-
-        <!-- 共通出力セクション -->
-        <div style="padding: 0 30px 30px;">
+        <!-- Output Section -->
+        <div class="output-wrapper">
             <div class="output-section">
-                <h3 data-translate-key="output_title">生成されたプロンプト</h3>
-                <div id="output" class="output-text" data-translate-key="output_placeholder_initial">生成されたプロンプトはここに表示されます...</div>
+                <div class="output-header">
+                    <h3>✨ <span data-translate-key="output_title">生成されたプロンプト</span></h3>
+                    <div class="output-stats">
+                        <span>📝 <span id="charCount">0</span> <span data-translate-key="stat_chars">文字</span></span>
+                        <span>📄 <span id="wordCount">0</span> <span data-translate-key="stat_words">単語</span></span>
+                    </div>
+                </div>
+                <div id="output" class="output-text empty" data-translate-key="output_placeholder_initial">生成されたプロンプトはここに表示されます...</div>
             </div>
             <div class="button-group">
-                <button class="btn btn-primary" onclick="generatePrompt()">
-                    <span>⚡</span> <span data-translate-key="button_generate">プロンプト生成</span>
-                </button>
-                <button class="btn btn-success" onclick="copyToClipboard()">
-                    <span>📋</span> <span data-translate-key="button_copy">コピー</span>
-                </button>
-                <button class="btn btn-secondary" onclick="clearFields()">
-                    <span>🔄</span> <span data-translate-key="button_clear">クリア</span>
-                </button>
+                <button class="btn btn-primary" onclick="generatePrompt()"><span class="btn-icon">⚡</span><span data-translate-key="button_generate">プロンプト生成</span></button>
+                <button class="btn btn-success" onclick="copyToClipboard()"><span class="btn-icon">📋</span><span data-translate-key="button_copy">コピー</span></button>
+                <button class="btn btn-secondary" onclick="clearFields()"><span class="btn-icon">🔄</span><span data-translate-key="button_clear">クリア</span></button>
+            </div>
+        </div>
+        <div class="footer">
+            <span data-translate-key="footer_text">AI Prompt Template Generator v2.0</span>
+            <div class="footer-links">
+                <a href="#" data-translate-key="footer_help">ヘルプ</a>
+                <a href="#" data-translate-key="footer_feedback">フィードバック</a>
             </div>
         </div>
     </div>
-
-    <div class="copy-notification" id="copyNotification" data-translate-key="copy_notification">
-        ✅ クリップボードにコピーされました！
-    </div>
-
+    <div class="notification notification-success" id="copyNotification"><span>✅</span><span data-translate-key="copy_notification">クリップボードにコピーされました！</span></div>
+    <div class="notification notification-warning" id="warningNotification"><span>⚠️</span><span data-translate-key="copy_alert">コピーするプロンプトがありません</span></div>
     <script>
         let currentTab = 'ghes';
-        
-        // 多国語テキストデータ
+        let currentLang = 'ja';
+        const languageData = {
+            ja: { flag: '🇯🇵', name: '日本語' },
+            zh: { flag: '🇨🇳', name: '中文' },
+            en: { flag: '🇺🇸', name: 'English' },
+            ko: { flag: '🇰🇷', name: '한국어' },
+            fr: { flag: '🇫🇷', name: 'Français' },
+            es: { flag: '🇪🇸', name: 'Español' }
+        };
         const translations = {
-            // 日本語
             ja: {
                 header_title: "🚀 AIプロンプトテンプレートジェネレーター",
                 header_desc: "様々なフレームワークを活用して完璧なプロンプトを作成しましょう",
-                language_label: "言語:",
-                ghes_framework: "GHESフレームワーク",
+                ghes_framework: "📋 GHESフレームワーク",
                 ghes_desc: "Goal(目的)→Hint(条件)→Example(例)→Style(スタイル)で構成された明確なプロンプト作成法",
-                ghes_goal_label: "Goal (目的)",
-                ghes_goal_placeholder: "達成したい目標を入力してください",
-                ghes_goal_desc: "AIが実行すべき主な目的を明確に記述してください",
-                ghes_hint_label: "Hint (条件)",
-                ghes_hint_placeholder: "制約事項や条件を入力してください",
-                ghes_hint_desc: "特別な条件や制約事項を明記してください",
-                ghes_example_label: "Example (例)",
-                ghes_example_placeholder: "参考にする例を入力してください",
-                ghes_example_desc: "希望する結果の例を提供してください",
-                ghes_style_label: "Style (スタイル)",
-                ghes_style_placeholder: "希望するスタイルを入力してください",
-                ghes_style_desc: "トーン、形式、スタイルなどを指定してください",
-                crispe_framework: "CRISPEフレームワーク",
-                crispe_desc: "Context→Role→Input→Steps→Personality→Exampleで構成された体系的なプロンプト",
-                crispe_context_label: "Context (文脈)",
-                crispe_context_placeholder: "背景情報を入力してください",
-                crispe_role_label: "Role (役割)",
-                crispe_role_placeholder: "AIの役割を定義してください",
-                crispe_input_label: "Input (入力)",
-                crispe_input_placeholder: "提供する情報を入力してください",
-                crispe_steps_label: "Steps (段階)",
-                crispe_steps_placeholder: "実行段階を入力してください",
-                crispe_personality_label: "Personality (性格)",
-                crispe_personality_placeholder: "AIの性格や口調を定義してください",
-                crispe_example_label: "Example (例)",
-                crispe_example_placeholder: "参考例を入力してください",
-                cape_framework: "CAPEフレームワーク",
-                cape_desc: "Context→Action→Purpose→Expectationで構成された迅速な下書き設計",
-                cape_context_label: "Context (背景)",
-                cape_context_placeholder: "状況や背景を入力してください",
-                cape_action_label: "Action (行動)",
-                cape_action_placeholder: "実行する行動を入力してください",
-                cape_purpose_label: "Purpose (目的)",
-                cape_purpose_placeholder: "目的を入力してください",
-                cape_expectation_label: "Expectation (期待される結果)",
-                cape_expectation_placeholder: "期待する結果を入力してください",
-                prompt_framework: "PROMPTフレームワーク",
-                prompt_desc: "Purpose→Role→Output→Mode→Persona→Toneで構成された詳細なプロンプト",
-                prompt_purpose_label: "Purpose (目的)",
-                prompt_purpose_placeholder: "目的を入力してください",
-                prompt_role_label: "Role (役割)",
-                prompt_role_placeholder: "役割を入力してください",
-                prompt_output_label: "Output (出力)",
-                prompt_output_placeholder: "希望する出力形式を入力してください",
-                prompt_mode_label: "Mode (モード)",
-                prompt_mode_placeholder: "作業モードを入力してください",
-                prompt_persona_label: "Persona (ペルソナ)",
-                prompt_persona_placeholder: "AIのペルソナを入力してください",
-                prompt_tone_label: "Tone (トーン)",
-                prompt_tone_placeholder: "口調やトーンを入力してください",
-                "5w1h_framework": "5W1Hフレームワーク",
-                "5w1h_desc": "Who, What, When, Where, Why, Howで構成された分析的プロンプト",
-                "5w1h_who_label": "Who (誰が)",
-                "5w1h_who_placeholder": "主体や対象を入力してください",
-                "5w1h_what_label": "What (何を)",
-                "5w1h_what_placeholder": "内容や主題を入力してください",
-                "5w1h_when_label": "When (いつ)",
-                "5w1h_when_placeholder": "時間や時期を入力してください",
-                "5w1h_where_label": "Where (どこで)",
-                "5w1h_where_placeholder": "場所や環境を入力してください",
-                "5w1h_why_label": "Why (なぜ)",
-                "5w1h_why_placeholder": "理由や目的を入力してください",
-                "5w1h_how_label": "How (どのように)",
-                "5w1h_how_placeholder": "方法や過程を入力してください",
-                aida_framework: "AIDAフレームワーク",
-                aida_desc: "Attention→Interest→Desire→Actionで構成されたマーケティング/説得型プロンプト",
-                aida_attention_label: "Attention (注目)",
-                aida_attention_placeholder: "注目を引く内容を入力してください",
-                aida_interest_label: "Interest (関心)",
-                aida_interest_placeholder: "関心を引く内容を入力してください",
-                aida_desire_label: "Desire (欲求)",
-                aida_desire_placeholder: "欲求を刺激する内容を入力してください",
-                aida_action_label: "Action (行動)",
-                aida_action_placeholder: "行動を促す内容を入力してください",
-                storytelling_framework: "ストーリーテリング3幕構成",
-                storytelling_desc: "Beginning→Middle→Endで構成された物語展開型プロンプト",
-                storytelling_beginning_label: "Beginning (始まり)",
-                storytelling_beginning_placeholder: "物語の始まりの部分を入力してください",
-                storytelling_middle_label: "Middle (中間)",
-                storytelling_middle_placeholder: "物語の展開部分を入力してください",
-                storytelling_end_label: "End (終わり)",
-                storytelling_end_placeholder: "物語の結末部分を入力してください",
-                output_title: "生成されたプロンプト",
-                output_placeholder_initial: "生成されたプロンプトはここに表示されます...",
-                output_placeholder_empty: "入力された内容がありません。上のフィールドを埋めてください。",
-                button_generate: "プロンプト生成",
-                button_copy: "コピー",
-                button_clear: "クリア",
-                copy_notification: "✅ クリップボードにコピーされました！",
-                copy_alert: "コピーするプロンプトがありません。まず内容を入力して生成してください。"
+                ghes_goal_label: "Goal (目的)", ghes_goal_placeholder: "達成したい目標を入力してください", ghes_goal_desc: "AIが実行すべき主な目的を明確に記述してください",
+                ghes_hint_label: "Hint (条件)", ghes_hint_placeholder: "制約事項や条件を入力してください", ghes_hint_desc: "特別な条件や制約事項を明記してください",
+                ghes_example_label: "Example (例)", ghes_example_placeholder: "参考にする例を入力してください", ghes_example_desc: "希望する結果の例を提供してください",
+                ghes_style_label: "Style (スタイル)", ghes_style_placeholder: "希望するスタイルを入力してください", ghes_style_desc: "トーン、形式、スタイルなどを指定してください",
+                crispe_framework: "📋 CRISPEフレームワーク", crispe_desc: "Context→Role→Input→Steps→Personality→Exampleで構成された体系的なプロンプト",
+                crispe_context_label: "Context (文脈)", crispe_context_placeholder: "背景情報を入力してください",
+                crispe_role_label: "Role (役割)", crispe_role_placeholder: "AIの役割を定義してください",
+                crispe_input_label: "Input (入力)", crispe_input_placeholder: "提供する情報を入力してください",
+                crispe_steps_label: "Steps (段階)", crispe_steps_placeholder: "実行段階を入力してください",
+                crispe_personality_label: "Personality (性格)", crispe_personality_placeholder: "AIの性格や口調を定義してください",
+                crispe_example_label: "Example (例)", crispe_example_placeholder: "参考例を入力してください",
+                cape_framework: "📋 CAPEフレームワーク", cape_desc: "Context→Action→Purpose→Expectationで構成された迅速な下書き設計",
+                cape_context_label: "Context (背景)", cape_context_placeholder: "状況や背景を入力してください",
+                cape_action_label: "Action (行動)", cape_action_placeholder: "実行する行動を入力してください",
+                cape_purpose_label: "Purpose (目的)", cape_purpose_placeholder: "目的を入力してください",
+                cape_expectation_label: "Expectation (期待される結果)", cape_expectation_placeholder: "期待する結果を入力してください",
+                prompt_framework: "📋 PROMPTフレームワーク", prompt_desc: "Purpose→Role→Output→Mode→Persona→Toneで構成された詳細なプロンプト",
+                prompt_purpose_label: "Purpose (目的)", prompt_purpose_placeholder: "目的を入力してください",
+                prompt_role_label: "Role (役割)", prompt_role_placeholder: "役割を入力してください",
+                prompt_output_label: "Output (出力)", prompt_output_placeholder: "希望する出力形式を入力してください",
+                prompt_mode_label: "Mode (モード)", prompt_mode_placeholder: "作業モードを入力してください",
+                prompt_persona_label: "Persona (ペルソナ)", prompt_persona_placeholder: "AIのペルソナを入力してください",
+                prompt_tone_label: "Tone (トーン)", prompt_tone_placeholder: "口調やトーンを入力してください",
+                "5w1h_framework": "📋 5W1Hフレームワーク", "5w1h_desc": "Who, What, When, Where, Why, Howで構成された分析的プロンプト",
+                "5w1h_who_label": "Who (誰が)", "5w1h_who_placeholder": "主体や対象を入力してください",
+                "5w1h_what_label": "What (何を)", "5w1h_what_placeholder": "内容や主題を入力してください",
+                "5w1h_when_label": "When (いつ)", "5w1h_when_placeholder": "時間や時期を入力してください",
+                "5w1h_where_label": "Where (どこで)", "5w1h_where_placeholder": "場所や環境を入力してください",
+                "5w1h_why_label": "Why (なぜ)", "5w1h_why_placeholder": "理由や目的を入力してください",
+                "5w1h_how_label": "How (どのように)", "5w1h_how_placeholder": "方法や過程を入力してください",
+                aida_framework: "📋 AIDAフレームワーク", aida_desc: "Attention→Interest→Desire→Actionで構成されたマーケティング/説得型プロンプト",
+                aida_attention_label: "Attention (注目)", aida_attention_placeholder: "注目を引く内容を入力してください",
+                aida_interest_label: "Interest (関心)", aida_interest_placeholder: "関心を引く内容を入力してください",
+                aida_desire_label: "Desire (欲求)", aida_desire_placeholder: "欲求を刺激する内容を入力してください",
+                aida_action_label: "Action (行動)", aida_action_placeholder: "行動を促す内容を入力してください",
+                storytelling_framework: "📋 ストーリーテリング3幕構成", storytelling_desc: "Beginning→Middle→Endで構成された物語展開型プロンプト",
+                storytelling_beginning_label: "Beginning (始まり)", storytelling_beginning_placeholder: "物語の始まりの部分を入力してください",
+                storytelling_middle_label: "Middle (中間)", storytelling_middle_placeholder: "物語の展開部分を入力してください",
+                storytelling_end_label: "End (終わり)", storytelling_end_placeholder: "物語の結末部分を入力してください",
+                output_title: "生成されたプロンプト", output_placeholder_initial: "生成されたプロンプトはここに表示されます...", output_placeholder_empty: "入力内容がありません。上のフィールドを入力してください。",
+                button_generate: "プロンプト生成", button_copy: "コピー", button_clear: "クリア",
+                copy_notification: "クリップボードにコピーされました！", copy_alert: "コピーするプロンプトがありません",
+                stat_chars: "文字", stat_words: "単語", footer_text: "AI Prompt Template Generator v2.0", footer_help: "ヘルプ", footer_feedback: "フィードバック"
             },
-            // 中国語
             zh: {
                 header_title: "🚀 AI提示词模板生成器",
                 header_desc: "使用各种框架创建完美的提示词",
-                language_label: "语言:",
-                ghes_framework: "GHES框架",
-                ghes_desc: "由Goal(目标)→Hint(提示)→Example(示例)→Style(风格)组成的清晰提示词编写方法",
-                ghes_goal_label: "Goal (目标)",
-                ghes_goal_placeholder: "输入您想实现的目标",
-                ghes_goal_desc: "明确说明AI需要执行的主要目标",
-                ghes_hint_label: "Hint (提示)",
-                ghes_hint_placeholder: "输入任何限制或条件",
-                ghes_hint_desc: "指明任何特殊条件或限制",
-                ghes_example_label: "Example (示例)",
-                ghes_example_placeholder: "输入一个参考示例",
-                ghes_example_desc: "提供所需输出的示例",
-                ghes_style_label: "Style (风格)",
-                ghes_style_placeholder: "输入所需的风格",
-                ghes_style_desc: "指定语调、格式、风格等",
-                crispe_framework: "CRISPE框架",
-                crispe_desc: "由Context→Role→Input→Steps→Personality→Example组成的系统化提示词",
-                crispe_context_label: "Context (背景)",
-                crispe_context_placeholder: "输入背景信息",
-                crispe_role_label: "Role (角色)",
-                crispe_role_placeholder: "定义AI的角色",
-                crispe_input_label: "Input (输入)",
-                crispe_input_placeholder: "输入要提供的信息",
-                crispe_steps_label: "Steps (步骤)",
-                crispe_steps_placeholder: "输入要执行的步骤",
-                crispe_personality_label: "Personality (个性)",
-                crispe_personality_placeholder: "定义AI的个性或语气",
-                crispe_example_label: "Example (示例)",
-                crispe_example_placeholder: "输入参考示例",
-                cape_framework: "CAPE框架",
-                cape_desc: "通过Context→Action→Purpose→Expectation进行快速草稿设计",
-                cape_context_label: "Context (背景)",
-                cape_context_placeholder: "输入情况或背景",
-                cape_action_label: "Action (行动)",
-                cape_action_placeholder: "输入要执行的行动",
-                cape_purpose_label: "Purpose (目的)",
-                cape_purpose_placeholder: "输入目的",
-                cape_expectation_label: "Expectation (预期结果)",
-                cape_expectation_placeholder: "输入预期的结果",
-                prompt_framework: "PROMPT框架",
-                prompt_desc: "由Purpose→Role→Output→Mode→Persona→Tone组成的详细提示词",
-                prompt_purpose_label: "Purpose (目的)",
-                prompt_purpose_placeholder: "输入目的",
-                prompt_role_label: "Role (角色)",
-                prompt_role_placeholder: "输入角色",
-                prompt_output_label: "Output (输出)",
-                prompt_output_placeholder: "输入所需的输出格式",
-                prompt_mode_label: "Mode (模式)",
-                prompt_mode_placeholder: "输入操作模式",
-                prompt_persona_label: "Persona (人设)",
-                prompt_persona_placeholder: "输入AI的人设",
-                prompt_tone_label: "Tone (语气)",
-                prompt_tone_placeholder: "输入语气",
-                "5w1h_framework": "5W1H框架",
-                "5w1h_desc": "由Who, What, When, Where, Why, How组成的分析性提示词",
-                "5w1h_who_label": "Who (谁)",
-                "5w1h_who_placeholder": "输入主体或对象",
-                "5w1h_what_label": "What (什么)",
-                "5w1h_what_placeholder": "输入内容或主题",
-                "5w1h_when_label": "When (何时)",
-                "5w1h_when_placeholder": "输入时间或时期",
-                "5w1h_where_label": "Where (何地)",
-                "5w1h_where_placeholder": "输入地点或环境",
-                "5w1h_why_label": "Why (为什么)",
-                "5w1h_why_placeholder": "输入原因或目的",
-                "5w1h_how_label": "How (如何)",
-                "5w1h_how_placeholder": "输入方法或过程",
-                aida_framework: "AIDA框架",
-                aida_desc: "由Attention→Interest→Desire→Action组成的营销/说服型提示词",
-                aida_attention_label: "Attention (注意)",
-                aida_attention_placeholder: "输入吸引注意力的内容",
-                aida_interest_label: "Interest (兴趣)",
-                aida_interest_placeholder: "输入引起兴趣的内容",
-                aida_desire_label: "Desire (欲望)",
-                aida_desire_placeholder: "输入激发欲望的内容",
-                aida_action_label: "Action (行动)",
-                aida_action_placeholder: "输入引导行动的内容",
-                storytelling_framework: "故事叙述三幕结构",
-                storytelling_desc: "由Beginning→Middle→End组成的叙事型提示词",
-                storytelling_beginning_label: "Beginning (开头)",
-                storytelling_beginning_placeholder: "输入故事的开头部分",
-                storytelling_middle_label: "Middle (中间)",
-                storytelling_middle_placeholder: "输入故事的中间部分",
-                storytelling_end_label: "End (结尾)",
-                storytelling_end_placeholder: "输入故事的结尾部分",
-                output_title: "生成的提示词",
-                output_placeholder_initial: "生成的提示词将显示在这里...",
-                output_placeholder_empty: "未输入任何内容。请填写以上字段。",
-                button_generate: "生成提示词",
-                button_copy: "复制",
-                button_clear: "清除",
-                copy_notification: "✅ 已复制到剪贴板！",
-                copy_alert: "没有可复制的提示词。请先输入内容并生成。"
+                ghes_framework: "📋 GHES框架", ghes_desc: "由Goal(目标)→Hint(提示)→Example(示例)→Style(风格)组成的清晰提示词编写方法",
+                ghes_goal_label: "Goal (目标)", ghes_goal_placeholder: "输入你想要实现的目标", ghes_goal_desc: "清楚地描述AI要执行的主要目的",
+                ghes_hint_label: "Hint (提示)", ghes_hint_placeholder: "输入约束条件或条件", ghes_hint_desc: "明确指出特殊条件或约束",
+                ghes_example_label: "Example (示例)", ghes_example_placeholder: "输入一个参考示例", ghes_example_desc: "提供所需输出的示例",
+                ghes_style_label: "Style (风格)", ghes_style_placeholder: "输入所需的风格", ghes_style_desc: "指定语调、格式、风格等",
+                crispe_framework: "📋 CRISPE框架", crispe_desc: "由Context→Role→Input→Steps→Personality→Example组成的系统化提示词",
+                crispe_context_label: "Context (背景)", crispe_context_placeholder: "输入背景信息",
+                crispe_role_label: "Role (角色)", crispe_role_placeholder: "定义AI的角色",
+                crispe_input_label: "Input (输入)", crispe_input_placeholder: "输入要提供的信息",
+                crispe_steps_label: "Steps (步骤)", crispe_steps_placeholder: "输入要执行的步骤",
+                crispe_personality_label: "Personality (个性)", crispe_personality_placeholder: "定义AI的个性或语气",
+                crispe_example_label: "Example (示例)", crispe_example_placeholder: "输入参考示例",
+                cape_framework: "📋 CAPE框架", cape_desc: "通过Context→Action→Purpose→Expectation进行快速草稿设计",
+                cape_context_label: "Context (背景)", cape_context_placeholder: "输入情况或背景",
+                cape_action_label: "Action (行动)", cape_action_placeholder: "输入要执行的行动",
+                cape_purpose_label: "Purpose (目的)", cape_purpose_placeholder: "输入目的",
+                cape_expectation_label: "Expectation (预期结果)", cape_expectation_placeholder: "输入预期的结果",
+                prompt_framework: "📋 PROMPT框架", prompt_desc: "由Purpose→Role→Output→Mode→Persona→Tone组成的详细提示词",
+                prompt_purpose_label: "Purpose (目的)", prompt_purpose_placeholder: "输入目的",
+                prompt_role_label: "Role (角色)", prompt_role_placeholder: "输入角色",
+                prompt_output_label: "Output (输出)", prompt_output_placeholder: "输入所需的输出格式",
+                prompt_mode_label: "Mode (模式)", prompt_mode_placeholder: "输入操作模式",
+                prompt_persona_label: "Persona (人设)", prompt_persona_placeholder: "输入AI的人设",
+                prompt_tone_label: "Tone (语气)", prompt_tone_placeholder: "输入语气",
+                "5w1h_framework": "📋 5W1H框架", "5w1h_desc": "由Who, What, When, Where, Why, How组成的分析性提示词",
+                "5w1h_who_label": "Who (谁)", "5w1h_who_placeholder": "输入主体或对象",
+                "5w1h_what_label": "What (什么)", "5w1h_what_placeholder": "输入内容或主题",
+                "5w1h_when_label": "When (何时)", "5w1h_when_placeholder": "输入时间或时期",
+                "5w1h_where_label": "Where (何地)", "5w1h_where_placeholder": "输入地点或环境",
+                "5w1h_why_label": "Why (为什么)", "5w1h_why_placeholder": "输入原因或目的",
+                "5w1h_how_label": "How (如何)", "5w1h_how_placeholder": "输入方法或过程",
+                aida_framework: "📋 AIDA框架", aida_desc: "由Attention→Interest→Desire→Action组成的营销/说服型提示词",
+                aida_attention_label: "Attention (注意)", aida_attention_placeholder: "输入吸引注意力的内容",
+                aida_interest_label: "Interest (兴趣)", aida_interest_placeholder: "输入引起兴趣的内容",
+                aida_desire_label: "Desire (欲望)", aida_desire_placeholder: "输入激发欲望的内容",
+                aida_action_label: "Action (行动)", aida_action_placeholder: "输入引导行动的内容",
+                storytelling_framework: "📋 故事叙述三幕结构", storytelling_desc: "由Beginning→Middle→End组成的叙事型提示词",
+                storytelling_beginning_label: "Beginning (开头)", storytelling_beginning_placeholder: "输入故事的开头部分",
+                storytelling_middle_label: "Middle (中间)", storytelling_middle_placeholder: "输入故事的中间部分",
+                storytelling_end_label: "End (结尾)", storytelling_end_placeholder: "输入故事的结尾部分",
+                output_title: "生成的提示词", output_placeholder_initial: "生成的提示词将显示在这里...", output_placeholder_empty: "未输入任何内容。请填写以上字段。",
+                button_generate: "生成提示词", button_copy: "复制", button_clear: "清除",
+                copy_notification: "已复制到剪贴板！", copy_alert: "没有可复制的提示词",
+                stat_chars: "字符", stat_words: "词", footer_text: "AI提示词模板生成器 v2.0", footer_help: "帮助", footer_feedback: "反馈"
             },
-            // 英語
             en: {
                 header_title: "🚀 AI Prompt Template Generator",
                 header_desc: "Create the perfect prompt using various frameworks",
-                language_label: "Language:",
-                ghes_framework: "GHES Framework",
-                ghes_desc: "A clear prompt writing method consisting of Goal → Hint → Example → Style",
-                ghes_goal_label: "Goal",
-                ghes_goal_placeholder: "Enter the goal you want to achieve",
-                ghes_goal_desc: "Clearly state the main objective for the AI to perform",
-                ghes_hint_label: "Hint",
-                ghes_hint_placeholder: "Enter any constraints or conditions",
-                ghes_hint_desc: "Specify any special conditions or constraints",
-                ghes_example_label: "Example",
-                ghes_example_placeholder: "Enter an example to refer to",
-                ghes_example_desc: "Provide an example of the desired output",
-                ghes_style_label: "Style",
-                ghes_style_placeholder: "Enter the desired style",
-                ghes_style_desc: "Specify the tone, format, style, etc.",
-                crispe_framework: "CRISPE Framework",
-                crispe_desc: "A systematic prompt composed of Context → Role → Input → Steps → Personality → Example",
-                crispe_context_label: "Context",
-                crispe_context_placeholder: "Enter background information",
-                crispe_role_label: "Role",
-                crispe_role_placeholder: "Define the AI's role",
-                crispe_input_label: "Input",
-                crispe_input_placeholder: "Enter the information to provide",
-                crispe_steps_label: "Steps",
-                crispe_steps_placeholder: "Enter the steps to perform",
-                crispe_personality_label: "Personality",
-                crispe_personality_placeholder: "Define the AI's personality or tone",
-                crispe_example_label: "Example",
-                crispe_example_placeholder: "Enter a reference example",
-                cape_framework: "CAPE Framework",
-                cape_desc: "Rapid draft design with Context → Action → Purpose → Expectation",
-                cape_context_label: "Context",
-                cape_context_placeholder: "Enter the situation or background",
-                cape_action_label: "Action",
-                cape_action_placeholder: "Enter the action to be performed",
-                cape_purpose_label: "Purpose",
-                cape_purpose_placeholder: "Enter the purpose",
-                cape_expectation_label: "Expectation",
-                cape_expectation_placeholder: "Enter the expected result",
-                prompt_framework: "PROMPT Framework",
-                prompt_desc: "Detailed prompt with Purpose → Role → Output → Mode → Persona → Tone",
-                prompt_purpose_label: "Purpose",
-                prompt_purpose_placeholder: "Enter the purpose",
-                prompt_role_label: "Role",
-                prompt_role_placeholder: "Enter the role",
-                prompt_output_label: "Output",
-                prompt_output_placeholder: "Enter the desired output format",
-                prompt_mode_label: "Mode",
-                prompt_mode_placeholder: "Enter the operation mode",
-                prompt_persona_label: "Persona",
-                prompt_persona_placeholder: "Enter the AI's persona",
-                prompt_tone_label: "Tone",
-                prompt_tone_placeholder: "Enter the tone of voice",
-                "5w1h_framework": "5W1H Framework",
-                "5w1h_desc": "Analytical prompt with Who, What, When, Where, Why, How",
-                "5w1h_who_label": "Who",
-                "5w1h_who_placeholder": "Enter the subject or target",
-                "5w1h_what_label": "What",
-                "5w1h_what_placeholder": "Enter the content or topic",
-                "5w1h_when_label": "When",
-                "5w1h_when_placeholder": "Enter the time or period",
-                "5w1h_where_label": "Where",
-                "5w1h_where_placeholder": "Enter the place or environment",
-                "5w1h_why_label": "Why",
-                "5w1h_why_placeholder": "Enter the reason or purpose",
-                "5w1h_how_label": "How",
-                "5w1h_how_placeholder": "Enter the method or process",
-                aida_framework: "AIDA Framework",
-                aida_desc: "Marketing/persuasive prompt with Attention → Interest → Desire → Action",
-                aida_attention_label: "Attention",
-                aida_attention_placeholder: "Enter content to grab attention",
-                aida_interest_label: "Interest",
-                aida_interest_placeholder: "Enter content to generate interest",
-                aida_desire_label: "Desire",
-                aida_desire_placeholder: "Enter content to stimulate desire",
-                aida_action_label: "Action",
-                aida_action_placeholder: "Enter content to induce action",
-                storytelling_framework: "Storytelling 3-Act Structure",
-                storytelling_desc: "Narrative prompt with Beginning → Middle → End",
-                storytelling_beginning_label: "Beginning",
-                storytelling_beginning_placeholder: "Enter the beginning of the story",
-                storytelling_middle_label: "Middle",
-                storytelling_middle_placeholder: "Enter the middle part of the story",
-                storytelling_end_label: "End",
-                storytelling_end_placeholder: "Enter the ending of the story",
-                output_title: "Generated Prompt",
-                output_placeholder_initial: "The generated prompt will be displayed here...",
-                output_placeholder_empty: "No content entered. Please fill in the fields above.",
-                button_generate: "Generate Prompt",
-                button_copy: "Copy",
-                button_clear: "Clear",
-                copy_notification: "✅ Copied to clipboard!",
-                copy_alert: "There is no prompt to copy. Please enter content and generate it first."
+                ghes_framework: "📋 GHES Framework", ghes_desc: "A clear prompt writing method: Goal → Hint → Example → Style",
+                ghes_goal_label: "Goal", ghes_goal_placeholder: "Enter the goal you want to achieve", ghes_goal_desc: "Clearly state the main objective",
+                ghes_hint_label: "Hint", ghes_hint_placeholder: "Enter constraints or conditions", ghes_hint_desc: "Specify special conditions",
+                ghes_example_label: "Example", ghes_example_placeholder: "Enter a reference example", ghes_example_desc: "Provide an example of desired output",
+                ghes_style_label: "Style", ghes_style_placeholder: "Enter the desired style", ghes_style_desc: "Specify tone, format, style",
+                crispe_framework: "📋 CRISPE Framework", crispe_desc: "Systematic prompt: Context → Role → Input → Steps → Personality → Example",
+                crispe_context_label: "Context", crispe_context_placeholder: "Enter background information",
+                crispe_role_label: "Role", crispe_role_placeholder: "Define the AI's role",
+                crispe_input_label: "Input", crispe_input_placeholder: "Enter information to provide",
+                crispe_steps_label: "Steps", crispe_steps_placeholder: "Enter steps to perform",
+                crispe_personality_label: "Personality", crispe_personality_placeholder: "Define AI's personality",
+                crispe_example_label: "Example", crispe_example_placeholder: "Enter a reference example",
+                cape_framework: "📋 CAPE Framework", cape_desc: "Rapid design: Context → Action → Purpose → Expectation",
+                cape_context_label: "Context", cape_context_placeholder: "Enter situation or background",
+                cape_action_label: "Action", cape_action_placeholder: "Enter action to perform",
+                cape_purpose_label: "Purpose", cape_purpose_placeholder: "Enter purpose",
+                cape_expectation_label: "Expectation", cape_expectation_placeholder: "Enter expected result",
+                prompt_framework: "📋 PROMPT Framework", prompt_desc: "Detailed prompt: Purpose → Role → Output → Mode → Persona → Tone",
+                prompt_purpose_label: "Purpose", prompt_purpose_placeholder: "Enter purpose",
+                prompt_role_label: "Role", prompt_role_placeholder: "Enter role",
+                prompt_output_label: "Output", prompt_output_placeholder: "Enter desired output format",
+                prompt_mode_label: "Mode", prompt_mode_placeholder: "Enter operation mode",
+                prompt_persona_label: "Persona", prompt_persona_placeholder: "Enter AI's persona",
+                prompt_tone_label: "Tone", prompt_tone_placeholder: "Enter tone of voice",
+                "5w1h_framework": "📋 5W1H Framework", "5w1h_desc": "Analytical prompt: Who, What, When, Where, Why, How",
+                "5w1h_who_label": "Who", "5w1h_who_placeholder": "Enter subject or target",
+                "5w1h_what_label": "What", "5w1h_what_placeholder": "Enter content or topic",
+                "5w1h_when_label": "When", "5w1h_when_placeholder": "Enter time or period",
+                "5w1h_where_label": "Where", "5w1h_where_placeholder": "Enter place or environment",
+                "5w1h_why_label": "Why", "5w1h_why_placeholder": "Enter reason or purpose",
+                "5w1h_how_label": "How", "5w1h_how_placeholder": "Enter method or process",
+                aida_framework: "📋 AIDA Framework", aida_desc: "Marketing prompt: Attention → Interest → Desire → Action",
+                aida_attention_label: "Attention", aida_attention_placeholder: "Enter content to grab attention",
+                aida_interest_label: "Interest", aida_interest_placeholder: "Enter content to generate interest",
+                aida_desire_label: "Desire", aida_desire_placeholder: "Enter content to stimulate desire",
+                aida_action_label: "Action", aida_action_placeholder: "Enter content to induce action",
+                storytelling_framework: "📋 Storytelling 3-Act Structure", storytelling_desc: "Narrative prompt: Beginning → Middle → End",
+                storytelling_beginning_label: "Beginning", storytelling_beginning_placeholder: "Enter the beginning",
+                storytelling_middle_label: "Middle", storytelling_middle_placeholder: "Enter the middle part",
+                storytelling_end_label: "End", storytelling_end_placeholder: "Enter the ending",
+                output_title: "Generated Prompt", output_placeholder_initial: "Generated prompt will appear here...", output_placeholder_empty: "No content. Please fill in the fields above.",
+                button_generate: "Generate", button_copy: "Copy", button_clear: "Clear",
+                copy_notification: "Copied to clipboard!", copy_alert: "No prompt to copy",
+                stat_chars: "chars", stat_words: "words", footer_text: "AI Prompt Template Generator v2.0", footer_help: "Help", footer_feedback: "Feedback"
             },
-            // 한국어
             ko: {
                 header_title: "🚀 AI 프롬프트 템플릿 생성기",
                 header_desc: "다양한 프레임워크를 활용하여 완벽한 프롬프트를 작성하세요",
-                language_label: "언어:",
-                ghes_framework: "GHES 프레임워크",
-                ghes_desc: "Goal(목적) → Hint(조건) → Example(예시) → Style(스타일)로 구성된 명확한 프롬프트 작성법",
-                ghes_goal_label: "Goal (목적)",
-                ghes_goal_placeholder: "달성하고자 하는 목표를 입력하세요",
-                ghes_goal_desc: "AI가 수행해야 할 주요 목적을 명확히 작성하세요",
-                ghes_hint_label: "Hint (조건)",
-                ghes_hint_placeholder: "제약사항이나 조건을 입력하세요",
-                ghes_hint_desc: "특별한 조건이나 제약사항을 명시하세요",
-                ghes_example_label: "Example (예시)",
-                ghes_example_placeholder: "참고할 예시를 입력하세요",
-                ghes_example_desc: "원하는 결과물의 예시를 제공하세요",
-                ghes_style_label: "Style (스타일)",
-                ghes_style_placeholder: "원하는 스타일을 입력하세요",
-                ghes_style_desc: "톤, 형식, 스타일 등을 지정하세요",
-                crispe_framework: "CRISPE 프레임워크",
-                crispe_desc: "Context → Role → Input → Steps → Personality → Example로 구성된 체계적인 프롬프트",
-                crispe_context_label: "Context (맥락)",
-                crispe_context_placeholder: "배경 정보를 입력하세요",
-                crispe_role_label: "Role (역할)",
-                crispe_role_placeholder: "AI의 역할을 정의하세요",
-                crispe_input_label: "Input (입력)",
-                crispe_input_placeholder: "제공할 정보를 입력하세요",
-                crispe_steps_label: "Steps (단계)",
-                crispe_steps_placeholder: "수행 단계를 입력하세요",
-                crispe_personality_label: "Personality (성격)",
-                crispe_personality_placeholder: "AI의 성격이나 말투를 정의하세요",
-                crispe_example_label: "Example (예시)",
-                crispe_example_placeholder: "참고 예시를 입력하세요",
-                cape_framework: "CAPE 프레임워크",
-                cape_desc: "Context → Action → Purpose → Expectation으로 구성된 빠른 초안 설계",
-                cape_context_label: "Context (배경)",
-                cape_context_placeholder: "상황이나 배경을 입력하세요",
-                cape_action_label: "Action (행동)",
-                cape_action_placeholder: "수행할 행동을 입력하세요",
-                cape_purpose_label: "Purpose (목적)",
-                cape_purpose_placeholder: "목적을 입력하세요",
-                cape_expectation_label: "Expectation (기대결과)",
-                cape_expectation_placeholder: "기대하는 결과를 입력하세요",
-                prompt_framework: "PROMPT 프레임워크",
-                prompt_desc: "Purpose → Role → Output → Mode → Persona → Tone으로 구성된 상세 프롬프트",
-                prompt_purpose_label: "Purpose (목적)",
-                prompt_purpose_placeholder: "목적을 입력하세요",
-                prompt_role_label: "Role (역할)",
-                prompt_role_placeholder: "역할을 입력하세요",
-                prompt_output_label: "Output (출력)",
-                prompt_output_placeholder: "원하는 출력 형식을 입력하세요",
-                prompt_mode_label: "Mode (모드)",
-                prompt_mode_placeholder: "작업 모드를 입력하세요",
-                prompt_persona_label: "Persona (페르소나)",
-                prompt_persona_placeholder: "AI의 페르소나를 입력하세요",
-                prompt_tone_label: "Tone (톤)",
-                prompt_tone_placeholder: "말투나 톤을 입력하세요",
-                "5w1h_framework": "5W1H 프레임워크",
-                "5w1h_desc": "Who, What, When, Where, Why, How로 구성된 분석적 프롬프트",
-                "5w1h_who_label": "Who (누가)",
-                "5w1h_who_placeholder": "주체나 대상을 입력하세요",
-                "5w1h_what_label": "What (무엇을)",
-                "5w1h_what_placeholder": "내용이나 주제를 입력하세요",
-                "5w1h_when_label": "When (언제)",
-                "5w1h_when_placeholder": "시간이나 시기를 입력하세요",
-                "5w1h_where_label": "Where (어디서)",
-                "5w1h_where_placeholder": "장소나 환경을 입력하세요",
-                "5w1h_why_label": "Why (왜)",
-                "5w1h_why_placeholder": "이유나 목적을 입력하세요",
-                "5w1h_how_label": "How (어떻게)",
-                "5w1h_how_placeholder": "방법이나 과정을 입력하세요",
-                aida_framework: "AIDA 프레임워크",
-                aida_desc: "Attention → Interest → Desire → Action으로 구성된 마케팅/설득형 프롬프트",
-                aida_attention_label: "Attention (주목)",
-                aida_attention_placeholder: "주목을 끌 내용을 입력하세요",
-                aida_interest_label: "Interest (관심)",
-                aida_interest_placeholder: "관심을 유발할 내용을 입력하세요",
-                aida_desire_label: "Desire (욕구)",
-                aida_desire_placeholder: "욕구를 자극할 내용을 입력하세요",
-                aida_action_label: "Action (행동)",
-                aida_action_placeholder: "행동을 유도할 내용을 입력하세요",
-                storytelling_framework: "Storytelling 3막 구조",
-                storytelling_desc: "Beginning → Middle → End로 구성된 이야기 전개형 프롬프트",
-                storytelling_beginning_label: "Beginning (시작)",
-                storytelling_beginning_placeholder: "이야기의 시작 부분을 입력하세요",
-                storytelling_middle_label: "Middle (중간)",
-                storytelling_middle_placeholder: "이야기의 전개 부분을 입력하세요",
-                storytelling_end_label: "End (끝)",
-                storytelling_end_placeholder: "이야기의 결말 부분을 입력하세요",
-                output_title: "생성된 프롬프트",
-                output_placeholder_initial: "여기에 생성된 프롬프트가 표시됩니다...",
-                output_placeholder_empty: "입력된 내용이 없습니다. 위 필드를 채워주세요.",
-                button_generate: "프롬프트 생성",
-                button_copy: "복사하기",
-                button_clear: "초기화",
-                copy_notification: "✅ 클립보드에 복사되었습니다!",
-                copy_alert: "복사할 프롬프트가 없습니다. 먼저 내용을 입력하고 생성해주세요."
+                ghes_framework: "📋 GHES 프레임워크", ghes_desc: "Goal(목적) → Hint(조건) → Example(예시) → Style(스타일)로 구성",
+                ghes_goal_label: "Goal (목적)", ghes_goal_placeholder: "달성하고자 하는 목표를 입력하세요", ghes_goal_desc: "AI가 수행해야 할 주요 목적을 명확히 작성하세요",
+                ghes_hint_label: "Hint (조건)", ghes_hint_placeholder: "제약사항이나 조건을 입력하세요", ghes_hint_desc: "특별한 조건이나 제약사항을 명시하세요",
+                ghes_example_label: "Example (예시)", ghes_example_placeholder: "참고할 예시를 입력하세요", ghes_example_desc: "원하는 결과물의 예시를 제공하세요",
+                ghes_style_label: "Style (스타일)", ghes_style_placeholder: "원하는 스타일을 입력하세요", ghes_style_desc: "톤, 형식, 스타일 등을 지정하세요",
+                crispe_framework: "📋 CRISPE 프레임워크", crispe_desc: "Context → Role → Input → Steps → Personality → Example로 구성",
+                crispe_context_label: "Context (맥락)", crispe_context_placeholder: "배경 정보를 입력하세요",
+                crispe_role_label: "Role (역할)", crispe_role_placeholder: "AI의 역할을 정의하세요",
+                crispe_input_label: "Input (입력)", crispe_input_placeholder: "제공할 정보를 입력하세요",
+                crispe_steps_label: "Steps (단계)", crispe_steps_placeholder: "수행 단계를 입력하세요",
+                crispe_personality_label: "Personality (성격)", crispe_personality_placeholder: "AI의 성격이나 말투를 정의하세요",
+                crispe_example_label: "Example (예시)", crispe_example_placeholder: "참고 예시를 입력하세요",
+                cape_framework: "📋 CAPE 프레임워크", cape_desc: "Context → Action → Purpose → Expectation으로 구성",
+                cape_context_label: "Context (배경)", cape_context_placeholder: "상황이나 배경을 입력하세요",
+                cape_action_label: "Action (행동)", cape_action_placeholder: "수행할 행동을 입력하세요",
+                cape_purpose_label: "Purpose (목적)", cape_purpose_placeholder: "목적을 입력하세요",
+                cape_expectation_label: "Expectation (기대결과)", cape_expectation_placeholder: "기대하는 결과를 입력하세요",
+                prompt_framework: "📋 PROMPT 프레임워크", prompt_desc: "Purpose → Role → Output → Mode → Persona → Tone으로 구성",
+                prompt_purpose_label: "Purpose (목적)", prompt_purpose_placeholder: "목적을 입력하세요",
+                prompt_role_label: "Role (역할)", prompt_role_placeholder: "역할을 입력하세요",
+                prompt_output_label: "Output (출력)", prompt_output_placeholder: "원하는 출력 형식을 입력하세요",
+                prompt_mode_label: "Mode (모드)", prompt_mode_placeholder: "작업 모드를 입력하세요",
+                prompt_persona_label: "Persona (페르소나)", prompt_persona_placeholder: "AI의 페르소나를 입력하세요",
+                prompt_tone_label: "Tone (톤)", prompt_tone_placeholder: "말투나 톤을 입력하세요",
+                "5w1h_framework": "📋 5W1H 프레임워크", "5w1h_desc": "Who, What, When, Where, Why, How로 구성된 분석적 프롬프트",
+                "5w1h_who_label": "Who (누가)", "5w1h_who_placeholder": "주체나 대상을 입력하세요",
+                "5w1h_what_label": "What (무엇을)", "5w1h_what_placeholder": "내용이나 주제를 입력하세요",
+                "5w1h_when_label": "When (언제)", "5w1h_when_placeholder": "시간이나 시기를 입력하세요",
+                "5w1h_where_label": "Where (어디서)", "5w1h_where_placeholder": "장소나 환경을 입력하세요",
+                "5w1h_why_label": "Why (왜)", "5w1h_why_placeholder": "이유나 목적을 입력하세요",
+                "5w1h_how_label": "How (어떻게)", "5w1h_how_placeholder": "방법이나 과정을 입력하세요",
+                aida_framework: "📋 AIDA 프레임워크", aida_desc: "Attention → Interest → Desire → Action으로 구성된 마케팅/설득형 프롬프트",
+                aida_attention_label: "Attention (주목)", aida_attention_placeholder: "주목을 끄는 내용을 입력하세요",
+                aida_interest_label: "Interest (관심)", aida_interest_placeholder: "관심을 끄는 내용을 입력하세요",
+                aida_desire_label: "Desire (욕구)", aida_desire_placeholder: "욕구를 자극하는 내용을 입력하세요",
+                aida_action_label: "Action (행동)", aida_action_placeholder: "행동을 유도하는 내용을 입력하세요",
+                storytelling_framework: "📋 스토리텔링 3막 구성", storytelling_desc: "Beginning → Middle → End로 구성된 이야기 전개형 프롬프트",
+                storytelling_beginning_label: "Beginning (시작)", storytelling_beginning_placeholder: "이야기의 시작 부분을 입력하세요",
+                storytelling_middle_label: "Middle (중간)", storytelling_middle_placeholder: "이야기의 전개 부분을 입력하세요",
+                storytelling_end_label: "End (끝)", storytelling_end_placeholder: "이야기의 결말 부분을 입력하세요",
+                output_title: "생성된 프롬프트", output_placeholder_initial: "생성된 프롬프트가 여기에 표시됩니다...", output_placeholder_empty: "입력된 내용이 없습니다. 위의 필드를 입력해주세요.",
+                button_generate: "프롬프트 생성", button_copy: "복사", button_clear: "초기화",
+                copy_notification: "클립보드에 복사되었습니다!", copy_alert: "복사할 프롬프트가 없습니다",
+                stat_chars: "글자", stat_words: "단어", footer_text: "AI 프롬프트 템플릿 생성기 v2.0", footer_help: "도움말", footer_feedback: "피드백"
             },
-            // スペイン語
-            es: {
-                header_title: "🚀 Generador de Plantillas de Prompts de IA",
-                header_desc: "Crea el prompt perfecto utilizando varios marcos de trabajo",
-                language_label: "Idioma:",
-                ghes_framework: "Marco GHES",
-                ghes_desc: "Un método claro de escritura de prompts que consiste en Goal (Objetivo) → Hint (Pista) → Example (Ejemplo) → Style (Estilo)",
-                ghes_goal_label: "Goal (Objetivo)",
-                ghes_goal_placeholder: "Introduce el objetivo que quieres alcanzar",
-                ghes_goal_desc: "Establece claramente el objetivo principal que la IA debe realizar",
-                ghes_hint_label: "Hint (Pista)",
-                ghes_hint_placeholder: "Introduce cualquier restricción o condición",
-                ghes_hint_desc: "Especifica cualquier condición o restricción especial",
-                ghes_example_label: "Example (Ejemplo)",
-                ghes_example_placeholder: "Introduce un ejemplo de referencia",
-                ghes_example_desc: "Proporciona un ejemplo del resultado deseado",
-                ghes_style_label: "Style (Estilo)",
-                ghes_style_placeholder: "Introduce el estilo deseado",
-                ghes_style_desc: "Especifica el tono, formato, estilo, etc.",
-                crispe_framework: "Marco CRISPE",
-                crispe_desc: "Un prompt sistemático compuesto por Context → Role → Input → Steps → Personality → Example",
-                crispe_context_label: "Context (Contexto)",
-                crispe_context_placeholder: "Introduce información de fondo",
-                crispe_role_label: "Role (Rol)",
-                crispe_role_placeholder: "Define el rol de la IA",
-                crispe_input_label: "Input (Entrada)",
-                crispe_input_placeholder: "Introduce la información a proporcionar",
-                crispe_steps_label: "Steps (Pasos)",
-                crispe_steps_placeholder: "Introduce los pasos a realizar",
-                crispe_personality_label: "Personality (Personalidad)",
-                crispe_personality_placeholder: "Define la personalidad o el tono de la IA",
-                crispe_example_label: "Example (Ejemplo)",
-                crispe_example_placeholder: "Introduce un ejemplo de referencia",
-                cape_framework: "Marco CAPE",
-                cape_desc: "Diseño rápido de borradores con Context → Action → Purpose → Expectation",
-                cape_context_label: "Context (Contexto)",
-                cape_context_placeholder: "Introduce la situación o el fondo",
-                cape_action_label: "Action (Acción)",
-                cape_action_placeholder: "Introduce la acción a realizar",
-                cape_purpose_label: "Purpose (Propósito)",
-                cape_purpose_placeholder: "Introduce el propósito",
-                cape_expectation_label: "Expectation (Expectativa)",
-                cape_expectation_placeholder: "Introduce el resultado esperado",
-                prompt_framework: "Marco PROMPT",
-                prompt_desc: "Prompt detallado con Purpose → Role → Output → Mode → Persona → Tone",
-                prompt_purpose_label: "Purpose (Propósito)",
-                prompt_purpose_placeholder: "Introduce el propósito",
-                prompt_role_label: "Role (Rol)",
-                prompt_role_placeholder: "Introduce el rol",
-                prompt_output_label: "Output (Salida)",
-                prompt_output_placeholder: "Introduce el formato de salida deseado",
-                prompt_mode_label: "Mode (Modo)",
-                prompt_mode_placeholder: "Introduce el modo de operación",
-                prompt_persona_label: "Persona",
-                prompt_persona_placeholder: "Introduce la persona de la IA",
-                prompt_tone_label: "Tone (Tono)",
-                prompt_tone_placeholder: "Introduce el tono de voz",
-                "5w1h_framework": "Marco 5W1H",
-                "5w1h_desc": "Prompt analítico con Quién, Qué, Cuándo, Dónde, Por qué, Cómo",
-                "5w1h_who_label": "Who (Quién)",
-                "5w1h_who_placeholder": "Introduce el sujeto o el objetivo",
-                "5w1h_what_label": "What (Qué)",
-                "5w1h_what_placeholder": "Introduce el contenido o el tema",
-                "5w1h_when_label": "When (Cuándo)",
-                "5w1h_when_placeholder": "Introduce la hora o el período",
-                "5w1h_where_label": "Where (Dónde)",
-                "5w1h_where_placeholder": "Introduce el lugar o el entorno",
-                "5w1h_why_label": "Why (Por qué)",
-                "5w1h_why_placeholder": "Introduce la razón o el propósito",
-                "5w1h_how_label": "How (Cómo)",
-                "5w1h_how_placeholder": "Introduce el método o el proceso",
-                aida_framework: "Marco AIDA",
-                aida_desc: "Prompt de marketing/persuasivo con Atención → Interés → Deseo → Acción",
-                aida_attention_label: "Attention (Atención)",
-                aida_attention_placeholder: "Introduce contenido para llamar la atención",
-                aida_interest_label: "Interest (Interés)",
-                aida_interest_placeholder: "Introduce contenido para generar interés",
-                aida_desire_label: "Desire (Deseo)",
-                aida_desire_placeholder: "Introduce contenido para estimular el deseo",
-                aida_action_label: "Action (Acción)",
-                aida_action_placeholder: "Introduce contenido para inducir a la acción",
-                storytelling_framework: "Estructura de 3 Actos para Storytelling",
-                storytelling_desc: "Prompt narrativo con Inicio → Nudo → Desenlace",
-                storytelling_beginning_label: "Beginning (Inicio)",
-                storytelling_beginning_placeholder: "Introduce el comienzo de la historia",
-                storytelling_middle_label: "Middle (Nudo)",
-                storytelling_middle_placeholder: "Introduce la parte central de la historia",
-                storytelling_end_label: "End (Desenlace)",
-                storytelling_end_placeholder: "Introduce el final de la historia",
-                output_title: "Prompt Generado",
-                output_placeholder_initial: "El prompt generado se mostrará aquí...",
-                output_placeholder_empty: "No se ha introducido contenido. Por favor, rellena los campos de arriba.",
-                button_generate: "Generar Prompt",
-                button_copy: "Copiar",
-                button_clear: "Limpiar",
-                copy_notification: "✅ ¡Copiado al portapapeles!",
-                copy_alert: "No hay ningún prompt que copiar. Por favor, introduce contenido y genéralo primero."
-            },
-            // フランス語
             fr: {
                 header_title: "🚀 Générateur de Modèles de Prompts IA",
                 header_desc: "Créez le prompt parfait en utilisant divers cadres",
-                language_label: "Langue:",
-                ghes_framework: "Cadre GHES",
-                ghes_desc: "Une méthode claire de rédaction de prompts composée de Goal (Objectif) → Hint (Indice) → Example (Exemple) → Style (Style)",
-                ghes_goal_label: "Goal (Objectif)",
-                ghes_goal_placeholder: "Entrez l'objectif que vous souhaitez atteindre",
-                ghes_goal_desc: "Énoncez clairement l'objectif principal que l'IA doit accomplir",
-                ghes_hint_label: "Hint (Indice)",
-                ghes_hint_placeholder: "Entrez les contraintes ou conditions",
-                ghes_hint_desc: "Spécifiez les conditions ou contraintes particulières",
-                ghes_example_label: "Example (Exemple)",
-                ghes_example_placeholder: "Entrez un exemple de référence",
-                ghes_example_desc: "Fournissez un exemple du résultat souhaité",
-                ghes_style_label: "Style",
-                ghes_style_placeholder: "Entrez le style souhaité",
-                ghes_style_desc: "Spécifiez le ton, le format, le style, etc.",
-                crispe_framework: "Cadre CRISPE",
-                crispe_desc: "Un prompt systématique composé de Context → Role → Input → Steps → Personality → Example",
-                crispe_context_label: "Context (Contexte)",
-                crispe_context_placeholder: "Entrez les informations de base",
-                crispe_role_label: "Role (Rôle)",
-                crispe_role_placeholder: "Définissez le rôle de l'IA",
-                crispe_input_label: "Input (Entrée)",
-                crispe_input_placeholder: "Entrez les informations à fournir",
-                crispe_steps_label: "Steps (Étapes)",
-                crispe_steps_placeholder: "Entrez les étapes à suivre",
-                crispe_personality_label: "Personality (Personnalité)",
-                crispe_personality_placeholder: "Définissez la personnalité ou le ton de l'IA",
-                crispe_example_label: "Example (Exemple)",
-                crispe_example_placeholder: "Entrez un exemple de référence",
-                cape_framework: "Cadre CAPE",
-                cape_desc: "Conception rapide d'ébauches avec Context → Action → Purpose → Expectation",
-                cape_context_label: "Context (Contexte)",
-                cape_context_placeholder: "Entrez la situation ou le contexte",
-                cape_action_label: "Action",
-                cape_action_placeholder: "Entrez l'action à effectuer",
-                cape_purpose_label: "Purpose (But)",
-                cape_purpose_placeholder: "Entrez le but",
-                cape_expectation_label: "Expectation (Attente)",
-                cape_expectation_placeholder: "Entrez le résultat attendu",
-                prompt_framework: "Cadre PROMPT",
-                prompt_desc: "Prompt détaillé avec Purpose → Role → Output → Mode → Persona → Tone",
-                prompt_purpose_label: "Purpose (But)",
-                prompt_purpose_placeholder: "Entrez le but",
-                prompt_role_label: "Role (Rôle)",
-                prompt_role_placeholder: "Entrez le rôle",
-                prompt_output_label: "Output (Sortie)",
-                prompt_output_placeholder: "Entrez le format de sortie souhaité",
-                prompt_mode_label: "Mode",
-                prompt_mode_placeholder: "Entrez le mode de fonctionnement",
-                prompt_persona_label: "Persona",
-                prompt_persona_placeholder: "Entrez le persona de l'IA",
-                prompt_tone_label: "Tone (Ton)",
-                prompt_tone_placeholder: "Entrez le ton de la voix",
-                "5w1h_framework": "Cadre 5W1H",
-                "5w1h_desc": "Prompt analytique avec Qui, Quoi, Quand, Où, Pourquoi, Comment",
-                "5w1h_who_label": "Who (Qui)",
-                "5w1h_who_placeholder": "Entrez le sujet ou la cible",
-                "5w1h_what_label": "What (Quoi)",
-                "5w1h_what_placeholder": "Entrez le contenu ou le sujet",
-                "5w1h_when_label": "When (Quand)",
-                "5w1h_when_placeholder": "Entrez l'heure ou la période",
-                "5w1h_where_label": "Where (Où)",
-                "5w1h_where_placeholder": "Entrez le lieu ou l'environnement",
-                "5w1h_why_label": "Why (Pourquoi)",
-                "5w1h_why_placeholder": "Entrez la raison ou le but",
-                "5w1h_how_label": "How (Comment)",
-                "5w1h_how_placeholder": "Entrez la méthode ou le processus",
-                aida_framework: "Cadre AIDA",
-                aida_desc: "Prompt marketing/persuasif avec Attention → Intérêt → Désir → Action",
-                aida_attention_label: "Attention",
-                aida_attention_placeholder: "Entrez du contenu pour attirer l'attention",
-                aida_interest_label: "Interest (Intérêt)",
-                aida_interest_placeholder: "Entrez du contenu pour susciter l'intérêt",
-                aida_desire_label: "Desire (Désir)",
-                aida_desire_placeholder: "Entrez du contenu pour stimuler le désir",
-                aida_action_label: "Action",
-                aida_action_placeholder: "Entrez du contenu pour inciter à l'action",
-                storytelling_framework: "Structure en 3 Actes pour le Storytelling",
-                storytelling_desc: "Prompt narratif avec Début → Milieu → Fin",
-                storytelling_beginning_label: "Beginning (Début)",
-                storytelling_beginning_placeholder: "Entrez le début de l'histoire",
-                storytelling_middle_label: "Middle (Milieu)",
-                storytelling_middle_placeholder: "Entrez la partie centrale de l'histoire",
-                storytelling_end_label: "End (Fin)",
-                storytelling_end_placeholder: "Entrez la fin de l'histoire",
-                output_title: "Prompt Généré",
-                output_placeholder_initial: "Le prompt généré s'affichera ici...",
-                output_placeholder_empty: "Aucun contenu saisi. Veuillez remplir les champs ci-dessus.",
-                button_generate: "Générer le Prompt",
-                button_copy: "Copier",
-                button_clear: "Effacer",
-                copy_notification: "✅ Copié dans le presse-papiers !",
-                copy_alert: "Il n'y a pas de prompt à copier. Veuillez d'abord saisir du contenu et le générer."
+                ghes_framework: "📋 Cadre GHES", ghes_desc: "Goal → Hint → Example → Style",
+                ghes_goal_label: "Goal (Objectif)", ghes_goal_placeholder: "Entrez l'objectif", ghes_goal_desc: "Énoncez clairement l'objectif principal",
+                ghes_hint_label: "Hint (Indice)", ghes_hint_placeholder: "Entrez les contraintes", ghes_hint_desc: "Spécifiez les conditions",
+                ghes_example_label: "Example (Exemple)", ghes_example_placeholder: "Entrez un exemple", ghes_example_desc: "Fournissez un exemple",
+                ghes_style_label: "Style", ghes_style_placeholder: "Entrez le style souhaité", ghes_style_desc: "Spécifiez le ton, format",
+                crispe_framework: "📋 Cadre CRISPE", crispe_desc: "Context → Role → Input → Steps → Personality → Example",
+                crispe_context_label: "Context (Contexte)", crispe_context_placeholder: "Entrez les informations",
+                crispe_role_label: "Role (Rôle)", crispe_role_placeholder: "Définissez le rôle",
+                crispe_input_label: "Input (Entrée)", crispe_input_placeholder: "Entrez les informations",
+                crispe_steps_label: "Steps (Étapes)", crispe_steps_placeholder: "Entrez les étapes",
+                crispe_personality_label: "Personality (Personnalité)", crispe_personality_placeholder: "Définissez la personnalité",
+                crispe_example_label: "Example (Exemple)", crispe_example_placeholder: "Entrez un exemple",
+                cape_framework: "📋 Cadre CAPE", cape_desc: "Context → Action → Purpose → Expectation",
+                cape_context_label: "Context (Contexte)", cape_context_placeholder: "Entrez la situation",
+                cape_action_label: "Action", cape_action_placeholder: "Entrez l'action",
+                cape_purpose_label: "Purpose (But)", cape_purpose_placeholder: "Entrez le but",
+                cape_expectation_label: "Expectation (Attente)", cape_expectation_placeholder: "Entrez le résultat attendu",
+                prompt_framework: "📋 Cadre PROMPT", prompt_desc: "Purpose → Role → Output → Mode → Persona → Tone",
+                prompt_purpose_label: "Purpose (But)", prompt_purpose_placeholder: "Entrez le but",
+                prompt_role_label: "Role (Rôle)", prompt_role_placeholder: "Entrez le rôle",
+                prompt_output_label: "Output (Sortie)", prompt_output_placeholder: "Entrez le format",
+                prompt_mode_label: "Mode", prompt_mode_placeholder: "Entrez le mode",
+                prompt_persona_label: "Persona", prompt_persona_placeholder: "Entrez le persona",
+                prompt_tone_label: "Tone (Ton)", prompt_tone_placeholder: "Entrez le ton",
+                "5w1h_framework": "📋 Cadre 5W1H", "5w1h_desc": "Qui, Quoi, Quand, Où, Pourquoi, Comment",
+                "5w1h_who_label": "Who (Qui)", "5w1h_who_placeholder": "Entrez le sujet",
+                "5w1h_what_label": "What (Quoi)", "5w1h_what_placeholder": "Entrez le contenu",
+                "5w1h_when_label": "When (Quand)", "5w1h_when_placeholder": "Entrez l'heure",
+                "5w1h_where_label": "Where (Où)", "5w1h_where_placeholder": "Entrez le lieu",
+                "5w1h_why_label": "Why (Pourquoi)", "5w1h_why_placeholder": "Entrez la raison",
+                "5w1h_how_label": "How (Comment)", "5w1h_how_placeholder": "Entrez la méthode",
+                aida_framework: "📋 Cadre AIDA", aida_desc: "Attention → Intérêt → Désir → Action",
+                aida_attention_label: "Attention", aida_attention_placeholder: "Entrez du contenu",
+                aida_interest_label: "Interest (Intérêt)", aida_interest_placeholder: "Entrez du contenu",
+                aida_desire_label: "Desire (Désir)", aida_desire_placeholder: "Entrez du contenu",
+                aida_action_label: "Action", aida_action_placeholder: "Entrez du contenu",
+                storytelling_framework: "📋 Structure en 3 Actes", storytelling_desc: "Début → Milieu → Fin",
+                storytelling_beginning_label: "Beginning (Début)", storytelling_beginning_placeholder: "Entrez le début",
+                storytelling_middle_label: "Middle (Milieu)", storytelling_middle_placeholder: "Entrez le milieu",
+                storytelling_end_label: "End (Fin)", storytelling_end_placeholder: "Entrez la fin",
+                output_title: "Prompt Généré", output_placeholder_initial: "Le prompt généré s'affichera ici...", output_placeholder_empty: "Aucun contenu. Veuillez remplir les champs.",
+                button_generate: "Générer", button_copy: "Copier", button_clear: "Effacer",
+                copy_notification: "Copié!", copy_alert: "Pas de prompt à copier",
+                stat_chars: "caractères", stat_words: "mots", footer_text: "Générateur de Prompts IA v2.0", footer_help: "Aide", footer_feedback: "Feedback"
+            },
+            es: {
+                header_title: "🚀 Generador de Plantillas de Prompts IA",
+                header_desc: "Crea el prompt perfecto usando varios marcos",
+                ghes_framework: "📋 Marco GHES", ghes_desc: "Goal → Hint → Example → Style",
+                ghes_goal_label: "Goal (Objetivo)", ghes_goal_placeholder: "Introduce el objetivo", ghes_goal_desc: "Indica claramente el objetivo",
+                ghes_hint_label: "Hint (Pista)", ghes_hint_placeholder: "Introduce las restricciones", ghes_hint_desc: "Especifica las condiciones",
+                ghes_example_label: "Example (Ejemplo)", ghes_example_placeholder: "Introduce un ejemplo", ghes_example_desc: "Proporciona un ejemplo",
+                ghes_style_label: "Style (Estilo)", ghes_style_placeholder: "Introduce el estilo", ghes_style_desc: "Especifica el tono, formato",
+                crispe_framework: "📋 Marco CRISPE", crispe_desc: "Context → Role → Input → Steps → Personality → Example",
+                crispe_context_label: "Context (Contexto)", crispe_context_placeholder: "Introduce la información",
+                crispe_role_label: "Role (Rol)", crispe_role_placeholder: "Define el rol",
+                crispe_input_label: "Input (Entrada)", crispe_input_placeholder: "Introduce la información",
+                crispe_steps_label: "Steps (Pasos)", crispe_steps_placeholder: "Introduce los pasos",
+                crispe_personality_label: "Personality (Personalidad)", crispe_personality_placeholder: "Define la personalidad",
+                crispe_example_label: "Example (Ejemplo)", crispe_example_placeholder: "Introduce un ejemplo",
+                cape_framework: "📋 Marco CAPE", cape_desc: "Context → Action → Purpose → Expectation",
+                cape_context_label: "Context (Contexto)", cape_context_placeholder: "Introduce la situación",
+                cape_action_label: "Action (Acción)", cape_action_placeholder: "Introduce la acción",
+                cape_purpose_label: "Purpose (Propósito)", cape_purpose_placeholder: "Introduce el propósito",
+                cape_expectation_label: "Expectation (Expectativa)", cape_expectation_placeholder: "Introduce el resultado",
+                prompt_framework: "📋 Marco PROMPT", prompt_desc: "Purpose → Role → Output → Mode → Persona → Tone",
+                prompt_purpose_label: "Purpose (Propósito)", prompt_purpose_placeholder: "Introduce el propósito",
+                prompt_role_label: "Role (Rol)", prompt_role_placeholder: "Introduce el rol",
+                prompt_output_label: "Output (Salida)", prompt_output_placeholder: "Introduce el formato",
+                prompt_mode_label: "Mode (Modo)", prompt_mode_placeholder: "Introduce el modo",
+                prompt_persona_label: "Persona", prompt_persona_placeholder: "Introduce la persona",
+                prompt_tone_label: "Tone (Tono)", prompt_tone_placeholder: "Introduce el tono",
+                "5w1h_framework": "📋 Marco 5W1H", "5w1h_desc": "Quién, Qué, Cuándo, Dónde, Por qué, Cómo",
+                "5w1h_who_label": "Who (Quién)", "5w1h_who_placeholder": "Introduce el sujeto",
+                "5w1h_what_label": "What (Qué)", "5w1h_what_placeholder": "Introduce el contenido",
+                "5w1h_when_label": "When (Cuándo)", "5w1h_when_placeholder": "Introduce el tiempo",
+                "5w1h_where_label": "Where (Dónde)", "5w1h_where_placeholder": "Introduce el lugar",
+                "5w1h_why_label": "Why (Por qué)", "5w1h_why_placeholder": "Introduce la razón",
+                "5w1h_how_label": "How (Cómo)", "5w1h_how_placeholder": "Introduce el método",
+                aida_framework: "📋 Marco AIDA", aida_desc: "Atención → Interés → Deseo → Acción",
+                aida_attention_label: "Attention (Atención)", aida_attention_placeholder: "Introduce contenido",
+                aida_interest_label: "Interest (Interés)", aida_interest_placeholder: "Introduce contenido",
+                aida_desire_label: "Desire (Deseo)", aida_desire_placeholder: "Introduce contenido",
+                aida_action_label: "Action (Acción)", aida_action_placeholder: "Introduce contenido",
+                storytelling_framework: "📋 Estructura de 3 Actos", storytelling_desc: "Inicio → Nudo → Desenlace",
+                storytelling_beginning_label: "Beginning (Inicio)", storytelling_beginning_placeholder: "Introduce el inicio",
+                storytelling_middle_label: "Middle (Nudo)", storytelling_middle_placeholder: "Introduce el nudo",
+                storytelling_end_label: "End (Desenlace)", storytelling_end_placeholder: "Introduce el desenlace",
+                output_title: "Prompt Generado", output_placeholder_initial: "El prompt se mostrará aquí...", output_placeholder_empty: "Sin contenido. Por favor, rellena los campos.",
+                button_generate: "Generar", button_copy: "Copiar", button_clear: "Limpiar",
+                copy_notification: "¡Copiado!", copy_alert: "No hay prompt",
+                stat_chars: "caracteres", stat_words: "palabras", footer_text: "Generador de Prompts IA v2.0", footer_help: "Ayuda", footer_feedback: "Feedback"
             }
         };
-        
-        // プロンプト生成時に使用されるラベル
         const promptLabels = {
             ja: { goal: "Goal (目的)", hint: "Hint (条件)", example: "Example (例)", style: "Style (スタイル)", context: "Context (文脈)", role: "Role (役割)", input: "Input (入力)", steps: "Steps (段階)", personality: "Personality (性格)", action: "Action (行動)", purpose: "Purpose (目的)", expectation: "Expectation (期待される結果)", output: "Output (出力)", mode: "Mode (モード)", persona: "Persona (ペルソナ)", tone: "Tone (トーン)", who: "Who (誰が)", what: "What (何を)", when: "When (いつ)", where: "Where (どこで)", why: "Why (なぜ)", how: "How (どのように)", attention: "Attention (注目)", interest: "Interest (関心)", desire: "Desire (欲求)", beginning: "Beginning (始まり)", middle: "Middle (中間)", end: "End (終わり)" },
             zh: { goal: "Goal (目标)", hint: "Hint (提示)", example: "Example (示例)", style: "Style (风格)", context: "Context (背景)", role: "Role (角色)", input: "Input (输入)", steps: "Steps (步骤)", personality: "Personality (个性)", action: "Action (行动)", purpose: "Purpose (目的)", expectation: "Expectation (预期结果)", output: "Output (输出)", mode: "Mode (模式)", persona: "Persona (人设)", tone: "Tone (语气)", who: "Who (谁)", what: "What (什么)", when: "When (何时)", where: "Where (何地)", why: "Why (为什么)", how: "How (如何)", attention: "Attention (注意)", interest: "Interest (兴趣)", desire: "Desire (欲望)", beginning: "Beginning (开头)", middle: "Middle (中间)", end: "End (结尾)" },
@@ -1053,28 +744,23 @@
             fr: { goal: "Goal (Objectif)", hint: "Hint (Indice)", example: "Example (Exemple)", style: "Style", context: "Context (Contexte)", role: "Role (Rôle)", input: "Input (Entrée)", steps: "Steps (Étapes)", personality: "Personality (Personnalité)", action: "Action", purpose: "Purpose (But)", expectation: "Expectation (Attente)", output: "Output (Sortie)", mode: "Mode", persona: "Persona", tone: "Tone (Ton)", who: "Who (Qui)", what: "What (Quoi)", when: "When (Quand)", where: "Where (Où)", why: "Why (Pourquoi)", how: "How (Comment)", attention: "Attention", interest: "Interest (Intérêt)", desire: "Desire (Désir)", beginning: "Beginning (Début)", middle: "Middle (Milieu)", end: "End (Fin)" }
         };
 
-        function changeLanguage() {
-            const lang = document.getElementById('language-selector').value;
-            document.documentElement.lang = lang;
 
-            // テキストコンテンツ翻訳
+        function selectLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+            applyTranslations();
+            generatePrompt();
+        }
+
+        function applyTranslations() {
             document.querySelectorAll('[data-translate-key]').forEach(el => {
                 const key = el.dataset.translateKey;
-                if (translations[lang] && translations[lang][key]) {
-                    el.textContent = translations[lang][key];
-                }
+                if (translations[currentLang] && translations[currentLang][key]) el.textContent = translations[currentLang][key];
             });
-
-            // プレースホルダー翻訳
             document.querySelectorAll('[data-translate-placeholder-key]').forEach(el => {
                 const key = el.dataset.translatePlaceholderKey;
-                if (translations[lang] && translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
-                }
+                if (translations[currentLang] && translations[currentLang][key]) el.placeholder = translations[currentLang][key];
             });
-            
-            // 言語変更時プロンプト自動更新
-            generatePrompt();
         }
 
         function showTab(tabName) {
@@ -1087,29 +773,20 @@
         }
 
         function generatePrompt() {
-            const lang = document.getElementById('language-selector').value;
-            const labels = promptLabels[lang];
-            let prompt = '';
-            
+            const labels = promptLabels[currentLang];
             const fields = {};
-            
-            // 修正: 5W1H用の特別な処理を追加
             if (currentTab === '5w1h') {
-                // 5W1H専用のフィールド取得方法
                 document.querySelectorAll('#\\35 w1h textarea').forEach(textarea => {
                     const id = textarea.id.replace('w1h-', '');
                     fields[id] = textarea.value;
                 });
             } else {
-                // 他のタブ用の通常処理
                 document.querySelectorAll(`#${currentTab} textarea`).forEach(textarea => {
                     const id = textarea.id.split('-').slice(1).join('_');
                     fields[id] = textarea.value;
                 });
             }
-
             const promptParts = [];
-            
             switch(currentTab) {
                 case 'ghes':
                     if(fields.goal) promptParts.push(`[${labels.goal}]\n${fields.goal}`);
@@ -1159,56 +836,55 @@
                     if(fields.end) promptParts.push(`[${labels.end}]\n${fields.end}`);
                     break;
             }
-            
-            prompt = promptParts.join('\n\n');
-            document.getElementById('output').textContent = prompt || translations[lang].output_placeholder_empty;
+            const prompt = promptParts.join('\n\n');
+            const outputEl = document.getElementById('output');
+            if (prompt) {
+                outputEl.textContent = prompt;
+                outputEl.classList.remove('empty');
+            } else {
+                outputEl.textContent = translations[currentLang].output_placeholder_empty;
+                outputEl.classList.add('empty');
+            }
+            updateStats(prompt);
+        }
+
+        function updateStats(text) {
+            document.getElementById('charCount').textContent = text.length;
+            document.getElementById('wordCount').textContent = text.trim() ? text.trim().split(/\s+/).length : 0;
         }
 
         function copyToClipboard() {
-            const lang = document.getElementById('language-selector').value;
             const outputText = document.getElementById('output').textContent;
-            
-            if (!outputText || outputText === translations[lang].output_placeholder_empty || outputText === translations[lang].output_placeholder_initial) {
-                const copyButton = document.querySelector('.btn-success');
-                const originalText = copyButton.innerHTML;
-                copyButton.innerHTML = `<span>⚠️</span> ${translations[lang].copy_alert.substring(0,10)}...`;
-                copyButton.style.background = '#dc3545';
-                setTimeout(() => {
-                    copyButton.innerHTML = originalText;
-                    copyButton.style.background = '#28a745';
-                }, 2000);
+            const emptyText = translations[currentLang].output_placeholder_empty;
+            const initialText = translations[currentLang].output_placeholder_initial;
+            if (!outputText || outputText === emptyText || outputText === initialText) {
+                showNotification('warningNotification');
                 return;
             }
-            
-            navigator.clipboard.writeText(outputText).then(() => {
-                const notification = document.getElementById('copyNotification');
-                notification.classList.add('show');
-                setTimeout(() => notification.classList.remove('show'), 2000);
-            }).catch(err => {
-                console.error('Copy failed:', err);
-            });
+            navigator.clipboard.writeText(outputText).then(() => showNotification('copyNotification')).catch(err => console.error('Copy failed:', err));
+        }
+
+        function showNotification(id) {
+            const notification = document.getElementById(id);
+            notification.classList.add('show');
+            setTimeout(() => notification.classList.remove('show'), 2500);
         }
 
         function clearFields() {
-            const lang = document.getElementById('language-selector').value;
-            
             if (currentTab === '5w1h') {
-                // 5W1H用の特別な処理
                 document.querySelectorAll('#\\35 w1h textarea').forEach(input => input.value = '');
             } else {
-                // 他のタブ用の通常処理
                 document.querySelectorAll(`#${currentTab} textarea`).forEach(input => input.value = '');
             }
-            
-            document.getElementById('output').textContent = translations[lang].output_placeholder_initial;
+            const outputEl = document.getElementById('output');
+            outputEl.textContent = translations[currentLang].output_placeholder_initial;
+            outputEl.classList.add('empty');
+            updateStats('');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // すべてのtextareaにイベントリスナーを追加
-            document.querySelectorAll('textarea').forEach(input => {
-                input.addEventListener('input', generatePrompt);
-            });
-            changeLanguage(); // 初期ロード時言語設定
+            document.querySelectorAll('textarea').forEach(input => input.addEventListener('input', generatePrompt));
+            selectLanguage('ja');
         });
     </script>
 </body>
