@@ -1,308 +1,1064 @@
 <!DOCTYPE html>
-<html lang="ja" data-current-lang="ja">
+<html lang="ja" data-current-lang="ja" data-theme="light">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="appTitle">プロンプトライブラリ</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Marked.js for Markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body { background:#f5f6fa; }
-    .sidebar   { min-width:350px; max-width:420px; background:#fff; border-radius:18px; padding:24px; margin:22px 0 22px 28px; box-shadow:0 3px 15px rgba(0,0,0,.08);}
-    .main-pane { background:#fff; border-radius:18px; margin:22px 28px 22px 0; padding:32px 32px 42px 32px; box-shadow:0 3px 15px rgba(0,0,0,.08);}
-    .cat-block { margin-bottom:30px; border:1.5px solid #eee; border-radius:13px; background:#fafbfc; transition: all 0.2s ease; }
-    .cat-header{ display:flex; align-items:center; gap:10px; font-size:1.18em; font-weight:700; padding:16px 22px 0 18px; cursor:pointer;}
-    .cat-title { color:#1567c6; letter-spacing:-0.3px;}
-    .cat-actions button{ margin-left:7px; }
-    .task-list { padding:7px 14px 13px 18px; }
-    .task-item { display:flex; align-items:center; border-radius:7px; margin-bottom:8px; padding:7px 8px 7px 11px; background:#fff; border:1px solid #eee; cursor: move;}
-    .task-name { flex:1; font-size:1.07em; color:#212b36; cursor:pointer;}
-    .task-actions button{ margin-left:5px; }
-    .btn-add   { background:#15c645; color:#fff; }
-    .btn-edit  { background:#ffc107; color:#000;}
-    .btn-del   { background:#dc3545; color:#fff;}
-
-    /* ▼ 드래그 관련 스타일 */
-    .dragging { opacity: 0.5; transform: scale(0.95); z-index: 1000; }
-    .drag-over { border: 2px dashed #007bff !important; background: #e3f2fd !important; }
-    .cat-block.drag-over { transform: translateY(-2px); }
-    .task-item.drag-over { border-color: #28a745 !important; }
-    .prompt-box.drag-over { border-color: #17a2b8 !important; }
-
-    .drag-handle { color: #666; font-size: 1.2em; cursor: grab; padding: 0 8px; margin-left: -8px; }
-    .drag-handle:hover { color: #333; }
-    .drag-handle:active { cursor: grabbing; }
-    .task-drag-handle { color: #666; font-size: 1em; cursor: grab; padding: 0 6px; margin-left: -6px; }
-    .task-drag-handle:hover { color: #333; }
-    .task-drag-handle:active { cursor: grabbing; }
-    .prompt-drag-handle { color: #666; font-size: 1.1em; cursor: grab; padding: 4px 8px; position: absolute; left: 12px; top: 35px; z-index: 10; }
-    .prompt-drag-handle:hover { color: #333; }
-    .prompt-drag-handle:active { cursor: grabbing; }
-
-    /* ▼ 선택 구용 체크박스 배치 (드래그 핸들과 겹치지 않도록 조정) */
-    .prompt-select { position:absolute; left:12px; top:10px; transform:scale(1.15); }
-    .prompt-box    { background:#f5faff; border:1.3px solid #dde3eb; border-radius:8px; padding:18px 14px 14px 45px; margin-bottom:16px; position:relative; cursor: move;}
-    .prompt-actions button{ margin-right:7px; }
-    .prompt-actions{ position:absolute; right:18px; top:10px;}
-    .form-control{ font-size:1.08em;}
-    .btn-prompt-add{ margin-left:auto; }
-    
-    /* ▼ 문자크기 조정관련 스타일 */
-    .font-size-controls { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; }
-    .font-size-btn { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
-    .font-size-btn:hover { background: #e9ecef; }
-    .font-size-btn.active { background: #007bff; color: white; border-color: #007bff; }
-    
-    /* 문자크기 클래스 */
-    .font-size-small { font-size: 0.85em !important; }
-    .font-size-small .form-control, .font-size-small pre, .font-size-small .task-name, .font-size-small .cat-title { font-size: 0.95em !important; }
-    .font-size-medium { font-size: 1em !important; }
-    .font-size-medium .form-control, .font-size-medium pre, .font-size-medium .task-name, .font-size-medium .cat-title { font-size: 1.07em !important; }
-    .font-size-large { font-size: 1.15em !important; }
-    .font-size-large .form-control, .font-size-large pre, .font-size-large .task-name, .font-size-large .cat-title { font-size: 1.25em !important; }
-    .font-size-xlarge { font-size: 1.3em !important; }
-    .font-size-xlarge .form-control, .font-size-xlarge pre, .font-size-xlarge .task-name, .font-size-xlarge .cat-title { font-size: 1.4em !important; }
-    
-    /* ▼ 프롬프트 접기관련 스타일 */
-    .prompt-text { margin-bottom: 0; font-size: 1.06em; white-space: pre-wrap; word-wrap: break-word; }
-    .prompt-text.collapsed { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-wrap; }
-    .toggle-btn { background: none; border: none; color: #007bff; font-size: 0.9em; padding: 4px 0; margin-top: 8px; cursor: pointer; text-decoration: underline; }
-    .toggle-btn:hover { color: #0056b3; }
-
-    /* ▼ 임포트영역 스타일 */
-    .import-area { border: 2px dashed #dee2e6; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 15px; background: #f8f9fa; transition: all 0.3s ease; }
-    .import-area.dragover { border-color: #007bff; background: #e3f2fd; }
-    .file-input-hidden { display: none; }
-    .status-message { margin-top: 10px; padding: 8px 12px; border-radius: 5px; font-size: 0.9em; }
-    .status-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .status-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    
-    /* 언어선택바 스타일 */
-    #langBar { background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #eee; }
-
-    /* ▼ 마크다운 렌더링 관련 스타일 */
-    .markdown-rendered { 
-      padding: 10px 15px; 
-      background: #fff; 
-      border-radius: 6px; 
-      border: 1px solid #e0e0e0;
-      line-height: 1.6;
+    :root {
+      --bg-primary: #f0f2f5;
+      --bg-sidebar: #ffffff;
+      --bg-main: #ffffff;
+      --bg-card: #f7f9fc;
+      --bg-prompt: #f5f8ff;
+      --bg-input: #ffffff;
+      --bg-hover: #edf2f7;
+      --bg-active: #e3ecf7;
+      --bg-modal-overlay: rgba(0,0,0,0.4);
+      --text-primary: #1a202c;
+      --text-secondary: #4a5568;
+      --text-muted: #a0aec0;
+      --text-accent: #2b6cb0;
+      --border-color: #e2e8f0;
+      --border-light: #edf2f7;
+      --accent: #3182ce;
+      --accent-hover: #2b6cb0;
+      --accent-light: #ebf4ff;
+      --success: #38a169;
+      --success-light: #c6f6d5;
+      --danger: #e53e3e;
+      --danger-light: #fed7d7;
+      --warning: #d69e2e;
+      --warning-light: #fefcbf;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.1);
+      --shadow-glow: 0 0 20px rgba(49,130,206,0.15);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --font-main: 'Noto Sans JP', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+      --sidebar-width: 340px;
+      --topbar-height: 48px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, 
-    .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 {
-      margin-top: 0.8em; margin-bottom: 0.5em; font-weight: 600;
+
+    [data-theme="dark"] {
+      --bg-primary: #0f1117;
+      --bg-sidebar: #161822;
+      --bg-main: #1a1d2e;
+      --bg-card: #1e2235;
+      --bg-prompt: #1e2235;
+      --bg-input: #252940;
+      --bg-hover: #2a2f45;
+      --bg-active: #2d3352;
+      --bg-modal-overlay: rgba(0,0,0,0.65);
+      --text-primary: #e2e8f0;
+      --text-secondary: #a0aec0;
+      --text-muted: #64708a;
+      --text-accent: #63b3ed;
+      --border-color: #2d3348;
+      --border-light: #252940;
+      --accent: #4299e1;
+      --accent-hover: #63b3ed;
+      --accent-light: rgba(66,153,225,0.15);
+      --success: #48bb78;
+      --success-light: rgba(72,187,120,0.15);
+      --danger: #fc8181;
+      --danger-light: rgba(252,129,129,0.15);
+      --warning: #f6e05e;
+      --warning-light: rgba(246,224,94,0.15);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.25);
+      --shadow-lg: 0 10px 30px rgba(0,0,0,0.35);
+      --shadow-glow: 0 0 20px rgba(66,153,225,0.2);
     }
-    .markdown-rendered h1 { font-size: 1.5em; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
-    .markdown-rendered h2 { font-size: 1.3em; }
-    .markdown-rendered h3 { font-size: 1.15em; }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* ═══════ TOP BAR ═══════ */
+    .topbar {
+      height: var(--topbar-height);
+      background: var(--bg-sidebar);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      z-index: 100;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .topbar-title {
+      font-weight: 700;
+      font-size: 1.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .topbar-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+    .icon-btn {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1em;
+      transition: all var(--transition);
+    }
+    .icon-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--accent);
+    }
+    .icon-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    /* ═══════ LAYOUT ═══════ */
+    .app-layout {
+      display: flex;
+      height: calc(100vh - var(--topbar-height));
+      overflow: hidden;
+    }
+
+    /* ═══════ SIDEBAR ═══════ */
+    .sidebar {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
+    }
+    .sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      border-right: none;
+    }
+    .sidebar-header {
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .sidebar-search {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .sidebar-search input {
+      width: 100%;
+      padding: 9px 14px 9px 36px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.9em;
+      outline: none;
+      transition: all var(--transition);
+    }
+    .sidebar-search input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(49,130,206,0.12);
+    }
+    .sidebar-search input::placeholder { color: var(--text-muted); }
+    .sidebar-search .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.9em;
+      pointer-events: none;
+    }
+    .sidebar-search .search-clear {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 0.8em;
+      cursor: pointer;
+      display: none;
+      background: none;
+      border: none;
+      padding: 2px 4px;
+    }
+    .sidebar-search .search-clear.visible { display: block; }
+    .sidebar-tools {
+      display: flex;
+      gap: 6px;
+    }
+    .sidebar-tool-btn {
+      flex: 1;
+      padding: 7px 4px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      font-size: 0.78em;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .sidebar-tool-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+    .sidebar-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px 20px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) transparent;
+    }
+    .sidebar-body::-webkit-scrollbar { width: 5px; }
+    .sidebar-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+    /* ═══════ CATEGORY BLOCK ═══════ */
+    .cat-block {
+      margin-bottom: 6px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: all var(--transition);
+    }
+    .cat-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 10px 10px 6px;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .cat-header:hover { background: var(--bg-hover); }
+    .cat-chevron {
+      font-size: 0.65em;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .cat-chevron.open { transform: rotate(90deg); }
+    .cat-emoji { font-size: 1.15em; flex-shrink: 0; }
+    .cat-title {
+      font-size: 0.92em;
+      font-weight: 600;
+      color: var(--text-primary);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cat-count {
+      font-size: 0.7em;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .cat-actions {
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .cat-header:hover .cat-actions { opacity: 1; }
+    .cat-action-btn {
+      width: 26px; height: 26px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      transition: all var(--transition);
+    }
+    .cat-action-btn:hover { background: var(--bg-active); color: var(--text-primary); }
+    .cat-action-btn.add-btn:hover { color: var(--success); }
+    .cat-action-btn.del-btn:hover { color: var(--danger); }
+
+    .task-list { padding: 2px 0 6px 20px; }
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition);
+      margin-bottom: 2px;
+      position: relative;
+    }
+    .task-item:hover { background: var(--bg-hover); }
+    .task-item.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .task-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    .task-drag-handle {
+      color: var(--text-muted);
+      font-size: 0.85em;
+      cursor: grab;
+      opacity: 0;
+      transition: opacity var(--transition);
+      flex-shrink: 0;
+    }
+    .task-item:hover .task-drag-handle { opacity: 0.6; }
+    .task-name {
+      flex: 1;
+      font-size: 0.88em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .task-prompt-count {
+      font-size: 0.65em;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 1px 6px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .task-actions {
+      display: flex;
+      gap: 1px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .task-item:hover .task-actions { opacity: 1; }
+    .task-action-btn {
+      width: 24px; height: 24px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75em;
+      transition: all var(--transition);
+    }
+    .task-action-btn:hover { background: var(--bg-active); color: var(--text-primary); }
+    .task-action-btn.del-btn:hover { color: var(--danger); }
+
+    .add-category-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border: 1.5px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.85em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .add-category-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    /* ═══════ MAIN PANE ═══════ */
+    .main-pane {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 36px 60px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) transparent;
+    }
+    .main-pane::-webkit-scrollbar { width: 6px; }
+    .main-pane::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-muted);
+      text-align: center;
+      gap: 12px;
+    }
+    .empty-state-icon { font-size: 3em; opacity: 0.5; }
+    .empty-state-text { font-size: 1em; line-height: 1.6; }
+
+    .detail-title {
+      font-size: 1.4em;
+      font-weight: 700;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ═══════ VARIABLES CARD ═══════ */
+    .var-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+    .var-card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .var-card-title {
+      font-size: 0.85em;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .var-add-btn {
+      margin-left: auto;
+      padding: 4px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      font-size: 0.78em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .var-add-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+    .var-item {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      margin-bottom: 10px;
+      transition: all var(--transition);
+      cursor: move;
+    }
+    .var-item:hover {
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px rgba(49,130,206,0.08);
+    }
+    .var-item:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(49,130,206,0.1);
+    }
+    .var-item-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 6px;
+    }
+    .var-drag-handle {
+      color: var(--text-muted);
+      cursor: grab;
+      font-size: 0.9em;
+      user-select: none;
+      opacity: 0.4;
+      transition: opacity var(--transition);
+    }
+    .var-item:hover .var-drag-handle { opacity: 0.8; }
+    .var-label {
+      font-size: 0.85em;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .var-auto-badge {
+      font-size: 0.6em;
+      color: var(--warning);
+      margin-left: 2px;
+    }
+    .var-item-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .var-item:hover .var-item-actions { opacity: 1; }
+    .var-action-btn {
+      width: 24px; height: 24px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75em;
+      transition: all var(--transition);
+    }
+    .var-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .var-textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      font-size: 0.9em;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 50px;
+      max-height: 300px;
+      outline: none;
+      transition: all var(--transition);
+    }
+    .var-textarea:focus {
+      border-color: var(--accent);
+      background: var(--bg-input);
+    }
+    .var-textarea::placeholder { color: var(--text-muted); }
+    .no-vars-msg {
+      color: var(--text-muted);
+      font-size: 0.82em;
+      text-align: center;
+      padding: 8px;
+    }
+
+    /* ═══════ PROMPTS SECTION ═══════ */
+    .prompts-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .prompts-title {
+      font-size: 1em;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .view-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-left: 8px;
+    }
+    .view-toggle-btn {
+      padding: 4px 10px;
+      font-size: 0.75em;
+      font-weight: 500;
+      border: none;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .view-toggle-btn:not(:last-child) { border-right: 1px solid var(--border-color); }
+    .view-toggle-btn:hover { background: var(--bg-hover); }
+    .view-toggle-btn.active { background: var(--accent); color: #fff; }
+    .prompt-add-btn {
+      margin-left: auto;
+      padding: 6px 14px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.82em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .prompt-add-btn:hover { background: var(--accent-hover); box-shadow: var(--shadow-sm); }
+
+    /* ═══════ PROMPT BOX ═══════ */
+    .prompt-box {
+      background: var(--bg-prompt);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 18px 18px 14px;
+      margin-bottom: 14px;
+      position: relative;
+      cursor: move;
+      transition: all var(--transition);
+    }
+    .prompt-box:hover {
+      border-color: var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+    .prompt-top-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .prompt-checkbox {
+      width: 18px; height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .prompt-drag-handle {
+      color: var(--text-muted);
+      font-size: 0.9em;
+      cursor: grab;
+      opacity: 0.3;
+      transition: opacity var(--transition);
+    }
+    .prompt-box:hover .prompt-drag-handle { opacity: 0.7; }
+    .prompt-number {
+      font-size: 0.72em;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .prompt-fav-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9em;
+      padding: 2px;
+      transition: all var(--transition);
+    }
+    .prompt-fav-btn:hover { transform: scale(1.2); }
+    .prompt-fav-btn.active { color: #f6ad55; }
+    .prompt-actions-row {
+      margin-left: auto;
+      display: flex;
+      gap: 2px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .prompt-box:hover .prompt-actions-row { opacity: 1; }
+    .prompt-action-btn {
+      padding: 4px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.78em;
+      transition: all var(--transition);
+    }
+    .prompt-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .prompt-action-btn.edit-btn:hover { color: var(--accent); }
+    .prompt-action-btn.del-btn:hover { color: var(--danger); }
+
+    .prompt-content {
+      margin-bottom: 0;
+      font-size: 0.93em;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: var(--text-primary);
+    }
+    .prompt-content.collapsed {
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.8em;
+      padding: 4px 0;
+      margin-top: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .toggle-btn:hover { text-decoration: underline; }
+
+    .prompt-bottom {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-light);
+    }
+    .copy-btn {
+      padding: 5px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      font-size: 0.8em;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .copy-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+    .copy-btn.copied {
+      border-color: var(--success);
+      color: var(--success);
+      background: var(--success-light);
+    }
+
+    /* ═══════ MARKDOWN RENDERED ═══════ */
+    .markdown-rendered {
+      padding: 14px 18px;
+      background: var(--bg-input);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light);
+      line-height: 1.7;
+      color: var(--text-primary);
+    }
+    .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3 {
+      margin-top: 0.8em; margin-bottom: 0.5em; font-weight: 700;
+    }
+    .markdown-rendered h1 { font-size: 1.4em; border-bottom: 1px solid var(--border-light); padding-bottom: 0.3em; }
+    .markdown-rendered h2 { font-size: 1.2em; }
+    .markdown-rendered h3 { font-size: 1.08em; }
     .markdown-rendered p { margin-bottom: 0.8em; }
     .markdown-rendered ul, .markdown-rendered ol { padding-left: 1.5em; margin-bottom: 0.8em; }
     .markdown-rendered li { margin-bottom: 0.3em; }
-    .markdown-rendered code { 
-      background: #f0f0f0; padding: 2px 6px; border-radius: 3px; 
-      font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em;
+    .markdown-rendered code {
+      background: var(--bg-card); padding: 2px 6px; border-radius: 3px;
+      font-family: var(--font-mono); font-size: 0.88em;
     }
-    .markdown-rendered pre { 
-      background: #2d2d2d; color: #f8f8f2; padding: 12px 15px; 
-      border-radius: 6px; overflow-x: auto; margin-bottom: 0.8em;
+    .markdown-rendered pre {
+      background: #1e1e2e; color: #cdd6f4; padding: 14px 16px;
+      border-radius: var(--radius-sm); overflow-x: auto; margin-bottom: 0.8em;
+      font-family: var(--font-mono); font-size: 0.88em;
     }
     .markdown-rendered pre code { background: transparent; color: inherit; padding: 0; }
-    .markdown-rendered blockquote { 
-      border-left: 4px solid #007bff; padding-left: 15px; 
-      color: #666; margin: 0.8em 0; font-style: italic;
+    .markdown-rendered blockquote {
+      border-left: 3px solid var(--accent); padding-left: 14px;
+      color: var(--text-secondary); margin: 0.8em 0; font-style: italic;
     }
     .markdown-rendered table { border-collapse: collapse; width: 100%; margin-bottom: 0.8em; }
-    .markdown-rendered th, .markdown-rendered td { 
-      border: 1px solid #ddd; padding: 8px 12px; text-align: left; 
+    .markdown-rendered th, .markdown-rendered td {
+      border: 1px solid var(--border-color); padding: 8px 12px; text-align: left;
     }
-    .markdown-rendered th { background: #f5f5f5; font-weight: 600; }
-    .markdown-rendered a { color: #007bff; text-decoration: none; }
+    .markdown-rendered th { background: var(--bg-card); font-weight: 600; }
+    .markdown-rendered a { color: var(--accent); text-decoration: none; }
     .markdown-rendered a:hover { text-decoration: underline; }
-    .markdown-rendered img { max-width: 100%; height: auto; border-radius: 4px; }
-    .markdown-rendered hr { border: none; border-top: 1px solid #ddd; margin: 1em 0; }
+    .markdown-rendered hr { border: none; border-top: 1px solid var(--border-light); margin: 1em 0; }
 
-    /* ▼ 뷰 모드 토글 버튼 스타일 */
-    .view-mode-toggle { 
-      display: inline-flex; 
-      border: 1px solid #dee2e6; 
-      border-radius: 5px; 
-      overflow: hidden;
-      margin-right: 10px;
-    }
-    .view-mode-btn { 
-      padding: 4px 10px; 
-      font-size: 0.8em; 
-      border: none; 
-      background: #f8f9fa; 
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .view-mode-btn:hover { background: #e9ecef; }
-    .view-mode-btn.active { background: #007bff; color: white; }
-    .view-mode-btn:first-child { border-right: 1px solid #dee2e6; }
+    /* ═══════ DRAGGING ═══════ */
+    .dragging { opacity: 0.4; transform: scale(0.97); }
+    .drag-over { border-color: var(--accent) !important; background: var(--accent-light) !important; }
 
-    /* ▼ 프롬프트 박스 세로 레이아웃 (마크다운용) */
-    .prompt-box-vertical { 
-      display: flex; 
-      flex-direction: column; 
-      padding-top: 45px;
+    /* ═══════ MODAL ═══════ */
+    .modal-backdrop { background: var(--bg-modal-overlay); }
+    .modal-content {
+      background: var(--bg-main);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
     }
-    .prompt-content-area { 
-      margin-top: 10px; 
-      min-height: 80px;
+    .modal-header {
+      border-bottom: 1px solid var(--border-light);
+      padding: 18px 24px;
     }
-    .prompt-bottom-actions {
+    .modal-title { font-weight: 700; font-size: 1.1em; }
+    .modal-body { padding: 20px 24px; }
+    .modal-footer {
+      border-top: 1px solid var(--border-light);
+      padding: 14px 24px;
+    }
+    .modal .form-control {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-main);
+      transition: all var(--transition);
+    }
+    .modal .form-control:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(49,130,206,0.12);
+    }
+    .modal .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+    }
+    .modal .btn-primary:hover { background: var(--accent-hover); }
+    .modal .btn-secondary {
+      background: var(--bg-card);
+      border-color: var(--border-color);
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+    }
+
+    /* ═══════ IMPORT AREA ═══════ */
+    .import-area {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      text-align: center;
+      margin-top: 10px;
+      background: var(--bg-card);
+      transition: all var(--transition);
+    }
+    .import-area.dragover { border-color: var(--accent); background: var(--accent-light); }
+
+    /* ═══════ TOAST ═══════ */
+    .toast-container {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 10000;
       display: flex;
-      justify-content: flex-end;
+      flex-direction: column;
       gap: 8px;
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px solid #eee;
+    }
+    .toast-item {
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 0.88em;
+      font-weight: 500;
+      box-shadow: var(--shadow-md);
+      animation: toastIn 0.3s ease-out;
+      max-width: 380px;
+    }
+    .toast-item.success { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
+    .toast-item.error { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger); }
+    .toast-item.info { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); }
+    .toast-item.removing { animation: toastOut 0.3s ease-in forwards; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+
+    /* ═══════ FONT SIZES ═══════ */
+    .font-size-small { font-size: 0.88em !important; }
+    .font-size-medium { font-size: 1em !important; }
+    .font-size-large { font-size: 1.12em !important; }
+    .font-size-xlarge { font-size: 1.24em !important; }
+
+    /* ═══════ RESPONSIVE ═══════ */
+    @media (max-width: 768px) {
+      :root { --sidebar-width: 280px; }
+      .main-pane { padding: 16px 18px 40px; }
+      .sidebar.collapsed + .main-pane { padding: 16px; }
+      .topbar { padding: 0 12px; }
+    }
+    @media (max-width: 480px) {
+      :root { --sidebar-width: 100vw; }
+      .sidebar:not(.collapsed) + .main-pane { display: none; }
     }
 
-    /* ▼ 변수 입력 세로 레이아웃 스타일 */
-    .variable-item-vertical {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 12px;
-      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, opacity 0.2s;
-      cursor: move;
+    /* ═══════ LANG DROPDOWN ═══════ */
+    .lang-dropdown .dropdown-menu {
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-md);
+      min-width: 140px;
     }
-    .variable-item-vertical:hover {
-      border-color: #007bff;
-      box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+    .lang-dropdown .dropdown-item {
+      color: var(--text-secondary);
+      font-size: 0.88em;
+      padding: 6px 14px;
+      transition: all var(--transition);
     }
-    .variable-item-vertical:focus-within {
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+    .lang-dropdown .dropdown-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    /* Font size popup */
+    .fontsize-popup {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 6px;
+      background: var(--bg-main);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-md);
+      padding: 8px;
+      display: none;
+      z-index: 200;
+      gap: 4px;
     }
-    .variable-item-vertical.dragging {
-      opacity: 0.5;
-      transform: scale(0.98);
+    .fontsize-popup.show { display: flex; }
+    .fs-btn {
+      width: 32px; height: 32px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      transition: all var(--transition);
     }
-    .variable-item-vertical.drag-over {
-      border: 2px dashed #007bff !important;
-      background: #e7f3ff;
-    }
-    .variable-drag-handle {
-      color: #999;
-      cursor: grab;
-      padding: 0 8px 0 0;
-      font-size: 1.1em;
-      user-select: none;
-    }
-    .variable-drag-handle:hover {
-      color: #333;
-    }
-    .variable-drag-handle:active {
-      cursor: grabbing;
-    }
-    .variable-textarea {
-      resize: vertical;
-      min-height: 60px;
-      max-height: 300px;
-      font-family: inherit;
-      line-height: 1.5;
-      transition: height 0.1s ease;
-    }
-    .variable-textarea:focus {
-      border-color: #86b7fe;
-      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
-    }
-    
-    @media (max-width:900px){
-      .sidebar, .main-pane{ margin:10px; padding:12px; }
-      .main-pane{ padding-top:17px;}
+    .fs-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .fs-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ═══════ HIDDEN ═══════ */
+    .file-input-hidden { display: none; }
+
+    /* ═══════ KEYBOARD HINT ═══════ */
+    .kbd-hint {
+      font-size: 0.65em;
+      color: var(--text-muted);
+      background: var(--bg-card);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid var(--border-light);
+      font-family: var(--font-mono);
+      margin-left: 4px;
     }
   </style>
 </head>
 <body>
-
-  <!-- ▸▸ 글로벌 언어선택바 ◂◂ -->
-  <div class="d-flex justify-content-end align-items-center p-2" id="langBar">
-    <div class="btn-group">
-      <button id="langBtn" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-        🌐 <span id="langBtnLabel">日本語</span>
-      </button>
-      <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item" href="#" data-lang="ja">日本語</a></li>
-        <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
-        <li><a class="dropdown-item" href="#" data-lang="zh">简体中文</a></li>
-        <li><a class="dropdown-item" href="#" data-lang="ko">한국어</a></li>
-        <li><a class="dropdown-item" href="#" data-lang="fr">Français</a></li>
-        <li><a class="dropdown-item" href="#" data-lang="es">Español</a></li>
-      </ul>
+  <!-- ═══ TOPBAR ═══ -->
+  <div class="topbar">
+    <button class="icon-btn" onclick="toggleSidebar()" title="Toggle Sidebar" id="sidebarToggleBtn">☰</button>
+    <div class="topbar-title">
+      <span>📚</span>
+      <span data-i18n="appTitle">プロンプトライブラリ</span>
     </div>
-  </div>
-
-  <div class="d-flex flex-row" style="gap:32px;">
-    <!-- ▸▸ 사이드바 ◂◂ -->
-    <div class="sidebar">
-      <h2 class="mb-3" style="font-weight:800; font-size:1.37em;">
-        <span style="font-size:1.21em; margin-right:8px;">📚</span>
-        <span data-i18n="appTitle">プロンプトライブラリ</span>
-      </h2>
-
-      <!-- 문자크기 조정 -->
-      <div class="font-size-controls">
-        <span data-i18n="fontSizeLabel" style="font-size: 0.9em; color: #666; margin-right: 8px;">文字サイズ:</span>
-        <div class="font-size-btn" data-size="small" onclick="setFontSize('small')" title="小">A</div>
-        <div class="font-size-btn active" data-size="medium" onclick="setFontSize('medium')" title="標準">A</div>
-        <div class="font-size-btn" data-size="large" onclick="setFontSize('large')" title="大" style="font-size: 1.1em;">A</div>
-        <div class="font-size-btn" data-size="xlarge" onclick="setFontSize('xlarge')" title="特大" style="font-size: 1.2em;">A</div>
-      </div>
-
-      <!-- 익스포트/임포트 버튼 -->
-      <div class="d-grid gap-2 mb-3">
-        <button class="btn btn-outline-secondary" onclick="exportData()" data-i18n="exportBtn">📤 エクスポート</button>
-        <button class="btn btn-outline-secondary" onclick="toggleImportArea()" data-i18n="importBtn">📥 インポート</button>
-      </div>
-
-      <!-- 임포트영역（표시/비표시 토글） -->
-      <div id="importArea" class="import-area" style="display: none;">
-        <div class="mb-2">
-          <strong data-i18n="importTitle">📥 ファイルをインポート</strong>
+    <div class="topbar-controls">
+      <div class="position-relative" id="fontSizeWrapper">
+        <button class="icon-btn" onclick="toggleFontSizePopup()" title="Font Size">Aa</button>
+        <div class="fontsize-popup" id="fontSizePopup">
+          <button class="fs-btn" data-size="small" onclick="setFontSize('small')" style="font-size:0.8em;">A</button>
+          <button class="fs-btn active" data-size="medium" onclick="setFontSize('medium')">A</button>
+          <button class="fs-btn" data-size="large" onclick="setFontSize('large')" style="font-size:1.15em;">A</button>
+          <button class="fs-btn" data-size="xlarge" onclick="setFontSize('xlarge')" style="font-size:1.3em;">A</button>
         </div>
-        <div class="mb-2" style="font-size: 0.9em; color: #666;" data-i18n="importInstructions">
-          JSONファイルをドラッグするかクリックして選択してください
-        </div>
-        <input type="file" id="fileInput" class="file-input-hidden" accept=".json" onchange="handleFileSelect(event)">
-        <button class="btn btn-outline-primary btn-sm" onclick="document.getElementById('fileInput').click()" data-i18n="fileSelect">
-          ファイル選択
+      </div>
+      <button class="icon-btn" id="themeToggle" onclick="toggleTheme()" title="Dark/Light Mode">🌙</button>
+      <div class="lang-dropdown dropdown">
+        <button class="icon-btn dropdown-toggle" data-bs-toggle="dropdown" style="width:auto;padding:0 10px;gap:4px;font-size:0.85em;" id="langBtn">
+          🌐 <span id="langBtnLabel">日本語</span>
         </button>
-        <div class="mt-2">
-          <button class="btn btn-outline-secondary btn-sm" onclick="toggleImportArea()" data-i18n="cancel">キャンセル</button>
-        </div>
-        <div id="statusMessage"></div>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#" data-lang="ja">日本語</a></li>
+          <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
+          <li><a class="dropdown-item" href="#" data-lang="zh">简体中文</a></li>
+          <li><a class="dropdown-item" href="#" data-lang="ko">한국어</a></li>
+          <li><a class="dropdown-item" href="#" data-lang="fr">Français</a></li>
+          <li><a class="dropdown-item" href="#" data-lang="es">Español</a></li>
+        </ul>
       </div>
+    </div>
+  </div>
 
-      <button class="btn btn-primary w-100 mb-3" onclick="openCategoryModal()" data-i18n="addCategory">＋ 新しいカテゴリを追加</button>
-      <div id="cat-container"></div>
+  <!-- ═══ MAIN LAYOUT ═══ -->
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-search">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search..." oninput="handleSearch(this.value)">
+          <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+        </div>
+        <div class="sidebar-tools">
+          <button class="sidebar-tool-btn" onclick="exportData()" data-i18n="exportBtn">📤 エクスポート</button>
+          <button class="sidebar-tool-btn" onclick="toggleImportArea()" data-i18n="importBtn">📥 インポート</button>
+        </div>
+        <div id="importArea" class="import-area" style="display:none;">
+          <div style="font-size:0.85em; color:var(--text-secondary); margin-bottom:10px;" data-i18n="importInstructions">JSONファイルをドラッグするかクリックして選択してください</div>
+          <input type="file" id="fileInput" class="file-input-hidden" accept=".json" onchange="handleFileSelect(event)">
+          <button class="sidebar-tool-btn" onclick="document.getElementById('fileInput').click()" style="display:inline-block;width:auto;padding:6px 16px;" data-i18n="fileSelect">ファイル選択</button>
+          <div style="margin-top:8px;">
+            <button class="sidebar-tool-btn" onclick="toggleImportArea()" style="display:inline-block;width:auto;padding:4px 12px;font-size:0.75em;" data-i18n="cancel">キャンセル</button>
+          </div>
+          <div id="statusMessage"></div>
+        </div>
+      </div>
+      <div class="sidebar-body" id="sidebarBody">
+        <div id="cat-container"></div>
+        <button class="add-category-btn" onclick="openCategoryModal()" data-i18n="addCategory">＋ 新しいカテゴリを追加</button>
+      </div>
     </div>
 
-    <!-- ▸▸ 메인상세 ◂◂ -->
-    <div class="main-pane flex-fill">
-      <div id="detail-area" style="min-height:380px;">
-        <div class="text-center text-secondary" style="padding:90px 0 70px 0; font-size:1.3em;" data-i18n="noSelection">
-          左側から項目を選択してください。<br>タスクをクリックすると詳細プロンプトが表示されます。
+    <!-- MAIN -->
+    <div class="main-pane" id="mainPane">
+      <div id="detail-area">
+        <div class="empty-state">
+          <div class="empty-state-icon">📝</div>
+          <div class="empty-state-text" data-i18n="noSelection">
+            左側から項目を選択してください。<br>タスクをクリックすると詳細プロンプトが表示されます。
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ▸▸ 공통모달 ◂◂ -->
+  <!-- ═══ TOAST CONTAINER ═══ -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ═══ MODAL ═══ -->
   <div class="modal" tabindex="-1" id="editModal">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
-        <div class="modal-header"><h5 id="modalTitle" class="modal-title"></h5></div>
+        <div class="modal-header">
+          <h5 id="modalTitle" class="modal-title"></h5>
+          <button type="button" class="btn-close" onclick="closeModal()" aria-label="Close" style="filter: var(--text-muted);"></button>
+        </div>
         <div class="modal-body">
           <div id="emojiInputRow" style="display:none;">
-            <label for="modalEmoji" class="form-label mb-1" data-i18n="emojiLabel">絵文字</label>
-            <input type="text" id="modalEmoji" class="form-control mb-2" placeholder="例: 📁" maxlength="2" style="width:90px; display:inline-block;">
+            <label for="modalEmoji" class="form-label mb-1" style="font-size:0.88em;color:var(--text-secondary);" data-i18n="emojiLabel">絵文字</label>
+            <input type="text" id="modalEmoji" class="form-control mb-2" placeholder="📁" maxlength="2" style="width:80px;">
           </div>
           <input type="text" id="modalInput" class="form-control mb-2" placeholder="">
-          <textarea id="modalTextarea" class="form-control" rows="8" style="display:none; resize: both; min-height: 200px; min-width: 300px;"></textarea>
+          <textarea id="modalTextarea" class="form-control" rows="10" style="display:none; resize:both; min-height:200px; font-family:var(--font-mono); font-size:0.92em; line-height:1.6;"></textarea>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" onclick="closeModal()" data-i18n="cancel">キャンセル</button>
@@ -313,409 +1069,72 @@
   </div>
 
 <script>
-/* ---------- 전역 변수 및 상태 관리 ---------- */
-let data; // 데이터 객체
-let currentCat = null, currentTask = null; // 현재 선택된 카테고리 및 태스크 ID
-let modalMode = null, modalRefObj = null, modalType = null; // 모달 관련 변수
-let catToggleState; // 카테고리 접기/펴기 상태
-let currentFontSize; // 현재 글꼴 크기
-let selectedPrompt = null; // {cat, task, idx} 또는 null
-let currentLang = 'ja'; // 현재 언어
-let draggedElement = null, dragType = null, dragContext = null; // 드래그 앤 드롭 관련 변수
-let currentVarState = {}; // 변수들의 입력값을 저장할 객체 (예: { 주제: "AI", 수신인: "팀장" })
-let currentViewMode = 'raw'; // 'raw' 또는 'markdown'
+/* ══════════════════════════════════════════════════
+   GLOBAL STATE
+   ══════════════════════════════════════════════════ */
+let data;
+let currentCat = null, currentTask = null;
+let modalMode = null, modalRefObj = null, modalType = null;
+let catToggleState;
+let currentFontSize;
+let selectedPrompt = null;
+let currentLang = 'ja';
+let draggedElement = null, dragType = null, dragContext = null;
+let currentVarState = {};
+let currentViewMode = 'raw';
+let searchQuery = '';
 
-/* ---------- 다국어 리소스 ---------- */
+/* ══════════════════════════════════════════════════
+   TRANSLATIONS (full i18n)
+   ══════════════════════════════════════════════════ */
 const translations = {
   ja: {
-    langName: "日本語",
-    appTitle: "プロンプトライブラリ",
-    fontSizeLabel: "文字サイズ:",
-    exportBtn: "📤 エクスポート",
-    importBtn: "📥 インポート",
-    importTitle: "📥 ファイルをインポート",
-    importInstructions: "JSONファイルをドラッグするかクリックして選択してください",
-    fileSelect: "ファイル選択",
-    cancel: "キャンセル",
-    addCategory: "＋ 新しいカテゴリを追加",
-    noSelection: "左側から項目を選択してください。<br>タスクをクリックすると詳細プロンプトが表示されます。",
-    emojiLabel: "絵文字",
-    saveBtn: "保存",
-    taskContentPlaceholder: "タスク関連の内容を入力してください...",
-    taskContentHint: "※ 内容を入力すると以下のプロンプトにすぐに反映されます。<b>Ctrl+V</b>で貼り付けも可能です！",
-    completedPrompt: "2. 完成したプロンプト",
-    addPrompt: "＋ プロンプト追加",
-    copy: "📋 コピー",
-    edit: "編集",
-    delete: "削除",
-    copyComplete: "✅ コピー完了",
-    showMore: "もっと見る ▼",
-    showLess: "折りたたむ ▲",
-    noSelectedPrompt: "選択されたプロンプトがありません。",
-    categoryAdd: "カテゴリ追加",
-    categoryEdit: "カテゴリ編集",
-    taskAdd: "タスク追加",
-    taskEdit: "タスク編集",
-    promptAdd: "プロンプト追加",
-    promptEdit: "プロンプト編集",
-    enterCategoryName: "カテゴリ名を入力してください！",
-    enterTaskName: "タスク名を入力してください！",
-    enterPromptContent: "プロンプトの内容を入力してください！",
-    confirmDeleteCategory: "カテゴリを削除しますか？",
-    confirmDeleteTask: "タスクを削除しますか？",
-    confirmDeletePrompt: "プロンプトを削除しますか？",
-    copyFailed: "コピーに失敗しました！",
-    jsonOnly: "JSONファイルのみサポートしています。",
-    fileReading: "ファイルを読み込み中...",
-    invalidFile: "正しいプロンプトライブラリファイルではありません。データが見つかりません。",
-    emptyCategoryData: "カテゴリデータがないため、空のライブラリで開始します。",
-    importComplete: "インポート完了！{0}個のカテゴリをインポートしました。ページを更新します。",
-    importFailed: "インポートに失敗しました: {0}",
-    fileReadError: "ファイル読み込み中にエラーが発生しました。",
-    exportComplete: "📤 エクスポート完了: {0}",
-    exportFailed: "❌ エクスポート失敗: {0}",
-    variablesLabel: "変数を入力 (Variables)",
-    variablePlaceholder: "{0}を入力",
-    noVariables: "※ このタスクには入力する変数がありません。",
-    addVariable: "変数追加",
-    enterVariableName: "追加する変数名を入力してください:",
-    enterNewVariableName: "新しい変数名を入力してください:",
-    variableExists: "この変数名は既に存在します。",
-    confirmDeleteVariable: "変数「{0}」を削除しますか？",
-    deleteFromPromptsWarning: "⚠️ この変数はプロンプト内で使用されています。削除するとプロンプトからも[変数名]が削除されます。",
-    dragToReorder: "ドラッグして順序を変更",
-    viewRaw: "📝 原文",
-    viewMarkdown: "📄 Markdown"
+    langName:"日本語",appTitle:"プロンプトライブラリ",fontSizeLabel:"文字サイズ:",exportBtn:"📤 エクスポート",importBtn:"📥 インポート",importTitle:"📥 ファイルをインポート",importInstructions:"JSONファイルをドラッグするかクリックして選択してください",fileSelect:"ファイル選択",cancel:"キャンセル",addCategory:"＋ 新しいカテゴリを追加",noSelection:"左側から項目を選択してください。<br>タスクをクリックすると詳細プロンプトが表示されます。",emojiLabel:"絵文字",saveBtn:"保存",taskContentPlaceholder:"タスク関連の内容を入力してください...",taskContentHint:"※ 内容を入力すると以下のプロンプトにすぐに反映されます。<b>Ctrl+V</b>で貼り付けも可能です！",completedPrompt:"完成したプロンプト",addPrompt:"＋ プロンプト追加",copy:"📋 コピー",edit:"編集",delete:"削除",copyComplete:"✅ コピー完了",showMore:"もっと見る ▼",showLess:"折りたたむ ▲",noSelectedPrompt:"選択されたプロンプトがありません。",categoryAdd:"カテゴリ追加",categoryEdit:"カテゴリ編集",taskAdd:"タスク追加",taskEdit:"タスク編集",promptAdd:"プロンプト追加",promptEdit:"プロンプト編集",enterCategoryName:"カテゴリ名を入力してください！",enterTaskName:"タスク名を入力してください！",enterPromptContent:"プロンプトの内容を入力してください！",confirmDeleteCategory:"カテゴリを削除しますか？",confirmDeleteTask:"タスクを削除しますか？",confirmDeletePrompt:"プロンプトを削除しますか？",copyFailed:"コピーに失敗しました！",jsonOnly:"JSONファイルのみサポートしています。",fileReading:"ファイルを読み込み中...",invalidFile:"正しいプロンプトライブラリファイルではありません。",emptyCategoryData:"カテゴリデータがないため空のライブラリで開始します。",importComplete:"インポート完了！{0}個のカテゴリをインポートしました。",importFailed:"インポートに失敗しました: {0}",fileReadError:"ファイル読み込み中にエラーが発生しました。",exportComplete:"📤 エクスポート完了: {0}",exportFailed:"❌ エクスポート失敗: {0}",variablesLabel:"変数入力",variablePlaceholder:"{0}を入力",noVariables:"変数なし",addVariable:"+ 変数追加",enterVariableName:"追加する変数名を入力してください:",enterNewVariableName:"新しい変数名を入力してください:",variableExists:"この変数名は既に存在します。",confirmDeleteVariable:"変数「{0}」を削除しますか？",deleteFromPromptsWarning:"⚠️ この変数はプロンプト内で使用されています。削除するとプロンプトからも削除されます。",dragToReorder:"ドラッグして順序を変更",viewRaw:"📝 原文",viewMarkdown:"📄 MD",searchPlaceholder:"検索..."
   },
   en: {
-    langName: "English",
-    appTitle: "Prompt Library",
-    fontSizeLabel: "Font Size:",
-    exportBtn: "📤 Export",
-    importBtn: "📥 Import",
-    importTitle: "📥 Import File",
-    importInstructions: "Drag & drop a JSON file or click to select",
-    fileSelect: "Select File",
-    cancel: "Cancel",
-    addCategory: "+ Add New Category",
-    noSelection: "Please select an item from the left.<br>Click a task to see the detailed prompts.",
-    emojiLabel: "Emoji",
-    saveBtn: "Save",
-    taskContentPlaceholder: "Enter task-related content here...",
-    taskContentHint: "※ Content entered here will be immediately reflected in the prompts below. You can also paste with <b>Ctrl+V</b>!",
-    completedPrompt: "2. Completed Prompt",
-    addPrompt: "+ Add Prompt",
-    copy: "📋 Copy",
-    edit: "Edit",
-    delete: "Delete",
-    copyComplete: "✅ Copied!",
-    showMore: "Show More ▼",
-    showLess: "Show Less ▲",
-    noSelectedPrompt: "No prompt selected.",
-    categoryAdd: "Add Category",
-    categoryEdit: "Edit Category",
-    taskAdd: "Add Task",
-    taskEdit: "Edit Task",
-    promptAdd: "Add Prompt",
-    promptEdit: "Edit Prompt",
-    enterCategoryName: "Please enter a category name!",
-    enterTaskName: "Please enter a task name!",
-    enterPromptContent: "Please enter the prompt content!",
-    confirmDeleteCategory: "Are you sure you want to delete this category?",
-    confirmDeleteTask: "Are you sure you want to delete this task?",
-    confirmDeletePrompt: "Are you sure you want to delete this prompt?",
-    copyFailed: "Failed to copy!",
-    jsonOnly: "Only JSON files are supported.",
-    fileReading: "Reading file...",
-    invalidFile: "This is not a valid prompt library file. Data not found.",
-    emptyCategoryData: "No category data found, starting with an empty library.",
-    importComplete: "Import complete! Imported {0} categories. The page will now refresh.",
-    importFailed: "Import failed: {0}",
-    fileReadError: "An error occurred while reading the file.",
-    exportComplete: "📤 Export complete: {0}",
-    exportFailed: "❌ Export failed: {0}",
-    variablesLabel: "Enter Variables",
-    variablePlaceholder: "Enter {0}",
-    noVariables: "※ There are no variables to enter for this task.",
-    addVariable: "Add Variable",
-    enterVariableName: "Enter variable name to add:",
-    enterNewVariableName: "Enter new variable name:",
-    variableExists: "This variable name already exists.",
-    confirmDeleteVariable: "Delete variable \"{0}\"?",
-    deleteFromPromptsWarning: "⚠️ This variable is used in prompts. Deleting it will also remove [variable] from all prompts.",
-    dragToReorder: "Drag to reorder",
-    viewRaw: "📝 Raw",
-    viewMarkdown: "📄 Markdown"
+    langName:"English",appTitle:"Prompt Library",fontSizeLabel:"Font Size:",exportBtn:"📤 Export",importBtn:"📥 Import",importTitle:"📥 Import File",importInstructions:"Drag & drop a JSON file or click to select",fileSelect:"Select File",cancel:"Cancel",addCategory:"+ Add Category",noSelection:"Select an item from the left.<br>Click a task to see prompts.",emojiLabel:"Emoji",saveBtn:"Save",taskContentPlaceholder:"Enter task-related content here...",taskContentHint:"※ Content entered here will be reflected in prompts below.",completedPrompt:"Completed Prompts",addPrompt:"+ Add Prompt",copy:"📋 Copy",edit:"Edit",delete:"Delete",copyComplete:"✅ Copied!",showMore:"Show More ▼",showLess:"Show Less ▲",noSelectedPrompt:"No prompt selected.",categoryAdd:"Add Category",categoryEdit:"Edit Category",taskAdd:"Add Task",taskEdit:"Edit Task",promptAdd:"Add Prompt",promptEdit:"Edit Prompt",enterCategoryName:"Please enter a category name!",enterTaskName:"Please enter a task name!",enterPromptContent:"Please enter the prompt content!",confirmDeleteCategory:"Delete this category?",confirmDeleteTask:"Delete this task?",confirmDeletePrompt:"Delete this prompt?",copyFailed:"Failed to copy!",jsonOnly:"Only JSON files are supported.",fileReading:"Reading file...",invalidFile:"Not a valid prompt library file.",emptyCategoryData:"No category data, starting empty.",importComplete:"Imported {0} categories!",importFailed:"Import failed: {0}",fileReadError:"Error reading file.",exportComplete:"📤 Exported: {0}",exportFailed:"❌ Export failed: {0}",variablesLabel:"Variables",variablePlaceholder:"Enter {0}",noVariables:"No variables",addVariable:"+ Add Variable",enterVariableName:"Enter variable name:",enterNewVariableName:"Enter new variable name:",variableExists:"Variable already exists.",confirmDeleteVariable:"Delete variable \"{0}\"?",deleteFromPromptsWarning:"⚠️ Used in prompts. Deleting removes it from all prompts.",dragToReorder:"Drag to reorder",viewRaw:"📝 Raw",viewMarkdown:"📄 MD",searchPlaceholder:"Search..."
   },
   zh: {
-    langName: "简体中文",
-    appTitle: "提示词库",
-    fontSizeLabel: "字体大小:",
-    exportBtn: "📤 导出",
-    importBtn: "📥 导入",
-    importTitle: "📥 导入文件",
-    importInstructions: "拖放JSON文件或点击选择",
-    fileSelect: "选择文件",
-    cancel: "取消",
-    addCategory: "＋ 添加新分类",
-    noSelection: "请从左侧选择一个项目。<br>点击任务以查看详细提示。",
-    emojiLabel: "表情符号",
-    saveBtn: "保存",
-    taskContentPlaceholder: "在此输入任务相关内容...",
-    taskContentHint: "※ 输入的内容将立即反映在下面的提示中。您也可以使用 <b>Ctrl+V</b> 粘贴！",
-    completedPrompt: "2. 完成的提示",
-    addPrompt: "＋ 添加提示",
-    copy: "📋 复制",
-    edit: "编辑",
-    delete: "删除",
-    copyComplete: "✅ 已复制",
-    showMore: "显示更多 ▼",
-    showLess: "收起 ▲",
-    noSelectedPrompt: "未选择任何提示。",
-    categoryAdd: "添加分类",
-    categoryEdit: "编辑分类",
-    taskAdd: "添加任务",
-    taskEdit: "编辑任务",
-    promptAdd: "添加提示",
-    promptEdit: "编辑提示",
-    enterCategoryName: "请输入分类名称！",
-    enterTaskName: "请输入任务名称！",
-    enterPromptContent: "请输入提示内容！",
-    confirmDeleteCategory: "确定要删除此分类吗？",
-    confirmDeleteTask: "确定要删除此任务吗？",
-    confirmDeletePrompt: "确定要删除此提示吗？",
-    copyFailed: "复制失败！",
-    jsonOnly: "仅支持JSON文件。",
-    fileReading: "正在读取文件...",
-    invalidFile: "不是有效的提示库文件。未找到数据。",
-    emptyCategoryData: "未找到分类数据，将以空库开始。",
-    importComplete: "导入完成！已导入 {0} 个分类。页面即将刷新。",
-    importFailed: "导入失败：{0}",
-    fileReadError: "读取文件时发生错误。",
-    exportComplete: "📤 导出完成: {0}",
-    exportFailed: "❌ 导出失败: {0}",
-    variablesLabel: "输入变量 (Variables)",
-    variablePlaceholder: "输入{0}",
-    noVariables: "※ 此任务没有需要输入的变量。",
-    addVariable: "添加变量",
-    enterVariableName: "请输入要添加的变量名:",
-    enterNewVariableName: "请输入新的变量名:",
-    variableExists: "此变量名已存在。",
-    confirmDeleteVariable: "删除变量「{0}」吗？",
-    deleteFromPromptsWarning: "⚠️ 此变量在提示词中使用。删除后，[变量名]也将从所有提示词中移除。",
-    dragToReorder: "拖动以重新排序",
-    viewRaw: "📝 原文",
-    viewMarkdown: "📄 Markdown"
+    langName:"简体中文",appTitle:"提示词库",fontSizeLabel:"字体大小:",exportBtn:"📤 导出",importBtn:"📥 导入",importTitle:"📥 导入文件",importInstructions:"拖放JSON文件或点击选择",fileSelect:"选择文件",cancel:"取消",addCategory:"＋ 添加分类",noSelection:"请从左侧选择项目。<br>点击任务查看详细提示。",emojiLabel:"表情符号",saveBtn:"保存",taskContentPlaceholder:"在此输入任务相关内容...",taskContentHint:"※ 输入内容将立即反映在下面的提示中。",completedPrompt:"完成的提示",addPrompt:"＋ 添加提示",copy:"📋 复制",edit:"编辑",delete:"删除",copyComplete:"✅ 已复制",showMore:"展开 ▼",showLess:"收起 ▲",noSelectedPrompt:"未选择任何提示。",categoryAdd:"添加分类",categoryEdit:"编辑分类",taskAdd:"添加任务",taskEdit:"编辑任务",promptAdd:"添加提示",promptEdit:"编辑提示",enterCategoryName:"请输入分类名称！",enterTaskName:"请输入任务名称！",enterPromptContent:"请输入提示内容！",confirmDeleteCategory:"确定删除此分类？",confirmDeleteTask:"确定删除此任务？",confirmDeletePrompt:"确定删除此提示？",copyFailed:"复制失败！",jsonOnly:"仅支持JSON文件。",fileReading:"正在读取...",invalidFile:"不是有效的提示库文件。",emptyCategoryData:"未找到分类数据。",importComplete:"导入完成！{0}个分类。",importFailed:"导入失败：{0}",fileReadError:"读取文件错误。",exportComplete:"📤 导出完成: {0}",exportFailed:"❌ 导出失败: {0}",variablesLabel:"输入变量",variablePlaceholder:"输入{0}",noVariables:"无变量",addVariable:"+ 添加变量",enterVariableName:"输入变量名:",enterNewVariableName:"输入新变量名:",variableExists:"变量名已存在。",confirmDeleteVariable:"删除变量「{0}」？",deleteFromPromptsWarning:"⚠️ 此变量在提示词中使用。删除后也将从所有提示词中移除。",dragToReorder:"拖动排序",viewRaw:"📝 原文",viewMarkdown:"📄 MD",searchPlaceholder:"搜索..."
   },
   ko: {
-    langName: "한국어",
-    appTitle: "프롬프트 라이브러리",
-    fontSizeLabel: "글꼴 크기:",
-    exportBtn: "📤 내보내기",
-    importBtn: "📥 가져오기",
-    importTitle: "📥 파일 가져오기",
-    importInstructions: "JSON 파일을 드래그하거나 클릭하여 선택하세요",
-    fileSelect: "파일 선택",
-    cancel: "취소",
-    addCategory: "＋ 새 카테고리 추가",
-    noSelection: "왼쪽에서 항목을 선택하세요.<br>태스크를 클릭하면 상세 프롬프트가 표시됩니다.",
-    emojiLabel: "이모지",
-    saveBtn: "저장",
-    taskContentPlaceholder: "태스크 관련 내용을 입력하세요...",
-    taskContentHint: "※ 내용을 입력하면 아래 프롬프트에 즉시 반영됩니다. <b>Ctrl+V</b>로 붙여넣기도 가능해요!",
-    completedPrompt: "2. 완성된 프롬프트",
-    addPrompt: "＋ 프롬프트 추가",
-    copy: "📋 복사",
-    edit: "편집",
-    delete: "삭제",
-    copyComplete: "✅ 복사 완료",
-    showMore: "더 보기 ▼",
-    showLess: "접기 ▲",
-    noSelectedPrompt: "선택된 프롬프트가 없습니다.",
-    categoryAdd: "카테고리 추가",
-    categoryEdit: "카테고리 편집",
-    taskAdd: "태스크 추가",
-    taskEdit: "태스크 편집",
-    promptAdd: "프롬프트 추가",
-    promptEdit: "프롬프트 편집",
-    enterCategoryName: "카테고리명을 입력해주세요!",
-    enterTaskName: "태스크명을 입력해주세요!",
-    enterPromptContent: "프롬프트 내용을 입력해주세요!",
-    confirmDeleteCategory: "카테고리를 삭제하시겠습니까?",
-    confirmDeleteTask: "태스크를 삭제하시겠습니까?",
-    confirmDeletePrompt: "프롬프트를 삭제하시겠습니까?",
-    copyFailed: "복사에 실패했습니다!",
-    jsonOnly: "JSON 파일만 지원합니다.",
-    fileReading: "파일을 읽는 중...",
-    invalidFile: "올바른 프롬프트 라이브러리 파일이 아닙니다. 데이터를 찾을 수 없습니다.",
-    emptyCategoryData: "카테고리 데이터가 없어 빈 라이브러리로 시작합니다.",
-    importComplete: "가져오기 완료! {0}개 카테고리를 가져왔습니다. 페이지를 새로고침합니다.",
-    importFailed: "가져오기에 실패했습니다: {0}",
-    fileReadError: "파일을 읽는 중 오류가 발생했습니다.",
-    exportComplete: "📤 내보내기 완료: {0}",
-    exportFailed: "❌ 내보내기 실패: {0}",
-    variablesLabel: "변수 입력 (Variables)",
-    variablePlaceholder: "{0}을(를) 입력",
-    noVariables: "※ 이 태스크에는 입력할 변수가 없습니다.",
-    addVariable: "변수 추가",
-    enterVariableName: "추가할 변수명을 입력하세요:",
-    enterNewVariableName: "새 변수명을 입력하세요:",
-    variableExists: "이 변수명은 이미 존재합니다.",
-    confirmDeleteVariable: "변수 \"{0}\"을(를) 삭제하시겠습니까?",
-    deleteFromPromptsWarning: "⚠️ 이 변수는 프롬프트에서 사용 중입니다. 삭제하면 모든 프롬프트에서 [변수명]도 함께 제거됩니다.",
-    dragToReorder: "드래그하여 순서 변경",
-    viewRaw: "📝 원본",
-    viewMarkdown: "📄 Markdown"
+    langName:"한국어",appTitle:"프롬프트 라이브러리",fontSizeLabel:"글꼴:",exportBtn:"📤 내보내기",importBtn:"📥 가져오기",importTitle:"📥 파일 가져오기",importInstructions:"JSON 파일을 드래그하거나 클릭하여 선택하세요",fileSelect:"파일 선택",cancel:"취소",addCategory:"＋ 카테고리 추가",noSelection:"왼쪽에서 항목을 선택하세요.<br>태스크를 클릭하면 프롬프트가 표시됩니다.",emojiLabel:"이모지",saveBtn:"저장",taskContentPlaceholder:"태스크 관련 내용을 입력하세요...",taskContentHint:"※ 입력 내용이 아래 프롬프트에 즉시 반영됩니다.",completedPrompt:"완성된 프롬프트",addPrompt:"＋ 프롬프트 추가",copy:"📋 복사",edit:"편집",delete:"삭제",copyComplete:"✅ 복사 완료",showMore:"더 보기 ▼",showLess:"접기 ▲",noSelectedPrompt:"선택된 프롬프트가 없습니다.",categoryAdd:"카테고리 추가",categoryEdit:"카테고리 편집",taskAdd:"태스크 추가",taskEdit:"태스크 편집",promptAdd:"프롬프트 추가",promptEdit:"프롬프트 편집",enterCategoryName:"카테고리명을 입력해주세요!",enterTaskName:"태스크명을 입력해주세요!",enterPromptContent:"프롬프트 내용을 입력해주세요!",confirmDeleteCategory:"카테고리를 삭제하시겠습니까?",confirmDeleteTask:"태스크를 삭제하시겠습니까?",confirmDeletePrompt:"프롬프트를 삭제하시겠습니까?",copyFailed:"복사에 실패했습니다!",jsonOnly:"JSON 파일만 지원합니다.",fileReading:"파일 읽는 중...",invalidFile:"올바른 프롬프트 라이브러리 파일이 아닙니다.",emptyCategoryData:"카테고리 데이터 없음. 빈 라이브러리로 시작합니다.",importComplete:"가져오기 완료! {0}개 카테고리.",importFailed:"가져오기 실패: {0}",fileReadError:"파일 읽기 오류.",exportComplete:"📤 내보내기 완료: {0}",exportFailed:"❌ 내보내기 실패: {0}",variablesLabel:"변수 입력",variablePlaceholder:"{0}을(를) 입력",noVariables:"변수 없음",addVariable:"+ 변수 추가",enterVariableName:"추가할 변수명을 입력하세요:",enterNewVariableName:"새 변수명을 입력하세요:",variableExists:"이 변수명은 이미 존재합니다.",confirmDeleteVariable:"변수 \"{0}\"을(를) 삭제하시겠습니까?",deleteFromPromptsWarning:"⚠️ 프롬프트에서 사용 중. 삭제하면 모든 프롬프트에서도 제거됩니다.",dragToReorder:"드래그하여 순서 변경",viewRaw:"📝 원본",viewMarkdown:"📄 MD",searchPlaceholder:"검색..."
   },
   fr: {
-    langName: "Français",
-    appTitle: "Bibliothèque de Prompts",
-    fontSizeLabel: "Taille de la police:",
-    exportBtn: "📤 Exporter",
-    importBtn: "📥 Importer",
-    importTitle: "📥 Importer un fichier",
-    importInstructions: "Glissez-déposez un fichier JSON ou cliquez pour sélectionner",
-    fileSelect: "Sélectionner un fichier",
-    cancel: "Annuler",
-    addCategory: "+ Ajouter une nouvelle catégorie",
-    noSelection: "Veuillez sélectionner un élément à gauche.<br>Cliquez sur une tâche pour voir les prompts détaillés.",
-    emojiLabel: "Émoji",
-    saveBtn: "Enregistrer",
-    taskContentPlaceholder: "Entrez le contenu lié à la tâche ici...",
-    taskContentHint: "※ Le contenu saisi ici sera immédiatement répercuté dans les prompts ci-dessous. Vous pouvez également coller avec <b>Ctrl+V</b> !",
-    completedPrompt: "2. Prompt complété",
-    addPrompt: "+ Ajouter un prompt",
-    copy: "📋 Copier",
-    edit: "Modifier",
-    delete: "Supprimer",
-    copyComplete: "✅ Copié !",
-    showMore: "Afficher plus ▼",
-    showLess: "Afficher moins ▲",
-    noSelectedPrompt: "Aucun prompt sélectionné.",
-    categoryAdd: "Ajouter une catégorie",
-    categoryEdit: "Modifier la catégorie",
-    taskAdd: "Ajouter une tâche",
-    taskEdit: "Modifier la tâche",
-    promptAdd: "Ajouter un prompt",
-    promptEdit: "Modifier le prompt",
-    enterCategoryName: "Veuillez entrer un nom de catégorie !",
-    enterTaskName: "Veuillez entrer un nom de tâche !",
-    enterPromptContent: "Veuillez entrer le contenu du prompt !",
-    confirmDeleteCategory: "Êtes-vous sûr de vouloir supprimer cette catégorie ?",
-    confirmDeleteTask: "Êtes-vous sûr de vouloir supprimer cette tâche ?",
-    confirmDeletePrompt: "Êtes-vous sûr de vouloir supprimer ce prompt ?",
-    copyFailed: "Échec de la copie !",
-    jsonOnly: "Seuls les fichiers JSON sont pris en charge.",
-    fileReading: "Lecture du fichier...",
-    invalidFile: "Ce n'est pas un fichier de bibliothèque de prompts valide. Données non trouvées.",
-    emptyCategoryData: "Aucune donnée de catégorie trouvée, démarrage avec une bibliothèque vide.",
-    importComplete: "Importation terminée ! {0} catégories importées. La page va maintenant être actualisée.",
-    importFailed: "Échec de l'importation : {0}",
-    fileReadError: "Une erreur s'est produite lors de la lecture du fichier.",
-    exportComplete: "📤 Exportation terminée : {0}",
-    exportFailed: "❌ Échec de l'exportation : {0}",
-    variablesLabel: "Saisir les variables",
-    variablePlaceholder: "Saisir {0}",
-    noVariables: "※ Il n'y a pas de variables à saisir pour cette tâche.",
-    addVariable: "Ajouter variable",
-    enterVariableName: "Entrez le nom de la variable à ajouter:",
-    enterNewVariableName: "Entrez le nouveau nom de la variable:",
-    variableExists: "Ce nom de variable existe déjà.",
-    confirmDeleteVariable: "Supprimer la variable «{0}»?",
-    deleteFromPromptsWarning: "⚠️ Cette variable est utilisée dans les prompts. La supprimer supprimera également [variable] de tous les prompts.",
-    dragToReorder: "Glisser pour réorganiser",
-    viewRaw: "📝 Brut",
-    viewMarkdown: "📄 Markdown"
+    langName:"Français",appTitle:"Bibliothèque de Prompts",fontSizeLabel:"Taille:",exportBtn:"📤 Exporter",importBtn:"📥 Importer",importTitle:"📥 Importer",importInstructions:"Glissez un fichier JSON ou cliquez",fileSelect:"Sélectionner",cancel:"Annuler",addCategory:"+ Ajouter catégorie",noSelection:"Sélectionnez un élément à gauche.<br>Cliquez pour voir les prompts.",emojiLabel:"Émoji",saveBtn:"Enregistrer",taskContentPlaceholder:"Contenu de la tâche...",taskContentHint:"※ Reflété immédiatement.",completedPrompt:"Prompts complétés",addPrompt:"+ Ajouter prompt",copy:"📋 Copier",edit:"Modifier",delete:"Supprimer",copyComplete:"✅ Copié !",showMore:"Plus ▼",showLess:"Moins ▲",noSelectedPrompt:"Aucun prompt sélectionné.",categoryAdd:"Ajouter catégorie",categoryEdit:"Modifier catégorie",taskAdd:"Ajouter tâche",taskEdit:"Modifier tâche",promptAdd:"Ajouter prompt",promptEdit:"Modifier prompt",enterCategoryName:"Entrez un nom !",enterTaskName:"Entrez un nom !",enterPromptContent:"Entrez le contenu !",confirmDeleteCategory:"Supprimer la catégorie ?",confirmDeleteTask:"Supprimer la tâche ?",confirmDeletePrompt:"Supprimer ce prompt ?",copyFailed:"Échec !",jsonOnly:"JSON uniquement.",fileReading:"Lecture...",invalidFile:"Fichier invalide.",emptyCategoryData:"Aucune donnée.",importComplete:"Importé {0} catégories !",importFailed:"Échec : {0}",fileReadError:"Erreur de lecture.",exportComplete:"📤 Exporté : {0}",exportFailed:"❌ Échec : {0}",variablesLabel:"Variables",variablePlaceholder:"Saisir {0}",noVariables:"Aucune variable",addVariable:"+ Ajouter variable",enterVariableName:"Nom de la variable :",enterNewVariableName:"Nouveau nom :",variableExists:"Existe déjà.",confirmDeleteVariable:"Supprimer «{0}» ?",deleteFromPromptsWarning:"⚠️ Utilisée dans les prompts.",dragToReorder:"Glisser",viewRaw:"📝 Brut",viewMarkdown:"📄 MD",searchPlaceholder:"Rechercher..."
   },
   es: {
-    langName: "Español",
-    appTitle: "Biblioteca de Prompts",
-    fontSizeLabel: "Tamaño de fuente:",
-    exportBtn: "📤 Exportar",
-    importBtn: "📥 Importar",
-    importTitle: "📥 Importar archivo",
-    importInstructions: "Arrastra y suelta un archivo JSON o haz clic para seleccionar",
-    fileSelect: "Seleccionar archivo",
-    cancel: "Cancelar",
-    addCategory: "+ Añadir nueva categoría",
-    noSelection: "Por favor, selecciona un elemento de la izquierda.<br>Haz clic en una tarea para ver los prompts detallados.",
-    emojiLabel: "Emoji",
-    saveBtn: "Guardar",
-    taskContentPlaceholder: "Introduce contenido relacionado con la tarea aquí...",
-    taskContentHint: "※ El contenido introducido aquí se reflejará inmediatamente en los prompts de abajo. ¡También puedes pegar con <b>Ctrl+V</b>!",
-    completedPrompt: "2. Prompt completado",
-    addPrompt: "+ Añadir prompt",
-    copy: "📋 Copiar",
-    edit: "Editar",
-    delete: "Eliminar",
-    copyComplete: "✅ ¡Copiado!",
-    showMore: "Mostrar más ▼",
-    showLess: "Mostrar menos ▲",
-    noSelectedPrompt: "No hay ningún prompt seleccionado.",
-    categoryAdd: "Añadir categoría",
-    categoryEdit: "Editar categoría",
-    taskAdd: "Añadir tarea",
-    taskEdit: "Editar tarea",
-    promptAdd: "Añadir prompt",
-    promptEdit: "Editar prompt",
-    enterCategoryName: "¡Por favor, introduce un nombre de categoría!",
-    enterTaskName: "¡Por favor, introduce un nombre de tarea!",
-    enterPromptContent: "¡Por favor, introduce el contenido del prompt!",
-    confirmDeleteCategory: "¿Estás seguro de que quieres eliminar esta categoría?",
-    confirmDeleteTask: "¿Estás seguro de que quieres eliminar esta tarea?",
-    confirmDeletePrompt: "¿Estás seguro de que quieres eliminar este prompt?",
-    copyFailed: "¡Error al copiar!",
-    jsonOnly: "Solo se admiten archivos JSON.",
-    fileReading: "Leyendo archivo...",
-    invalidFile: "Este no es un archivo de biblioteca de prompts válido. No se encontraron datos.",
-    emptyCategoryData: "No se encontraron datos de categoría, comenzando con una biblioteca vacía.",
-    importComplete: "¡Importación completa! Se importaron {0} categorías. La página se actualizará ahora.",
-    importFailed: "Importación fallida: {0}",
-    fileReadError: "Ocurrió un error al leer el archivo.",
-    exportComplete: "📤 Exportación completa: {0}",
-    exportFailed: "❌ Exportación fallida: {0}",
-    variablesLabel: "Introducir variables",
-    variablePlaceholder: "Introducir {0}",
-    noVariables: "※ No hay variables que introducir para esta tarea.",
-    addVariable: "Añadir variable",
-    enterVariableName: "Introduce el nombre de la variable a añadir:",
-    enterNewVariableName: "Introduce el nuevo nombre de la variable:",
-    variableExists: "Este nombre de variable ya existe.",
-    confirmDeleteVariable: "¿Eliminar la variable \"{0}\"?",
-    deleteFromPromptsWarning: "⚠️ Esta variable se usa en los prompts. Eliminarla también eliminará [variable] de todos los prompts.",
-    dragToReorder: "Arrastra para reordenar",
-    viewRaw: "📝 Original",
-    viewMarkdown: "📄 Markdown"
+    langName:"Español",appTitle:"Biblioteca de Prompts",fontSizeLabel:"Tamaño:",exportBtn:"📤 Exportar",importBtn:"📥 Importar",importTitle:"📥 Importar",importInstructions:"Arrastra un JSON o haz clic",fileSelect:"Seleccionar",cancel:"Cancelar",addCategory:"+ Añadir categoría",noSelection:"Selecciona un elemento.<br>Haz clic para ver prompts.",emojiLabel:"Emoji",saveBtn:"Guardar",taskContentPlaceholder:"Contenido de la tarea...",taskContentHint:"※ Reflejo inmediato.",completedPrompt:"Prompts completados",addPrompt:"+ Añadir prompt",copy:"📋 Copiar",edit:"Editar",delete:"Eliminar",copyComplete:"✅ ¡Copiado!",showMore:"Más ▼",showLess:"Menos ▲",noSelectedPrompt:"Ningún prompt seleccionado.",categoryAdd:"Añadir categoría",categoryEdit:"Editar categoría",taskAdd:"Añadir tarea",taskEdit:"Editar tarea",promptAdd:"Añadir prompt",promptEdit:"Editar prompt",enterCategoryName:"¡Introduce nombre!",enterTaskName:"¡Introduce nombre!",enterPromptContent:"¡Introduce contenido!",confirmDeleteCategory:"¿Eliminar categoría?",confirmDeleteTask:"¿Eliminar tarea?",confirmDeletePrompt:"¿Eliminar prompt?",copyFailed:"¡Error!",jsonOnly:"Solo JSON.",fileReading:"Leyendo...",invalidFile:"Archivo inválido.",emptyCategoryData:"Sin datos.",importComplete:"¡Importadas {0} categorías!",importFailed:"Fallo: {0}",fileReadError:"Error.",exportComplete:"📤 Exportado: {0}",exportFailed:"❌ Fallo: {0}",variablesLabel:"Variables",variablePlaceholder:"Introducir {0}",noVariables:"Sin variables",addVariable:"+ Añadir variable",enterVariableName:"Nombre:",enterNewVariableName:"Nuevo nombre:",variableExists:"Ya existe.",confirmDeleteVariable:"¿Eliminar \"{0}\"?",deleteFromPromptsWarning:"⚠️ Usada en prompts.",dragToReorder:"Arrastrar",viewRaw:"📝 Original",viewMarkdown:"📄 MD",searchPlaceholder:"Buscar..."
   }
 };
 
-/* ---------- 다국어 적용 및 번역 함수 ---------- */
+/* ══════════════════════════════════════════════════
+   i18n
+   ══════════════════════════════════════════════════ */
 function applyTranslations(lang) {
   const dict = translations[lang] || translations.ja;
   document.documentElement.lang = lang;
   document.documentElement.dataset.currentLang = lang;
   document.getElementById('langBtnLabel').textContent = dict.langName;
-
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     if (dict[key]) el.innerHTML = dict[key];
   });
-  
+  const si = document.getElementById('searchInput');
+  if (si) si.placeholder = dict.searchPlaceholder || 'Search...';
   currentLang = lang;
 }
-
 function t(key, ...args) {
   const dict = translations[currentLang] || translations.ja;
   let text = dict[key] || key;
-  args.forEach((arg, index) => {
-    text = text.replace(`{${index}}`, arg);
-  });
+  args.forEach((arg, i) => { text = text.replace(`{${i}}`, arg); });
   return text;
 }
 
-/* ---------- 데이터 관리 및 렌더링 ---------- */
+/* ══════════════════════════════════════════════════
+   INITIALIZATION
+   ══════════════════════════════════════════════════ */
 function initialize() {
-  // 데이터 로드
   data = JSON.parse(localStorage.getItem('promptUIData') || 'null') || {
     cats:[
       {id:'cat1',name:'レポート作成',emoji:'📝',tasks:[
@@ -737,13 +1156,69 @@ function initialize() {
   catToggleState = JSON.parse(localStorage.getItem('catToggleState') || '{}');
   currentFontSize = localStorage.getItem('fontSizePreference') || 'medium';
   const savedLang = localStorage.getItem('ui_lang') || 'ja';
+  const savedTheme = localStorage.getItem('themePreference') || 'light';
 
-  // UI 적용
   applyTranslations(savedLang);
   setFontSize(currentFontSize);
+  applyTheme(savedTheme);
   render();
 }
 
+/* ══════════════════════════════════════════════════
+   THEME
+   ══════════════════════════════════════════════════ */
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme;
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+}
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  localStorage.setItem('themePreference', theme);
+  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+
+/* ══════════════════════════════════════════════════
+   SIDEBAR TOGGLE
+   ══════════════════════════════════════════════════ */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+/* ══════════════════════════════════════════════════
+   FONT SIZE
+   ══════════════════════════════════════════════════ */
+function toggleFontSizePopup() {
+  document.getElementById('fontSizePopup').classList.toggle('show');
+}
+function setFontSize(size) {
+  document.body.classList.remove('font-size-small','font-size-medium','font-size-large','font-size-xlarge');
+  document.body.classList.add(`font-size-${size}`);
+  document.querySelectorAll('.fs-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.size === size);
+  });
+  currentFontSize = size;
+  localStorage.setItem('fontSizePreference', size);
+  document.getElementById('fontSizePopup').classList.remove('show');
+}
+
+/* ══════════════════════════════════════════════════
+   SEARCH
+   ══════════════════════════════════════════════════ */
+function handleSearch(q) {
+  searchQuery = q.toLowerCase().trim();
+  document.getElementById('searchClear').classList.toggle('visible', q.length > 0);
+  render();
+}
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  searchQuery = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  render();
+}
+
+/* ══════════════════════════════════════════════════
+   DATA & RENDER
+   ══════════════════════════════════════════════════ */
 function saveAndRerender() {
   localStorage.setItem('promptUIData', JSON.stringify(data));
   render();
@@ -752,59 +1227,87 @@ function saveAndRerender() {
 function render() {
   const $cat = document.getElementById('cat-container');
   $cat.innerHTML = '';
+  
   data.cats.forEach((cat, index) => {
+    // Search filter
+    let matchingTasks = cat.tasks;
+    if (searchQuery) {
+      const catMatch = cat.name.toLowerCase().includes(searchQuery);
+      matchingTasks = cat.tasks.filter(task => {
+        const taskMatch = task.name.toLowerCase().includes(searchQuery);
+        const promptMatch = task.prompts.some(p => p.toLowerCase().includes(searchQuery));
+        return catMatch || taskMatch || promptMatch;
+      });
+      if (!catMatch && matchingTasks.length === 0) return;
+    }
+
+    const totalPrompts = cat.tasks.reduce((s, t) => s + t.prompts.length, 0);
+    const isOpen = catToggleState[cat.id] !== false;
+    
     const blk = document.createElement('div');
     blk.className = 'cat-block';
-    blk.dataset.catId = cat.id; // 카테고리 ID 추가
+    blk.dataset.catId = cat.id;
+    
     blk.innerHTML = `
       <div class="cat-header" onclick="toggleCat('${cat.id}')">
-        <span class="drag-handle">⋮⋮</span>
-        <span class="cat-title">${cat.emoji || '📁'} ${cat.name}</span>
-        <div class="cat-actions ms-auto" onclick="event.stopPropagation();">
-          <button class="btn btn-add btn-sm" onclick="openTaskModal('${cat.id}');event.stopPropagation();">+</button>
-          <button class="btn btn-edit btn-sm" onclick="openCategoryModal('${cat.id}');event.stopPropagation();">✏️</button>
-          <button class="btn btn-del btn-sm" onclick="deleteCategory('${cat.id}');event.stopPropagation();">🗑️</button>
+        <span class="cat-chevron ${isOpen ? 'open' : ''}">▶</span>
+        <span class="cat-emoji">${cat.emoji || '📁'}</span>
+        <span class="cat-title">${escapeHtml(cat.name)}</span>
+        <span class="cat-count">${totalPrompts}</span>
+        <div class="cat-actions" onclick="event.stopPropagation();">
+          <button class="cat-action-btn add-btn" onclick="openTaskModal('${cat.id}')" title="${t('taskAdd')}">＋</button>
+          <button class="cat-action-btn" onclick="openCategoryModal('${cat.id}')" title="${t('edit')}">✏️</button>
+          <button class="cat-action-btn del-btn" onclick="deleteCategory('${cat.id}')" title="${t('delete')}">🗑</button>
         </div>
       </div>
-      <div class="task-list mt-1" id="cat-tasks-${cat.id}" style="display:${catToggleState[cat.id] === false ? 'none' : ''}"></div>
+      <div class="task-list" id="cat-tasks-${cat.id}" style="display:${isOpen ? '' : 'none'}"></div>
     `;
     $cat.appendChild(blk);
     makeCategoryDraggable(blk, index);
-    
+
     const $tl = blk.querySelector('.task-list');
-    cat.tasks.forEach((task, taskIndex) => {
+    matchingTasks.forEach((task, taskIndex) => {
+      const origIdx = cat.tasks.indexOf(task);
+      const isActive = currentCat === cat.id && currentTask === task.id;
       const $t = document.createElement('div');
-      $t.className = 'task-item';
+      $t.className = `task-item${isActive ? ' active' : ''}`;
       $t.innerHTML = `
         <span class="task-drag-handle">⋮</span>
-        <span class="task-name" onclick="showDetail('${cat.id}','${task.id}')">${task.name}</span>
-        <div class="task-actions">
-          <button class="btn btn-edit btn-sm" onclick="openTaskModal('${cat.id}','${task.id}');event.stopPropagation();">✏️</button>
-          <button class="btn btn-del btn-sm" onclick="deleteTask('${cat.id}','${task.id}');event.stopPropagation();">🗑️</button>
+        <span class="task-name" onclick="showDetail('${cat.id}','${task.id}')">${escapeHtml(task.name)}</span>
+        <span class="task-prompt-count">${task.prompts.length}</span>
+        <div class="task-actions" onclick="event.stopPropagation();">
+          <button class="task-action-btn" onclick="openTaskModal('${cat.id}','${task.id}')" title="${t('edit')}">✏️</button>
+          <button class="task-action-btn del-btn" onclick="deleteTask('${cat.id}','${task.id}')" title="${t('delete')}">🗑</button>
         </div>
       `;
       $tl.appendChild($t);
-      makeTaskDraggable($t, cat.id, taskIndex);
+      makeTaskDraggable($t, cat.id, origIdx);
     });
   });
+  
   showDetail(currentCat, currentTask, true);
 }
 
 function toggleCat(id) {
   const el = document.getElementById('cat-tasks-' + id);
   if (!el) return;
-  el.style.display = (el.style.display === 'none') ? '' : 'none';
-  catToggleState[id] = (el.style.display !== 'none');
+  const isNowOpen = el.style.display === 'none';
+  el.style.display = isNowOpen ? '' : 'none';
+  catToggleState[id] = isNowOpen;
   localStorage.setItem('catToggleState', JSON.stringify(catToggleState));
+  // Update chevron
+  const blk = el.closest('.cat-block');
+  const chevron = blk.querySelector('.cat-chevron');
+  if (chevron) chevron.classList.toggle('open', isNowOpen);
 }
 
-/* ---------- 상세 영역 표시 (수정됨) ---------- */
+/* ══════════════════════════════════════════════════
+   DETAIL AREA
+   ══════════════════════════════════════════════════ */
 function showDetail(catId, taskId, onlySilent) {
-  // 태스크가 변경될 때만 currentVarState 초기화
   if (currentCat !== catId || currentTask !== taskId) {
     currentVarState = {};
   }
-  
   currentCat = catId;
   currentTask = taskId;
   selectedPrompt = null;
@@ -815,403 +1318,146 @@ function showDetail(catId, taskId, onlySilent) {
 
   if (!cat || !task) {
     if (!onlySilent) {
-      $area.innerHTML = `<div class="text-center text-secondary" style="padding:90px 0 70px 0; font-size:1.3em;" data-i18n="noSelection">${t('noSelection')}</div>`;
+      $area.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text" data-i18n="noSelection">${t('noSelection')}</div></div>`;
     }
     return;
   }
 
-  // 태스크에 variables 배열이 없으면 초기화
-  if (!task.variables) {
-    task.variables = [];
-  }
-
-  // 1. 프롬프트 내의 모든 변수([abc]) 추출 및 중복 제거 (자동 감지)
-  const autoDetectedVars = new Set();
-  task.prompts.forEach(p => {
-    const matches = p.match(/\[([^\[\]]+)\]/g); // 빈 대괄호 [] 제외
-    if (matches) {
-      matches.forEach(m => {
-        const varName = m.replace(/[\[\]]/g, '').trim();
-        if (varName) autoDetectedVars.add(varName); // 빈 문자열 제외
-      });
+  // Highlight active task
+  document.querySelectorAll('.task-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.task-item').forEach(el => {
+    const nameEl = el.querySelector('.task-name');
+    if (nameEl && nameEl.getAttribute('onclick')?.includes(taskId)) {
+      el.classList.add('active');
     }
   });
 
-  // 2. 변수 순서 관리 - variableOrder 배열 사용
-  if (!task.variableOrder) task.variableOrder = [];
-  
-  // 자동 감지 + 수동 추가 변수 병합 (빈 문자열 제외)
-  const allVarsSet = new Set([...task.variables.filter(v => v && v.trim()), ...autoDetectedVars]);
-  
-  // 순서 배열에 없는 새 변수 추가, 삭제된 변수 제거
-  const validOrder = task.variableOrder.filter(v => allVarsSet.has(v));
-  allVarsSet.forEach(v => {
-    if (!validOrder.includes(v)) validOrder.push(v);
+  if (!task.variables) task.variables = [];
+
+  // Extract variables from prompts
+  const autoDetectedVars = new Set();
+  task.prompts.forEach(p => {
+    const matches = p.match(/\[([^\[\]]+)\]/g);
+    if (matches) matches.forEach(m => {
+      const v = m.replace(/[\[\]]/g, '').trim();
+      if (v) autoDetectedVars.add(v);
+    });
   });
+
+  if (!task.variableOrder) task.variableOrder = [];
+  const allVarsSet = new Set([...task.variables.filter(v => v && v.trim()), ...autoDetectedVars]);
+  const validOrder = task.variableOrder.filter(v => allVarsSet.has(v));
+  allVarsSet.forEach(v => { if (!validOrder.includes(v)) validOrder.push(v); });
   task.variableOrder = validOrder;
-  
-  // 정렬된 변수 배열
   const allVars = task.variableOrder;
 
-  // 3. 변수 관리 영역 HTML 구성 (세로 레이아웃 + textarea)
-  let inputsHtml = `
-    <div class="card p-3 mb-3 bg-light border-0">
-      <div class="d-flex align-items-center mb-2">
-        <h6 class="mb-0 text-secondary" style="font-size:0.9em">👇 ${t('variablesLabel')}</h6>
-        <button class="btn btn-outline-primary btn-sm ms-auto" onclick="openAddVariableModal()">
-          <span style="font-size:0.85em;">+ ${t('addVariable')}</span>
-        </button>
-      </div>
-      <div id="variables-container">
-  `;
-
+  // Build variables HTML
+  let varsHtml = '';
   if (allVars.length > 0) {
     allVars.forEach((v, idx) => {
-      const isManual = task.variables.includes(v);
-      const isAutoDetected = autoDetectedVars.has(v);
-      const currentValue = currentVarState[v] || '';
-      
-      inputsHtml += `
-        <div class="variable-item-vertical mb-3" data-var="${escapeHtml(v)}" data-idx="${idx}" draggable="true">
-          <div class="d-flex align-items-center mb-1">
-            <span class="variable-drag-handle" title="${t('dragToReorder')}">⋮⋮</span>
-            <span class="text-primary fw-bold" style="font-size:0.95em;">
-              [${escapeHtml(v)}]
-              ${isAutoDetected ? '<span class="text-muted" style="font-size:0.7em; margin-left:3px;" title="Auto-detected from prompt">⚡</span>' : ''}
-            </span>
-            <div class="ms-auto">
-              <button class="btn btn-outline-secondary btn-sm py-0 px-2" type="button" onclick="editVariable('${escapeHtml(v)}')" title="${t('edit')}" style="font-size:0.75em;">✏️</button>
-              <button class="btn btn-outline-danger btn-sm py-0 px-2" type="button" onclick="deleteVariable('${escapeHtml(v)}')" title="${t('delete')}" style="font-size:0.75em;">🗑️</button>
+      const isAuto = autoDetectedVars.has(v);
+      const val = currentVarState[v] || '';
+      varsHtml += `
+        <div class="var-item" data-var="${escapeHtml(v)}" data-idx="${idx}" draggable="true">
+          <div class="var-item-header">
+            <span class="var-drag-handle" title="${t('dragToReorder')}">⋮⋮</span>
+            <span class="var-label">[${escapeHtml(v)}]</span>
+            ${isAuto ? '<span class="var-auto-badge" title="Auto-detected">⚡</span>' : ''}
+            <div class="var-item-actions">
+              <button class="var-action-btn" onclick="editVariable('${escapeHtml(v)}')" title="${t('edit')}">✏️</button>
+              <button class="var-action-btn" onclick="deleteVariable('${escapeHtml(v)}')" title="${t('delete')}">🗑</button>
             </div>
           </div>
-          <textarea class="form-control variable-textarea" 
-                    rows="2" 
-                    placeholder="${t('variablePlaceholder', v)}" 
-                    oninput="updateVariable('${escapeHtml(v)}', this.value); autoResizeTextarea(this);">${escapeHtml(currentValue)}</textarea>
-        </div>
-      `;
+          <textarea class="var-textarea" rows="2" placeholder="${t('variablePlaceholder', v)}" 
+                    oninput="updateVariable('${escapeHtml(v)}', this.value); autoResizeTextarea(this);">${escapeHtml(val)}</textarea>
+        </div>`;
     });
   } else {
-    inputsHtml += `<div class="text-secondary small">${t('noVariables')}</div>`;
+    varsHtml = `<div class="no-vars-msg">${t('noVariables')}</div>`;
   }
 
-  inputsHtml += `</div></div>`;
-
   $area.innerHTML = `
-    <h3 style="font-weight:700; font-size:1.35em; margin-bottom:10px;">${task.name}</h3>
+    <div class="detail-title">${escapeHtml(task.name)}</div>
     
-    ${inputsHtml}
-
-    <div class="d-flex align-items-center mb-2 mt-2" style="gap:10px; flex-wrap: wrap;">
-      <div style="font-weight:600; font-size:1.13em;">${t('completedPrompt')}</div>
-      <div class="view-mode-toggle ms-2">
-        <button class="view-mode-btn ${currentViewMode === 'raw' ? 'active' : ''}" onclick="setViewMode('raw')">${t('viewRaw')}</button>
-        <button class="view-mode-btn ${currentViewMode === 'markdown' ? 'active' : ''}" onclick="setViewMode('markdown')">${t('viewMarkdown')}</button>
+    <div class="var-card">
+      <div class="var-card-header">
+        <div class="var-card-title">🔤 ${t('variablesLabel')}</div>
+        <button class="var-add-btn" onclick="openAddVariableModal()">${t('addVariable')}</button>
       </div>
-      <button class="btn btn-primary btn-prompt-add btn-sm ms-auto" onclick="openPromptModal('${cat.id}','${task.id}')">${t('addPrompt')}</button>
+      <div id="variables-container">${varsHtml}</div>
+    </div>
+
+    <div class="prompts-header">
+      <div class="prompts-title">${t('completedPrompt')}</div>
+      <div class="view-toggle">
+        <button class="view-toggle-btn ${currentViewMode === 'raw' ? 'active' : ''}" onclick="setViewMode('raw')">${t('viewRaw')}</button>
+        <button class="view-toggle-btn ${currentViewMode === 'markdown' ? 'active' : ''}" onclick="setViewMode('markdown')">${t('viewMarkdown')}</button>
+      </div>
+      <button class="prompt-add-btn" onclick="openPromptModal('${cat.id}','${task.id}')">${t('addPrompt')}</button>
     </div>
     <div id="prompts-list"></div>
   `;
-  
+
   renderPrompts(task.prompts);
-  initVariableDragAndDrop(); // 변수 드래그 앤 드롭 초기화
+  initVariableDragAndDrop();
 }
 
-// [신규] 뷰 모드 변경
+/* ══════════════════════════════════════════════════
+   VIEW MODE
+   ══════════════════════════════════════════════════ */
 function setViewMode(mode) {
   currentViewMode = mode;
-  const cat = data.cats.find(c => c.id === currentCat);
-  const task = cat && cat.tasks.find(t => t.id === currentTask);
-  
-  // 버튼 상태 업데이트
-  document.querySelectorAll('.view-mode-btn').forEach(btn => {
+  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
     btn.classList.toggle('active', btn.textContent.trim() === (mode === 'raw' ? t('viewRaw') : t('viewMarkdown')));
   });
-  
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
   if (task) renderPrompts(task.prompts);
 }
 
-// [신규] 변수 추가 모달 열기
-function openAddVariableModal() {
-  const varName = prompt(t('enterVariableName'));
-  if (varName && varName.trim()) {
-    addVariable(varName.trim());
-  }
-}
-
-// [신규] 변수 추가
-function addVariable(varName) {
-  const cat = data.cats.find(c => c.id === currentCat);
-  const task = cat && cat.tasks.find(t => t.id === currentTask);
-  if (!task) return;
-
-  if (!task.variables) task.variables = [];
-  
-  // 자동 감지된 변수 목록 가져오기
-  const autoDetectedVars = new Set();
-  task.prompts.forEach(p => {
-    const matches = p.match(/\[([^\[\]]+)\]/g);
-    if (matches) {
-      matches.forEach(m => {
-        const v = m.replace(/[\[\]]/g, '').trim();
-        if (v) autoDetectedVars.add(v);
-      });
-    }
-  });
-  
-  // 중복 체크 (수동 + 자동 감지 모두)
-  if (task.variables.includes(varName) || autoDetectedVars.has(varName)) {
-    alert(t('variableExists'));
-    return;
-  }
-
-  task.variables.push(varName);
-  currentVarState[varName] = '';
-  localStorage.setItem('promptUIData', JSON.stringify(data));
-  showDetail(currentCat, currentTask);
-}
-
-// [신규] 변수 삭제
-function deleteVariable(varName) {
-  const cat = data.cats.find(c => c.id === currentCat);
-  const task = cat && cat.tasks.find(t => t.id === currentTask);
-  if (!task) return;
-
-  // 자동 감지 변수인지 확인
-  const autoDetectedVars = new Set();
-  task.prompts.forEach(p => {
-    const matches = p.match(/\[([^\[\]]+)\]/g);
-    if (matches) {
-      matches.forEach(m => {
-        const v = m.replace(/[\[\]]/g, '').trim();
-        if (v) autoDetectedVars.add(v);
-      });
-    }
-  });
-  
-  const isAutoDetected = autoDetectedVars.has(varName);
-  const isManual = task.variables && task.variables.includes(varName);
-  
-  // 확인 메시지 (자동 감지 변수면 프롬프트에서도 제거됨을 알림)
-  let confirmMsg = t('confirmDeleteVariable', varName);
-  if (isAutoDetected) {
-    confirmMsg += '\n\n' + t('deleteFromPromptsWarning');
-  }
-  
-  if (!confirm(confirmMsg)) return;
-
-  // 1. 수동 추가된 변수 목록에서 제거
-  if (task.variables) {
-    task.variables = task.variables.filter(v => v !== varName);
-  }
-
-  // 2. 자동 감지 변수인 경우, 모든 프롬프트에서 [변수명] 제거
-  if (isAutoDetected) {
-    task.prompts = task.prompts.map(p => 
-      p.replace(new RegExp(`\\[${escapeRegex(varName)}\\]`, 'g'), '')
-    );
-  }
-
-  // 3. 상태에서도 제거
-  delete currentVarState[varName];
-
-  localStorage.setItem('promptUIData', JSON.stringify(data));
-  showDetail(currentCat, currentTask);
-}
-
-// [신규] 변수 이름 수정
-function editVariable(oldName) {
-  const newName = prompt(t('enterNewVariableName'), oldName);
-  if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
-
-  const cat = data.cats.find(c => c.id === currentCat);
-  const task = cat && cat.tasks.find(t => t.id === currentTask);
-  if (!task) return;
-
-  const trimmedNewName = newName.trim();
-
-  // 자동 감지된 변수 목록 가져오기
-  const autoDetectedVars = new Set();
-  task.prompts.forEach(p => {
-    const matches = p.match(/\[([^\[\]]+)\]/g); // 빈 대괄호 [] 제외
-    if (matches) {
-      matches.forEach(m => {
-        const v = m.replace(/[\[\]]/g, '').trim();
-        if (v) autoDetectedVars.add(v);
-      });
-    }
-  });
-
-  // 중복 체크 (수동 + 자동 감지 모두, 단 자기 자신은 제외)
-  const existsInManual = task.variables && task.variables.includes(trimmedNewName);
-  const existsInAuto = autoDetectedVars.has(trimmedNewName) && trimmedNewName !== oldName;
-  
-  if (existsInManual || existsInAuto) {
-    alert(t('variableExists'));
-    return;
-  }
-
-  // 1. 수동 변수 목록 업데이트
-  if (task.variables) {
-    const idx = task.variables.indexOf(oldName);
-    if (idx !== -1) {
-      task.variables[idx] = trimmedNewName;
-    } else {
-      // 자동 감지된 변수를 수정하는 경우, 수동 목록에 새 이름 추가
-      task.variables.push(trimmedNewName);
-    }
-  }
-
-  // 2. 모든 프롬프트에서 [oldName] → [newName] 치환
-  task.prompts = task.prompts.map(p => 
-    p.replace(new RegExp(`\\[${escapeRegex(oldName)}\\]`, 'g'), `[${trimmedNewName}]`)
-  );
-
-  // 3. 상태 값 이전
-  if (currentVarState[oldName] !== undefined) {
-    currentVarState[trimmedNewName] = currentVarState[oldName];
-    delete currentVarState[oldName];
-  }
-
-  localStorage.setItem('promptUIData', JSON.stringify(data));
-  showDetail(currentCat, currentTask); // saveAndRerender 대신 직접 호출
-}
-
-// 정규식 이스케이프 헬퍼
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-// [신규] textarea 자동 크기 조절
-function autoResizeTextarea(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 300) + 'px';
-}
-
-// [신규] 변수 드래그 앤 드롭 초기화
-function initVariableDragAndDrop() {
-  const container = document.getElementById('variables-container');
-  if (!container) return;
-  
-  const items = container.querySelectorAll('.variable-item-vertical');
-  let draggedItem = null;
-  
-  items.forEach(item => {
-    item.addEventListener('dragstart', (e) => {
-      draggedItem = item;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', item.dataset.var);
-    });
-    
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      items.forEach(i => i.classList.remove('drag-over'));
-      draggedItem = null;
-    });
-    
-    item.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      if (item !== draggedItem) {
-        item.classList.add('drag-over');
-      }
-    });
-    
-    item.addEventListener('dragleave', () => {
-      item.classList.remove('drag-over');
-    });
-    
-    item.addEventListener('drop', (e) => {
-      e.preventDefault();
-      item.classList.remove('drag-over');
-      
-      if (!draggedItem || draggedItem === item) return;
-      
-      const fromVar = draggedItem.dataset.var;
-      const toVar = item.dataset.var;
-      
-      reorderVariable(fromVar, toVar);
-    });
-  });
-}
-
-// [신규] 변수 순서 변경
-function reorderVariable(fromVar, toVar) {
-  const cat = data.cats.find(c => c.id === currentCat);
-  const task = cat && cat.tasks.find(t => t.id === currentTask);
-  if (!task || !task.variableOrder) return;
-  
-  const fromIdx = task.variableOrder.indexOf(fromVar);
-  const toIdx = task.variableOrder.indexOf(toVar);
-  
-  if (fromIdx === -1 || toIdx === -1) return;
-  
-  // 배열에서 제거 후 새 위치에 삽입
-  task.variableOrder.splice(fromIdx, 1);
-  task.variableOrder.splice(toIdx, 0, fromVar);
-  
-  localStorage.setItem('promptUIData', JSON.stringify(data));
-  showDetail(currentCat, currentTask);
-}
-
-// [신규] 개별 변수 업데이트 함수
-function updateVariable(key, value) {
-  currentVarState[key] = value; // 상태 업데이트
-  const cat = data.cats.find(c => c.id === currentCat);
-  const task = cat && cat.tasks.find(t => t.id === currentTask);
-  if (task) renderPrompts(task.prompts); // 렌더링 갱신
-}
-
-/* ---------- 프롬프트 렌더링 (마크다운 지원) ---------- */
+/* ══════════════════════════════════════════════════
+   PROMPT RENDERING
+   ══════════════════════════════════════════════════ */
 function renderPrompts(prompts) {
   const $list = document.getElementById('prompts-list');
   if (!$list) return;
   $list.innerHTML = '';
 
   prompts.forEach((p, i) => {
-    if (selectedPrompt && (selectedPrompt.cat !== currentCat || selectedPrompt.task !== currentTask || selectedPrompt.idx !== i)) {
-      return; // 선택된 프롬프트가 있으면 다른 것은 렌더링하지 않음
-    }
+    if (selectedPrompt && (selectedPrompt.cat !== currentCat || selectedPrompt.task !== currentTask || selectedPrompt.idx !== i)) return;
 
-    // replacePH 호출 시 현재 저장된 변수 상태(currentVarState) 전달
     const txt = replacePH(p, currentVarState);
-    
     const box = document.createElement('div');
-    box.className = 'prompt-box prompt-box-vertical position-relative mb-3';
+    box.className = 'prompt-box';
 
-    const isChecked = selectedPrompt && selectedPrompt.cat === currentCat && selectedPrompt.task === currentTask && selectedPrompt.idx === i;
-    
-    // 마크다운 모드 여부에 따라 콘텐츠 생성
-    let contentHtml = '';
+    const isChecked = selectedPrompt && selectedPrompt.idx === i;
+    const isFav = p._fav; // future feature placeholder
+
+    let contentHtml;
     if (currentViewMode === 'markdown') {
-      // 마크다운 렌더링
-      const renderedMarkdown = marked.parse(txt);
-      contentHtml = `<div class="markdown-rendered prompt-content-area">${renderedMarkdown}</div>`;
+      contentHtml = `<div class="markdown-rendered">${marked.parse(txt)}</div>`;
     } else {
-      // 원본 텍스트 (기존 방식)
-      const lineCount = (txt.match(/\n/g) || []).length + 1;
-      const shouldCollapse = lineCount > 5 || txt.length > 300;
-      const collapseClass = shouldCollapse ? 'collapsed' : '';
-      const toggleButton = shouldCollapse ? `<button class="toggle-btn" onclick="togglePromptText(this)">${t('showMore')}</button>` : '';
+      const lines = (txt.match(/\n/g) || []).length + 1;
+      const shouldCollapse = lines > 6 || txt.length > 400;
       contentHtml = `
-        <pre class="prompt-text prompt-content-area ${collapseClass}">${escapeHtml(txt)}</pre>
-        ${toggleButton}
+        <pre class="prompt-content ${shouldCollapse ? 'collapsed' : ''}">${escapeHtml(txt)}</pre>
+        ${shouldCollapse ? `<button class="toggle-btn" onclick="togglePromptText(this)">${t('showMore')}</button>` : ''}
       `;
     }
 
     box.innerHTML = `
-      <input class="form-check-input prompt-select" type="checkbox" onchange="togglePromptSelect(${i}, this)" ${isChecked ? 'checked' : ''}>
-      <div class="prompt-drag-handle">⋮</div>
-      <div class="prompt-actions">
-        <button class="btn btn-edit btn-sm" onclick="openPromptModal(currentCat,currentTask,${i})">${t('edit')}</button>
-        <button class="btn btn-del btn-sm" onclick="deletePrompt(currentCat,currentTask,${i})">${t('delete')}</button>
+      <div class="prompt-top-row">
+        <input class="prompt-checkbox" type="checkbox" onchange="togglePromptSelect(${i}, this)" ${isChecked ? 'checked' : ''}>
+        <span class="prompt-drag-handle">⋮⋮</span>
+        <span class="prompt-number">#${i + 1}</span>
+        <div class="prompt-actions-row">
+          <button class="prompt-action-btn edit-btn" onclick="openPromptModal(currentCat,currentTask,${i})">${t('edit')}</button>
+          <button class="prompt-action-btn del-btn" onclick="deletePrompt(currentCat,currentTask,${i})">${t('delete')}</button>
+        </div>
       </div>
-      
       ${contentHtml}
-      
-      <div class="prompt-bottom-actions">
-        <button class="btn btn-outline-secondary btn-sm" onclick="copyPrompt(this)" data-raw-text="${escapeHtml(txt).replace(/"/g, '&quot;')}">${t('copy')}</button>
+      <div class="prompt-bottom">
+        <button class="copy-btn" onclick="copyPrompt(this)" data-raw-text="${escapeHtml(txt).replace(/"/g, '&quot;')}">${t('copy')}</button>
       </div>
     `;
     $list.appendChild(box);
@@ -1219,11 +1465,125 @@ function renderPrompts(prompts) {
   });
 
   if ($list.children.length === 0 && selectedPrompt) {
-    $list.innerHTML = `<div class="text-secondary" style="padding:12px 4px;">${t('noSelectedPrompt')}</div>`;
+    $list.innerHTML = `<div style="color:var(--text-muted);padding:12px;">${t('noSelectedPrompt')}</div>`;
   }
 }
 
-/* ---------- 토글 선택 함수 (수정됨) ---------- */
+/* ══════════════════════════════════════════════════
+   VARIABLE MANAGEMENT
+   ══════════════════════════════════════════════════ */
+function openAddVariableModal() {
+  const name = prompt(t('enterVariableName'));
+  if (name && name.trim()) addVariable(name.trim());
+}
+
+function addVariable(varName) {
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task) return;
+  if (!task.variables) task.variables = [];
+  
+  const autoVars = new Set();
+  task.prompts.forEach(p => {
+    const m = p.match(/\[([^\[\]]+)\]/g);
+    if (m) m.forEach(x => { const v = x.replace(/[\[\]]/g, '').trim(); if (v) autoVars.add(v); });
+  });
+  if (task.variables.includes(varName) || autoVars.has(varName)) { alert(t('variableExists')); return; }
+  task.variables.push(varName);
+  currentVarState[varName] = '';
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask);
+}
+
+function deleteVariable(varName) {
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task) return;
+  const autoVars = new Set();
+  task.prompts.forEach(p => {
+    const m = p.match(/\[([^\[\]]+)\]/g);
+    if (m) m.forEach(x => { const v = x.replace(/[\[\]]/g, '').trim(); if (v) autoVars.add(v); });
+  });
+  const isAuto = autoVars.has(varName);
+  let msg = t('confirmDeleteVariable', varName);
+  if (isAuto) msg += '\n\n' + t('deleteFromPromptsWarning');
+  if (!confirm(msg)) return;
+  if (task.variables) task.variables = task.variables.filter(v => v !== varName);
+  if (isAuto) task.prompts = task.prompts.map(p => p.replace(new RegExp(`\\[${escapeRegex(varName)}\\]`, 'g'), ''));
+  delete currentVarState[varName];
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask);
+}
+
+function editVariable(oldName) {
+  const newName = prompt(t('enterNewVariableName'), oldName);
+  if (!newName || newName.trim() === '' || newName.trim() === oldName) return;
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task) return;
+  const trimmed = newName.trim();
+  const autoVars = new Set();
+  task.prompts.forEach(p => {
+    const m = p.match(/\[([^\[\]]+)\]/g);
+    if (m) m.forEach(x => { const v = x.replace(/[\[\]]/g, '').trim(); if (v) autoVars.add(v); });
+  });
+  if ((task.variables && task.variables.includes(trimmed)) || (autoVars.has(trimmed) && trimmed !== oldName)) { alert(t('variableExists')); return; }
+  if (task.variables) {
+    const idx = task.variables.indexOf(oldName);
+    if (idx !== -1) task.variables[idx] = trimmed;
+    else task.variables.push(trimmed);
+  }
+  task.prompts = task.prompts.map(p => p.replace(new RegExp(`\\[${escapeRegex(oldName)}\\]`, 'g'), `[${trimmed}]`));
+  if (currentVarState[oldName] !== undefined) { currentVarState[trimmed] = currentVarState[oldName]; delete currentVarState[oldName]; }
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask);
+}
+
+function updateVariable(key, value) {
+  currentVarState[key] = value;
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (task) renderPrompts(task.prompts);
+}
+
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 300) + 'px';
+}
+
+function initVariableDragAndDrop() {
+  const container = document.getElementById('variables-container');
+  if (!container) return;
+  const items = container.querySelectorAll('.var-item');
+  let draggedItem = null;
+  items.forEach(item => {
+    item.addEventListener('dragstart', e => { draggedItem = item; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    item.addEventListener('dragend', () => { item.classList.remove('dragging'); items.forEach(i => i.classList.remove('drag-over')); draggedItem = null; });
+    item.addEventListener('dragover', e => { e.preventDefault(); if (item !== draggedItem) item.classList.add('drag-over'); });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', e => {
+      e.preventDefault(); item.classList.remove('drag-over');
+      if (!draggedItem || draggedItem === item) return;
+      reorderVariable(draggedItem.dataset.var, item.dataset.var);
+    });
+  });
+}
+
+function reorderVariable(fromVar, toVar) {
+  const cat = data.cats.find(c => c.id === currentCat);
+  const task = cat && cat.tasks.find(t => t.id === currentTask);
+  if (!task || !task.variableOrder) return;
+  const fi = task.variableOrder.indexOf(fromVar), ti = task.variableOrder.indexOf(toVar);
+  if (fi === -1 || ti === -1) return;
+  task.variableOrder.splice(fi, 1);
+  task.variableOrder.splice(ti, 0, fromVar);
+  localStorage.setItem('promptUIData', JSON.stringify(data));
+  showDetail(currentCat, currentTask);
+}
+
+/* ══════════════════════════════════════════════════
+   TOGGLES & UTILS
+   ══════════════════════════════════════════════════ */
 function togglePromptSelect(idx, cb) {
   selectedPrompt = cb.checked ? { cat: currentCat, task: currentTask, idx } : null;
   const cat = data.cats.find(c => c.id === currentCat);
@@ -1231,63 +1591,48 @@ function togglePromptSelect(idx, cb) {
   if (task) renderPrompts(task.prompts);
 }
 
-/* ---------- 유틸리티 함수 (수정됨) ---------- */
-// 변수 상태 객체를 받아 해당하는 키가 있으면 치환, 없으면 대괄호 그대로 유지
-function replacePH(tpl, varState) { 
-  return tpl.replace(/\[(.*?)\]/g, (match, p1) => {
-    // p1은 대괄호 안의 텍스트 (예: '주제')
-    // varState에 값이 있고 빈 문자열이 아니면 치환, 아니면 원래 대괄호 문자열 반환
-    return (varState[p1] !== undefined && varState[p1] !== '') ? varState[p1] : match;
-  }); 
+function replacePH(tpl, vs) {
+  return tpl.replace(/\[(.*?)\]/g, (m, p1) => (vs[p1] !== undefined && vs[p1] !== '') ? vs[p1] : m);
 }
-function escapeHtml(txt) { return txt.replace(/[<>"']/g, m => ({ "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[m]); }
-function unescapeHtml(txt) { 
-  return txt.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&'); 
-}
+function escapeHtml(txt) { return txt.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+function unescapeHtml(txt) { return txt.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&'); }
+function escapeRegex(str) { return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
 function copyPrompt(btn) {
-  let textToCopy;
-  
-  // data-raw-text 속성이 있으면 그것을 사용 (마크다운 모드)
-  if (btn.dataset.rawText) {
-    textToCopy = unescapeHtml(btn.dataset.rawText);
-  } else {
-    // 기존 방식: prompt-text 요소에서 가져옴
-    const promptBox = btn.closest('.prompt-box');
-    const promptTextEl = promptBox.querySelector('.prompt-text');
-    textToCopy = promptTextEl ? promptTextEl.textContent : '';
-  }
-  
-  navigator.clipboard.writeText(textToCopy)
-    .then(() => { btn.textContent = t('copyComplete'); setTimeout(() => btn.textContent = t('copy'), 900); })
-    .catch(() => alert(t('copyFailed')));
-}
-function togglePromptText(btn) {
-  const promptBox = btn.closest('.prompt-box');
-  const promptText = promptBox.querySelector('.prompt-text');
-  if (!promptText) return;
-  const isCollapsed = promptText.classList.toggle('collapsed');
-  btn.innerHTML = isCollapsed ? t('showMore') : t('showLess');
+  let text = btn.dataset.rawText ? unescapeHtml(btn.dataset.rawText) : '';
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = t('copyComplete');
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = t('copy'); btn.classList.remove('copied'); }, 1200);
+  }).catch(() => toast(t('copyFailed'), 'error'));
 }
 
-/* ---------- 모달 관련 함수 (생성/수정) ---------- */
+function togglePromptText(btn) {
+  const box = btn.closest('.prompt-box');
+  const pre = box.querySelector('.prompt-content');
+  if (!pre) return;
+  const collapsed = pre.classList.toggle('collapsed');
+  btn.innerHTML = collapsed ? t('showMore') : t('showLess');
+}
+
+/* ══════════════════════════════════════════════════
+   MODAL
+   ══════════════════════════════════════════════════ */
 function openCategoryModal(id) {
-  modalMode = id ? 'edit' : 'add';
-  modalType = 'cat';
+  modalMode = id ? 'edit' : 'add'; modalType = 'cat';
   const cat = id && data.cats.find(c => c.id === id);
   modalRefObj = id ? cat : null;
   showModal(t(id ? 'categoryEdit' : 'categoryAdd'), cat ? cat.name : '', false, '', cat ? cat.emoji : '📁');
 }
 function openTaskModal(catId, taskId) {
-  modalMode = taskId ? 'edit' : 'add';
-  modalType = 'task';
+  modalMode = taskId ? 'edit' : 'add'; modalType = 'task';
   const cat = data.cats.find(c => c.id === catId);
   const task = taskId && cat.tasks.find(t => t.id === taskId);
   modalRefObj = { cat, task };
   showModal(t(taskId ? 'taskEdit' : 'taskAdd'), task ? task.name : '', false);
 }
 function openPromptModal(catId, taskId, idx) {
-  modalMode = idx != null ? 'edit' : 'add';
-  modalType = 'prompt';
+  modalMode = idx != null ? 'edit' : 'add'; modalType = 'prompt';
   const cat = data.cats.find(c => c.id === catId);
   const task = cat.tasks.find(t => t.id === taskId);
   modalRefObj = { cat, task, idx };
@@ -1296,335 +1641,146 @@ function openPromptModal(catId, taskId, idx) {
 }
 function showModal(title, val, showTA, taVal = '', emojiVal = '') {
   document.getElementById('modalTitle').textContent = title;
-  const $in = document.getElementById('modalInput');
-  const $ta = document.getElementById('modalTextarea');
-  const $em = document.getElementById('modalEmoji');
-  const $row = document.getElementById('emojiInputRow');
-
+  const $in = document.getElementById('modalInput'), $ta = document.getElementById('modalTextarea');
+  const $em = document.getElementById('modalEmoji'), $row = document.getElementById('emojiInputRow');
   $row.style.display = modalType === 'cat' ? '' : 'none';
   $em.value = emojiVal || '📁';
-  $in.style.display = showTA ? 'none' : '';
-  $in.value = val || '';
-  $ta.style.display = showTA ? '' : 'none';
-  $ta.value = taVal || '';
-
+  $in.style.display = showTA ? 'none' : ''; $in.value = val || '';
+  $ta.style.display = showTA ? '' : 'none'; $ta.value = taVal || '';
   new bootstrap.Modal(document.getElementById('editModal')).show();
+  setTimeout(() => (showTA ? $ta : $in).focus(), 300);
 }
-function closeModal() {
-  bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-}
+function closeModal() { bootstrap.Modal.getInstance(document.getElementById('editModal'))?.hide(); }
 function saveModal() {
-  const $in = document.getElementById('modalInput');
-  const $ta = document.getElementById('modalTextarea');
-  const $em = document.getElementById('modalEmoji');
-
+  const $in = document.getElementById('modalInput'), $ta = document.getElementById('modalTextarea'), $em = document.getElementById('modalEmoji');
   if (modalType === 'cat') {
-    const name = $in.value.trim();
-    const emoji = ($em.value || '📁').slice(0, 2);
+    const name = $in.value.trim(), emoji = ($em.value || '📁').slice(0, 2);
     if (!name) return alert(t('enterCategoryName'));
     if (modalMode === 'add') data.cats.push({ id: 'cat' + Date.now(), name, emoji, tasks: [] });
     else { modalRefObj.name = name; modalRefObj.emoji = emoji; }
   } else if (modalType === 'task') {
     const name = $in.value.trim();
     if (!name) return alert(t('enterTaskName'));
-    const cat = modalRefObj.cat;
-    if (modalMode === 'add') cat.tasks.push({ id: 'task' + Date.now(), name, prompts: [] });
+    if (modalMode === 'add') modalRefObj.cat.tasks.push({ id: 'task' + Date.now(), name, prompts: [] });
     else modalRefObj.task.name = name;
   } else if (modalType === 'prompt') {
     const txt = $ta.value.trim();
     if (!txt) return alert(t('enterPromptContent'));
-    const task = modalRefObj.task;
-    if (modalMode === 'add') task.prompts.push(txt);
-    else task.prompts[modalRefObj.idx] = txt;
+    if (modalMode === 'add') modalRefObj.task.prompts.push(txt);
+    else modalRefObj.task.prompts[modalRefObj.idx] = txt;
   }
-  saveAndRerender();
-  closeModal();
+  saveAndRerender(); closeModal();
 }
 
-/* ---------- 삭제 함수 ---------- */
+/* ══════════════════════════════════════════════════
+   DELETE
+   ══════════════════════════════════════════════════ */
 function deleteCategory(id) {
   if (!confirm(t('confirmDeleteCategory'))) return;
   data.cats = data.cats.filter(c => c.id !== id);
-  if (currentCat === id) {
-    currentCat = null;
-    currentTask = null;
-  }
+  if (currentCat === id) { currentCat = null; currentTask = null; }
   saveAndRerender();
 }
 function deleteTask(cid, tid) {
   const cat = data.cats.find(c => c.id === cid);
   if (!cat || !confirm(t('confirmDeleteTask'))) return;
   cat.tasks = cat.tasks.filter(t => t.id !== tid);
-  if (currentTask === tid) {
-    currentTask = null;
-  }
+  if (currentTask === tid) currentTask = null;
   saveAndRerender();
 }
 function deletePrompt(cid, tid, idx) {
   const cat = data.cats.find(c => c.id === cid);
   const task = cat && cat.tasks.find(t => t.id === tid);
   if (!task || !confirm(t('confirmDeletePrompt'))) return;
-  
   task.prompts.splice(idx, 1);
-
   if (selectedPrompt && selectedPrompt.cat === cid && selectedPrompt.task === tid) {
-    if (selectedPrompt.idx === idx) {
-      selectedPrompt = null; // 삭제된 프롬프트가 선택된 것이면 선택 해제
-    } else if (selectedPrompt.idx > idx) {
-      selectedPrompt.idx--; // 삭제된 프롬프트보다 뒤에 있는 프롬프트였다면 인덱스 감소
-    }
+    if (selectedPrompt.idx === idx) selectedPrompt = null;
+    else if (selectedPrompt.idx > idx) selectedPrompt.idx--;
   }
   saveAndRerender();
 }
 
-/* ---------- 드래그 앤 드롭 함수 (개선됨) ---------- */
-function makeCategoryDraggable(catBlock, index) {
-    catBlock.draggable = true;
-    catBlock.dataset.index = index;
-
-    catBlock.addEventListener('dragstart', e => {
-        draggedElement = catBlock;
-        dragType = 'category';
-        dragContext = { index };
-        setTimeout(() => catBlock.classList.add('dragging'), 0);
-    });
-
-    catBlock.addEventListener('dragend', () => {
-        catBlock.classList.remove('dragging');
-        document.querySelectorAll('.cat-block.drag-over').forEach(el => el.classList.remove('drag-over'));
-    });
-
-    catBlock.addEventListener('dragover', e => {
-        e.preventDefault();
-        if (dragType === 'category' && draggedElement !== catBlock) {
-            catBlock.classList.add('drag-over');
-        }
-    });
-    
-    catBlock.addEventListener('dragleave', () => catBlock.classList.remove('drag-over'));
-
-    catBlock.addEventListener('drop', e => {
-        e.preventDefault();
-        catBlock.classList.remove('drag-over');
-        if (dragType !== 'category') return;
-
-        const fromIndex = dragContext.index;
-        const toIndex = index;
-        if (fromIndex === toIndex) return;
-
-        const [movedItem] = data.cats.splice(fromIndex, 1);
-        data.cats.splice(toIndex, 0, movedItem);
-        saveAndRerender();
-    });
+/* ══════════════════════════════════════════════════
+   DRAG AND DROP
+   ══════════════════════════════════════════════════ */
+function makeCategoryDraggable(el, index) {
+  el.draggable = true; el.dataset.index = index;
+  el.addEventListener('dragstart', e => { draggedElement = el; dragType = 'category'; dragContext = { index }; setTimeout(() => el.classList.add('dragging'), 0); });
+  el.addEventListener('dragend', () => { el.classList.remove('dragging'); document.querySelectorAll('.cat-block.drag-over').forEach(x => x.classList.remove('drag-over')); });
+  el.addEventListener('dragover', e => { e.preventDefault(); if (dragType === 'category' && draggedElement !== el) el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => { e.preventDefault(); el.classList.remove('drag-over'); if (dragType !== 'category') return; const fi = dragContext.index; if (fi === index) return; const [m] = data.cats.splice(fi, 1); data.cats.splice(index, 0, m); saveAndRerender(); });
+}
+function makeTaskDraggable(el, catId, taskIndex) {
+  el.draggable = true;
+  el.addEventListener('dragstart', e => { e.stopPropagation(); draggedElement = el; dragType = 'task'; dragContext = { catId, taskIndex }; setTimeout(() => el.classList.add('dragging'), 0); });
+  el.addEventListener('dragend', () => { el.classList.remove('dragging'); document.querySelectorAll('.task-item.drag-over').forEach(x => x.classList.remove('drag-over')); });
+  el.addEventListener('dragover', e => { e.preventDefault(); if (dragType === 'task' && draggedElement !== el) el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); el.classList.remove('drag-over'); if (dragType !== 'task') return; const { catId: fc, taskIndex: fi } = dragContext; const fromCat = data.cats.find(c => c.id === fc); const toCat = data.cats.find(c => c.id === catId); if (!fromCat || !toCat) return; const [m] = fromCat.tasks.splice(fi, 1); toCat.tasks.splice(taskIndex, 0, m); saveAndRerender(); });
+}
+function makePromptDraggable(el, catId, taskId, promptIndex) {
+  el.draggable = true;
+  el.addEventListener('dragstart', e => { e.stopPropagation(); draggedElement = el; dragType = 'prompt'; dragContext = { catId, taskId, promptIndex }; setTimeout(() => el.classList.add('dragging'), 0); });
+  el.addEventListener('dragend', () => { el.classList.remove('dragging'); document.querySelectorAll('.prompt-box.drag-over').forEach(x => x.classList.remove('drag-over')); });
+  el.addEventListener('dragover', e => { e.preventDefault(); if (dragType === 'prompt' && draggedElement !== el) el.classList.add('drag-over'); });
+  el.addEventListener('dragleave', () => el.classList.remove('drag-over'));
+  el.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); el.classList.remove('drag-over'); if (dragType !== 'prompt') return; const fi = dragContext.promptIndex; const cat = data.cats.find(c => c.id === catId); const task = cat?.tasks.find(t => t.id === taskId); if (!task) return; const [m] = task.prompts.splice(fi, 1); task.prompts.splice(promptIndex, 0, m); saveAndRerender(); });
 }
 
-function makeTaskDraggable(taskElement, catId, taskIndex) {
-    taskElement.draggable = true;
-    taskElement.dataset.catId = catId;
-    taskElement.dataset.taskIndex = taskIndex;
-
-    taskElement.addEventListener('dragstart', e => {
-        e.stopPropagation();
-        draggedElement = taskElement;
-        dragType = 'task';
-        dragContext = { catId, taskIndex };
-        setTimeout(() => taskElement.classList.add('dragging'), 0);
-    });
-
-    taskElement.addEventListener('dragend', () => {
-        taskElement.classList.remove('dragging');
-        document.querySelectorAll('.task-item.drag-over').forEach(el => el.classList.remove('drag-over'));
-    });
-
-    taskElement.addEventListener('dragover', e => {
-        e.preventDefault();
-        if (dragType === 'task' && draggedElement !== taskElement) {
-            taskElement.classList.add('drag-over');
-        }
-    });
-    
-    taskElement.addEventListener('dragleave', () => taskElement.classList.remove('drag-over'));
-
-    taskElement.addEventListener('drop', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        taskElement.classList.remove('drag-over');
-        if (dragType !== 'task') return;
-
-        const { catId: fromCatId, taskIndex: fromIndex } = dragContext;
-        const toCatId = catId;
-        const toIndex = taskIndex;
-
-        const fromCat = data.cats.find(c => c.id === fromCatId);
-        const toCat = data.cats.find(c => c.id === toCatId);
-        if (!fromCat || !toCat) return;
-
-        const [movedTask] = fromCat.tasks.splice(fromIndex, 1);
-        toCat.tasks.splice(toIndex, 0, movedTask);
-        saveAndRerender();
-    });
-}
-
-function makePromptDraggable(promptElement, catId, taskId, promptIndex) {
-    promptElement.draggable = true;
-    promptElement.dataset.promptIndex = promptIndex;
-
-    promptElement.addEventListener('dragstart', e => {
-        e.stopPropagation();
-        draggedElement = promptElement;
-        dragType = 'prompt';
-        dragContext = { catId, taskId, promptIndex };
-        setTimeout(() => promptElement.classList.add('dragging'), 0);
-    });
-
-    promptElement.addEventListener('dragend', () => {
-        promptElement.classList.remove('dragging');
-        document.querySelectorAll('.prompt-box.drag-over').forEach(el => el.classList.remove('drag-over'));
-    });
-
-    promptElement.addEventListener('dragover', e => {
-        e.preventDefault();
-        if (dragType === 'prompt' && draggedElement !== promptElement) {
-            promptElement.classList.add('drag-over');
-        }
-    });
-
-    promptElement.addEventListener('dragleave', () => promptElement.classList.remove('drag-over'));
-
-    promptElement.addEventListener('drop', e => {
-        e.preventDefault();
-        e.stopPropagation();
-        promptElement.classList.remove('drag-over');
-        if (dragType !== 'prompt') return;
-
-        const { promptIndex: fromIndex } = dragContext;
-        const toIndex = promptIndex;
-        
-        const cat = data.cats.find(c => c.id === catId);
-        const task = cat?.tasks.find(t => t.id === taskId);
-        if (!task) return;
-
-        const [movedPrompt] = task.prompts.splice(fromIndex, 1);
-        task.prompts.splice(toIndex, 0, movedPrompt);
-        saveAndRerender();
-    });
-}
-
-
-/* ---------- UI 컨트롤 함수 (글꼴, 가져오기/내보내기) ---------- */
-function setFontSize(size) {
-  document.body.classList.remove('font-size-small', 'font-size-medium', 'font-size-large', 'font-size-xlarge');
-  document.body.classList.add(`font-size-${size}`);
-  document.querySelectorAll('.font-size-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.size === size);
-  });
-  currentFontSize = size;
-  localStorage.setItem('fontSizePreference', size);
-}
-
+/* ══════════════════════════════════════════════════
+   EXPORT / IMPORT
+   ══════════════════════════════════════════════════ */
 function exportData() {
   try {
-    const exportObject = {
-      promptUIData: data,
-      catToggleState: catToggleState,
-      fontSizePreference: currentFontSize,
-      exportDate: new Date().toISOString(),
-      version: '1.2'
-    };
-    const jsonString = JSON.stringify(exportObject, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
-    const now = new Date();
-    const filename = `prompt_library_${now.toISOString().slice(0, 10).replace(/-/g, '')}.json`;
-    
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
-    showTempMessage(t('exportComplete', filename), 'success');
-  } catch (error) {
-    showTempMessage(t('exportFailed', error.message), 'error');
-  }
+    const obj = { promptUIData: data, catToggleState, fontSizePreference: currentFontSize, exportDate: new Date().toISOString(), version: '2.0' };
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json;charset=utf-8' });
+    const fn = `prompt_library_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.json`;
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fn;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(a.href);
+    toast(t('exportComplete', fn), 'success');
+  } catch (e) { toast(t('exportFailed', e.message), 'error'); }
 }
-
 function toggleImportArea() {
-  const area = document.getElementById('importArea');
-  area.style.display = area.style.display === 'none' ? 'block' : 'none';
-  clearStatus();
+  const a = document.getElementById('importArea');
+  a.style.display = a.style.display === 'none' ? 'block' : 'none';
 }
-
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (file) processFile(file);
-}
-
+function handleFileSelect(e) { const f = e.target.files[0]; if (f) processFile(f); }
 function processFile(file) {
-  if (!file.name.toLowerCase().endsWith('.json')) {
-    return showStatus(t('jsonOnly'), 'error');
-  }
-  showStatus(t('fileReading'), 'info');
+  if (!file.name.toLowerCase().endsWith('.json')) return toast(t('jsonOnly'), 'error');
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
       const obj = JSON.parse(e.target.result);
-      let dataToImport = obj.promptUIData;
-
-      if (!dataToImport || !Array.isArray(dataToImport.cats)) {
-         throw new Error(t('invalidFile'));
-      }
-      
-      // 데이터 유효성 검사 및 보정
-      dataToImport.cats.forEach((cat, i) => {
-        cat.id = cat.id || 'cat' + Date.now() + i;
-        cat.tasks = cat.tasks || [];
-        cat.tasks.forEach((task, j) => {
-          task.id = task.id || 'task' + Date.now() + j;
-          task.prompts = task.prompts || [];
-        });
-      });
-
-      localStorage.setItem('promptUIData', JSON.stringify(dataToImport));
+      let d = obj.promptUIData;
+      if (!d || !Array.isArray(d.cats)) throw new Error(t('invalidFile'));
+      d.cats.forEach((cat, i) => { cat.id = cat.id || 'cat' + Date.now() + i; cat.tasks = cat.tasks || []; cat.tasks.forEach((task, j) => { task.id = task.id || 'task' + Date.now() + j; task.prompts = task.prompts || []; }); });
+      localStorage.setItem('promptUIData', JSON.stringify(d));
       localStorage.setItem('catToggleState', JSON.stringify(obj.catToggleState || {}));
       localStorage.setItem('fontSizePreference', obj.fontSizePreference || 'medium');
-      
-      showStatus(t('importComplete', dataToImport.cats.length), 'success');
-      setTimeout(() => location.reload(), 1500);
-    } catch (err) {
-      showStatus(t('importFailed', err.message), 'error');
-    }
+      toast(t('importComplete', d.cats.length), 'success');
+      setTimeout(() => location.reload(), 1200);
+    } catch (err) { toast(t('importFailed', err.message), 'error'); }
   };
-  reader.onerror = () => showStatus(t('fileReadError'), 'error');
+  reader.onerror = () => toast(t('fileReadError'), 'error');
   reader.readAsText(file);
 }
 
-function showStatus(message, type = 'info') {
-  const statusDiv = document.getElementById('statusMessage');
-  statusDiv.innerHTML = `<div class="status-message status-${type}">${message}</div>`;
-}
-function clearStatus() {
-  document.getElementById('statusMessage').innerHTML = '';
-}
-
-function showTempMessage(message, type = 'info', duration = 3000) {
-  const messageDiv = document.createElement('div');
-  messageDiv.style.cssText = `position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 9999; max-width: 400px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s ease; background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb;`;
-  if (type === 'success') {
-    messageDiv.style.background = '#d4edda'; messageDiv.style.color = '#155724'; messageDiv.style.border = '1px solid #c3e6cb';
-  } else if (type === 'error') {
-    messageDiv.style.background = '#f8d7da'; messageDiv.style.color = '#721c24'; messageDiv.style.border = '1px solid #f5c6cb';
-  }
-  messageDiv.textContent = message;
-  document.body.appendChild(messageDiv);
-  setTimeout(() => {
-    messageDiv.style.opacity = '0';
-    messageDiv.style.transform = 'translateX(100%)';
-    setTimeout(() => messageDiv.remove(), 300);
-  }, duration);
+/* ══════════════════════════════════════════════════
+   TOAST
+   ══════════════════════════════════════════════════ */
+function toast(msg, type = 'info', dur = 3000) {
+  const c = document.getElementById('toastContainer');
+  const d = document.createElement('div');
+  d.className = `toast-item ${type}`;
+  d.textContent = msg;
+  c.appendChild(d);
+  setTimeout(() => { d.classList.add('removing'); setTimeout(() => d.remove(), 300); }, dur);
 }
 
-/* ---------- 이벤트 리스너 설정 ---------- */
+/* ══════════════════════════════════════════════════
+   EVENT LISTENERS
+   ══════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', initialize);
 
 document.addEventListener('click', e => {
@@ -1633,32 +1789,44 @@ document.addEventListener('click', e => {
     const lang = e.target.dataset.lang;
     localStorage.setItem('ui_lang', lang);
     applyTranslations(lang);
+    // Re-render detail area with new lang
+    if (currentCat && currentTask) showDetail(currentCat, currentTask);
+  }
+  // Close font size popup when clicking outside
+  if (!document.getElementById('fontSizeWrapper').contains(e.target)) {
+    document.getElementById('fontSizePopup').classList.remove('show');
   }
 });
 
-const importArea = document.getElementById('importArea');
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-  document.body.addEventListener(eventName, e => {
-    if (!importArea.contains(e.target)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, false);
-  importArea.addEventListener(eventName, e => {
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+    if (modal) modal.hide();
+  }
+  // Ctrl+K for search focus
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
-    e.stopPropagation();
-  }, false);
+    document.getElementById('searchInput').focus();
+  }
 });
-['dragenter', 'dragover'].forEach(eventName => {
-  importArea.addEventListener(eventName, () => importArea.classList.add('dragover'), false);
+
+// Modal enter key to save
+document.getElementById('editModal').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey && modalType !== 'prompt') {
+    e.preventDefault();
+    saveModal();
+  }
 });
-['dragleave', 'drop'].forEach(eventName => {
-  importArea.addEventListener(eventName, () => importArea.classList.remove('dragover'), false);
+
+// Import drag and drop
+const importArea = document.getElementById('importArea');
+['dragenter','dragover','dragleave','drop'].forEach(ev => {
+  importArea.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, false);
 });
-importArea.addEventListener('drop', e => {
-  const files = e.dataTransfer.files;
-  if (files.length > 0) processFile(files[0]);
-}, false);
+['dragenter','dragover'].forEach(ev => { importArea.addEventListener(ev, () => importArea.classList.add('dragover')); });
+['dragleave','drop'].forEach(ev => { importArea.addEventListener(ev, () => importArea.classList.remove('dragover')); });
+importArea.addEventListener('drop', e => { if (e.dataTransfer.files.length > 0) processFile(e.dataTransfer.files[0]); });
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
