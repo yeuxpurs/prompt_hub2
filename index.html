@@ -2,249 +2,1096 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>✨ Prompt Hub — 選択ページ</title>
+  <title>📖 Prompt Book</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Noto+Sans+JP:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;background:linear-gradient(135deg,#eef2ff,#f8fbff) fixed;}
-    header{padding:28px 20px 14px;text-align:center}
-    header h1{margin:0 0 6px;font-size:clamp(22px,3.5vw,32px)}
-    header p{margin:0;color:#555}
-    .lang-selector{position:absolute;top:20px;right:20px;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px;min-width:120px}
-    .lang-selector select{border:0;background:transparent;font-size:14px;width:100%;outline:0}
-    .wrap{max-width:1100px;margin:0 auto;padding:16px 20px 40px}
-    .toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:6px 0 16px}
-    .search{flex:1;display:flex;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:8px 12px}
-    .search input{flex:1;border:0;outline:0;font-size:15px}
-    .hint{font-size:13px;color:#666}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-    .card{display:block;position:relative;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:16px 14px 14px;text-decoration:none;color:inherit;transition:.2s;outline:0}
-    .card:focus-visible{box-shadow:0 0 0 3px rgba(59,130,246,.35)}
-    .card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.06)}
-    .visual{display:flex;align-items:center;gap:12px}
-    .emoji{font-size:36px;line-height:1.1}
-    .thumb{width:44px;height:44px;border-radius:10px;object-fit:cover;border:1px solid #e5e7eb;background:#f8fafc}
-    .idx{position:absolute;top:10px;right:12px;font:600 12px/1 system-ui;border:1px solid #e5e7eb;border-radius:999px;padding:3px 8px;background:#fff;color:#374151}
-    .title{margin:8px 0 6px;font-weight:700;font-size:18px;letter-spacing:-.2px}
-    .desc{margin:0 0 10px;color:#556;min-height:40px;font-size:14px}
-    .tags{display:flex;flex-wrap:wrap;gap:6px}
-    .tag{border:1px dashed #cbd5e1;border-radius:999px;padding:4px 8px;font-size:12px;color:#475569;background:#f8fafc}
-    footer{margin-top:28px;color:#667085;font-size:13px;text-align:center}
-    
-    @media (prefers-color-scheme: dark){
-      body{background:linear-gradient(135deg,#0b1020,#0f172a); color: #e5e7eb;}
-      header p, .hint, footer{color:#b8c0cc}
-      .card{background:#0f172a;border-color:#20283a;color:#e5e7eb}
-      .tag{border-color:#334155;background:#0b1220;color:#cbd5e1}
-      .idx{background:#111827;border-color:#334155;color:#d1d5db}
-      .search{background:#0f172a;border-color:#20283a}
-      .search input{background:transparent;color:#e5e7eb}
-      .lang-selector{background:#0f172a;border-color:#20283a}
-      .lang-selector select{color:#e5e7eb}
-      .thumb{border-color:#20283a;background:#0b1220}
+    :root {
+      --ink: #1a1a2e;
+      --paper: #faf8f5;
+      --accent: #c0392b;
+      --accent-soft: #e74c3c22;
+      --gold: #b8860b;
+      --gold-soft: #b8860b18;
+      --sea: #1a5276;
+      --sea-soft: #1a527612;
+      --border: #e8e2d8;
+      --muted: #8a8578;
+      --card-bg: #fffefcee;
+      --tag-bg: #f5f0e8;
+      --tag-border: #ddd5c8;
+      --shadow-sm: 0 2px 8px rgba(26,26,46,.06);
+      --shadow-md: 0 8px 32px rgba(26,26,46,.08);
+      --shadow-lg: 0 16px 48px rgba(26,26,46,.12);
+      --radius: 16px;
+      --font-display: 'Playfair Display', 'Noto Sans JP', 'Noto Sans KR', serif;
+      --font-body: 'Noto Sans JP', 'Noto Sans KR', system-ui, sans-serif;
+      --font-mono: 'Source Code Pro', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* === HIRADO WAVE BACKGROUND (Easter Egg #1: 波 pattern inspired by Hirado's ocean) === */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(26,82,118,.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(184,134,11,.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Seigaiha (青海波) subtle pattern — traditional Japanese wave */
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 200px;
+      background: repeating-radial-gradient(
+        circle at 50% 100%,
+        transparent 0,
+        transparent 14px,
+        rgba(26,82,118,.02) 14px,
+        rgba(26,82,118,.02) 15px
+      );
+      pointer-events: none;
+      z-index: 0;
+      opacity: .6;
+    }
+
+    /* === HEADER === */
+    .header-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 28px 0;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: default;
+      user-select: none;
+    }
+
+    /* Easter Egg #2: Logo is a book icon with a hidden 十字架 (cross) — 
+       referencing Hirado's historical Christian connection */
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--sea), var(--accent));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(26,82,118,.25);
+      position: relative;
+      transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+    }
+
+    .logo-icon:hover {
+      transform: rotate(8deg) scale(1.08);
+    }
+
+    .logo-title {
+      font-family: var(--font-display);
+      font-size: clamp(24px, 3.5vw, 34px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--ink) 0%, var(--sea) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-subtitle {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: -2px;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Language Selector */
+    .lang-btn {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all .2s;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      appearance: none;
+      outline: none;
+    }
+
+    .lang-btn:hover {
+      border-color: var(--sea);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lang-btn:focus-visible {
+      box-shadow: 0 0 0 3px rgba(26,82,118,.2);
+    }
+
+    /* Easter Egg #3: Hirado button — secret gateway */
+    .hirado-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all .4s cubic-bezier(.34,1.56,.64,1);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .hirado-btn::after {
+      content: '⛩️';
+      position: absolute;
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all .3s;
+    }
+
+    .hirado-btn:hover {
+      transform: scale(1.15) rotate(15deg);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(192,57,43,.15);
+    }
+
+    .hirado-btn:hover::after {
+      opacity: 1;
+      transform: translateY(-20px);
+    }
+
+    /* === HERO SECTION === */
+    .hero {
+      text-align: center;
+      padding: 20px 28px 36px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-tagline {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .hero-tagline .accent { color: var(--accent); }
+    .hero-tagline .sea { color: var(--sea); }
+
+    .hero-desc {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 28px;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    .hero-desc kbd {
+      display: inline-block;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--sea);
+      box-shadow: 0 2px 0 var(--border);
+    }
+
+    /* === SEARCH === */
+    .search-wrap {
+      max-width: 560px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .search-box {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      transition: all .25s;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .search-box:focus-within {
+      border-color: var(--sea);
+      box-shadow: 0 0 0 4px rgba(26,82,118,.08), var(--shadow-md);
+    }
+
+    .search-icon {
+      font-size: 18px;
+      opacity: .5;
+      flex-shrink: 0;
+    }
+
+    .search-box input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: var(--font-body);
+      font-size: 15px;
+      color: var(--ink);
+    }
+
+    .search-box input::placeholder {
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .search-shortcut {
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    /* === CARDS GRID === */
+    .content-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 28px 60px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    /* Card */
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: all .3s cubic-bezier(.25,.8,.25,1);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      overflow: hidden;
+      outline: none;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--sea), var(--accent));
+      opacity: 0;
+      transition: opacity .3s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: transparent;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:focus-visible {
+      box-shadow: 0 0 0 3px rgba(26,82,118,.25);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .card:nth-child(1) .card-icon { background: linear-gradient(135deg, #ff6b6b22, #ee5a2422); }
+    .card:nth-child(2) .card-icon { background: linear-gradient(135deg, #4ecdc422, #44bd9e22); }
+    .card:nth-child(3) .card-icon { background: linear-gradient(135deg, #3498db22, #2980b922); }
+    .card:nth-child(4) .card-icon { background: linear-gradient(135deg, #9b59b622, #8e44ad22); }
+    .card:nth-child(5) .card-icon { background: linear-gradient(135deg, #f39c1222, #e67e2222); }
+    .card:nth-child(6) .card-icon { background: linear-gradient(135deg, #1abc9c22, #16a08522); }
+
+    .card-num {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 16px;
+      flex: 1;
+      font-weight: 300;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      color: var(--muted);
+      font-weight: 400;
+      transition: all .2s;
+      letter-spacing: 0.2px;
+    }
+
+    .card:hover .tag {
+      border-color: var(--sea);
+      color: var(--sea);
+      background: var(--sea-soft);
+    }
+
+    /* Card entrance animation */
+    .card {
+      animation: cardIn .5s cubic-bezier(.25,.8,.25,1) both;
+    }
+    .card:nth-child(1) { animation-delay: .05s; }
+    .card:nth-child(2) { animation-delay: .1s; }
+    .card:nth-child(3) { animation-delay: .15s; }
+    .card:nth-child(4) { animation-delay: .2s; }
+    .card:nth-child(5) { animation-delay: .25s; }
+    .card:nth-child(6) { animation-delay: .3s; }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* === FOOTER === */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 20px 28px 32px;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+
+    footer a {
+      color: var(--sea);
+      text-decoration: none;
+    }
+
+    /* Easter Egg #4: Hidden Hirado coordinates in footer */
+    .footer-coords {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      opacity: .3;
+      margin-top: 6px;
+      cursor: help;
+      transition: opacity .3s;
+    }
+
+    .footer-coords:hover {
+      opacity: 1;
+    }
+
+    /* === HIRADO MODAL (Easter Egg #5: Secret Hirado Info Panel) === */
+    .hirado-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(26,26,46,.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn .3s;
+    }
+
+    .hirado-overlay.active {
+      display: flex;
+    }
+
+    .hirado-modal {
+      background: var(--paper);
+      border-radius: 20px;
+      max-width: 480px;
+      width: 100%;
+      padding: 36px;
+      position: relative;
+      box-shadow: var(--shadow-lg);
+      animation: modalIn .4s cubic-bezier(.34,1.56,.64,1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes modalIn { from { opacity: 0; transform: scale(.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+    .hirado-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--tag-bg);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+
+    .hirado-close:hover {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .hirado-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .hirado-header .torii {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .hirado-header h2 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .hirado-header p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hirado-fact {
+      background: var(--sea-soft);
+      border-left: 3px solid var(--sea);
+      border-radius: 0 10px 10px 0;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .hirado-fact strong {
+      color: var(--sea);
+    }
+
+    .hirado-poem {
+      text-align: center;
+      padding: 20px;
+      background: var(--gold-soft);
+      border-radius: 12px;
+      margin-top: 16px;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 15px;
+      line-height: 2;
+      color: var(--gold);
+    }
+
+    /* === NO RESULTS === */
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .no-results-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: .5;
+    }
+
+    .no-results-text {
+      font-size: 16px;
+      font-weight: 300;
+    }
+
+    /* === DARK MODE === */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #e8e4df;
+        --paper: #0f0f1a;
+        --accent: #e74c3c;
+        --accent-soft: #e74c3c22;
+        --gold: #d4a017;
+        --gold-soft: #d4a01718;
+        --sea: #5dade2;
+        --sea-soft: #5dade212;
+        --border: #2a2a3a;
+        --muted: #8a8a9a;
+        --card-bg: #1a1a2aee;
+        --tag-bg: #22223a;
+        --tag-border: #333348;
+        --shadow-sm: 0 2px 8px rgba(0,0,0,.2);
+        --shadow-md: 0 8px 32px rgba(0,0,0,.3);
+        --shadow-lg: 0 16px 48px rgba(0,0,0,.4);
+      }
+
+      body::before {
+        background:
+          radial-gradient(ellipse at 20% 0%, rgba(93,173,226,.06) 0%, transparent 60%),
+          radial-gradient(ellipse at 80% 100%, rgba(212,160,23,.06) 0%, transparent 60%);
+      }
+
+      .search-box input { color: var(--ink); }
+
+      .hirado-modal { background: #1a1a2a; }
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 680px) {
+      .header-wrap { padding: 24px 16px 0; }
+      .hero { padding: 12px 16px 28px; }
+      .content-wrap { padding: 0 16px 40px; }
+      .grid { grid-template-columns: 1fr; gap: 14px; }
+      .top-bar { flex-wrap: wrap; gap: 10px; }
+      .logo-title { font-size: 22px; }
+      .hero-tagline { font-size: 28px; }
+      .card { padding: 20px; }
+      .search-shortcut { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="lang-selector">
-    <label class="sr-only" for="langSelect">言語選択</label>
-    <select id="langSelect" aria-label="言語選択">
-      <option value="ja" selected>🇯🇵 日本語</option>
-      <option value="zh">🇨🇳 中文</option>
-      <option value="en">🇺🇸 English</option>
-      <option value="ko">🇰🇷 한국어</option>
-      <option value="es">🇪🇸 Español</option>
-      <option value="th">🇹🇭 ภาษาไทย</option>
-      <option value="fr">🇫🇷 Français</option>
-    </select>
+
+  <!-- HEADER -->
+  <div class="header-wrap">
+    <div class="top-bar">
+      <div class="logo-area">
+        <div class="logo-icon" title="Prompt Book">📖</div>
+        <div>
+          <div class="logo-title">Prompt Book</div>
+          <div class="logo-subtitle">Your AI Toolkit</div>
+        </div>
+      </div>
+      <div class="top-controls">
+        <select class="lang-btn" id="langSelect" aria-label="言語選択">
+          <option value="ja">🇯🇵 日本語</option>
+          <option value="ko">🇰🇷 한국어</option>
+          <option value="en">🇺🇸 English</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="th">🇹🇭 ไทย</option>
+          <option value="fr">🇫🇷 Français</option>
+        </select>
+        <!-- Easter Egg: Hirado secret button (compass = navigation/trade history) -->
+        <button class="hirado-btn" id="hiradoBtn" title="🧭" aria-label="Secret">🧭</button>
+      </div>
+    </div>
   </div>
 
-  <header>
-    <h1>✨ Prompt Hub</h1>
-    <p id="subtitle">使いたいツールを選択してください。数字キー<b>1-6</b>ですぐに開けます。</p>
-  </header>
-
-  <div class="wrap">
-    <div class="toolbar">
-      <div class="search" role="search" aria-label="アプリ検索">
-        🔎&nbsp;<input id="q" placeholder="検索：タイトル、説明、タグ…" autocomplete="off" aria-label="検索語入力">
+  <!-- HERO -->
+  <div class="hero">
+    <h1 class="hero-tagline" id="heroTagline">
+      <span class="sea">最適な</span>プロンプトを、<br><span class="accent">すぐに</span>使おう。
+    </h1>
+    <p class="hero-desc" id="heroDesc">
+      数字キー <kbd>1</kbd>～<kbd>6</kbd> で直接アクセス。検索で素早くフィルタリングできます。
+    </p>
+    <div class="search-wrap">
+      <div class="search-box" role="search" aria-label="検索">
+        <span class="search-icon">🔍</span>
+        <input id="q" type="text" autocomplete="off" aria-label="検索">
+        <span class="search-shortcut">/</span>
       </div>
-      <div class="hint" id="hint">新しいアプリを追加するには、下の <code>apps</code> 配列に項目を追加してください。</div>
     </div>
+  </div>
 
+  <!-- GRID -->
+  <div class="content-wrap">
     <div id="grid" class="grid" aria-live="polite"></div>
+  </div>
 
-    <footer id="footer">© Prompt Hub • ローカルで動作します。</footer>
+  <!-- FOOTER -->
+  <footer>
+    <div id="footer">© 2025 Prompt Book — Works locally, no data sent.</div>
+    <!-- Easter Egg #4: Hirado coordinates hidden in footer -->
+    <div class="footer-coords" title="平戸 (Hirado) — Where East met West">33.3636°N, 129.5533°E</div>
+  </footer>
+
+  <!-- HIRADO MODAL (Easter Egg) -->
+  <div class="hirado-overlay" id="hiradoOverlay">
+    <div class="hirado-modal">
+      <button class="hirado-close" id="hiradoClose">✕</button>
+      <div class="hirado-header">
+        <div class="torii">⛩️</div>
+        <h2 id="hiradoTitle">平戸 — Hirado</h2>
+        <p id="hiradoSubtitle">長崎県平戸市 · 東西交流の原点</p>
+      </div>
+      <div id="hiradoFacts">
+        <div class="hirado-fact">
+          <strong>🏯 歴史:</strong> 1550年、ポルトガル船が初めて入港。日本初の西洋貿易港として、オランダ・イギリスの商館が設置されました。
+        </div>
+        <div class="hirado-fact">
+          <strong>⛪ 信仰:</strong> キリシタンの歴史が深く、聖フランシスコ・ザビエル記念教会は平戸のシンボルです。寺院と教会が共存する独特の風景。
+        </div>
+        <div class="hirado-fact">
+          <strong>🌊 自然:</strong> 美しい海岸線と生月島の断崖絶壁。新鮮な海の幸、特にアゴ（飛魚）出汁は絶品です。
+        </div>
+        <div class="hirado-fact">
+          <strong>🌉 松浦家:</strong> 平戸藩主・松浦氏は約900年間この地を治めました。松浦史料博物館には貴重な南蛮文化の資料が残されています。
+        </div>
+      </div>
+      <div class="hirado-poem" id="hiradoPoem">
+        遥かなる 平戸の海に<br>
+        風は吹き 歴史を紡ぐ
+      </div>
+    </div>
   </div>
 
   <script>
-    // ----- ユーティリティ: 現在のindex.htmlがappフォルダの内外どちらにあっても動作するようにパスを自動計算 -----
+    // ===== PATH PREFIX =====
     const APP_PREFIX = (() => {
       const p = location.pathname.replace(/\\/g, '/');
       return /\/app(?:\/|$)/i.test(p) ? '' : 'app/';
     })();
 
-    // ----- 多言語テキスト -----
+    // ===== TRANSLATIONS =====
     const translations = {
-      ja:{subtitle:'使いたいツールを選択してください。数字キー<b>1-6</b>ですぐに開けます。',searchPlaceholder:'検索：タイトル、説明、タグ…',hint:'新しいアプリを追加するには、下の<code>apps</code>配列に項目を追加してください。',footer:'© Prompt Hub • ローカルで動作します。',apps:[
-        {title:'テンプレート生成器',desc:'GHES/CRISPE/CAPE/5W1Hなどで多言語プロンプトテンプレート生成',tags:['テンプレート','多言語','フレームワーク']},
-        {title:'プロンプトライブラリ',desc:'カテゴリ・タスク整理、ドラッグ&ドロップ、エクスポート/インポート',tags:['ライブラリ','ドラッグ','保存']},
-        {title:'Azure OpenAI ガイド',desc:'Azureベースのモデル(GPT-4.1/4o)の特徴、運用ヒント、API使用法のまとめ',tags:['ガイド','Azure','運用']},
-        {title:'Copilot GPT-5 ガイド',desc:'CopilotベースのGPT-5のマルチモーダル機能、高度な推論、ユースケースのまとめ',tags:['ガイド','Copilot','GPT-5']},
-        {title:'CoTプロンプト生成器',desc:'思考の連鎖(Chain of Thought)技術を活用して、論理的なプロンプトを生成します。',tags:['CoT','論理','思考の連鎖']},
-        {title:'自動車工学問題解決プロンプトジェネレーター',desc:'技術文書の検索とレポート生成のためのプロンプトを体系的に構成します。',tags:['自動車','エンジニアリング','問題解決','RAG']}
-      ]},
-      zh:{subtitle:'选择您想要的工具。也可以用数字键<b>1-6</b>直接打开。',searchPlaceholder:'搜索：标题、描述、标签…',hint:'要添加新应用，请在下面的<code>apps</code>数组中添加项目。',footer:'© Prompt Hub • 本地运行。',apps:[
-        {title:'模板生成器',desc:'使用GHES/CRISPE/CAPE/5W1H等框架生成多语言提示模板',tags:['模板','多语言','框架']},
-        {title:'提示库',desc:'分类任务整理，拖拽功能，导出/导入',tags:['库','拖拽','保存']},
-        {title:'Azure OpenAI 指南',desc:'基于Azure的模型(GPT-4.1/4o)的功能、操作技巧和API用法摘要',tags:['指南','Azure','操作']},
-        {title:'Copilot GPT-5 指南',desc:'基于Copilot的GPT-5的多模态功能、高级推理和用例摘要',tags:['指南','Copilot','GPT-5']},
-        {title:'CoT提示生成器',desc:'使用思维链(Chain of Thought)技术生成逻辑性强的提示。',tags:['CoT','逻辑','思维链']},
-        {title:'汽车工程问题解决提示生成器',desc:'系统地构建用于技术文档搜索和报告生成的提示。',tags:['汽车','工程','问题解决','RAG']}
-      ]},
-      en:{subtitle:'Choose the tool you want. You can also open directly with number keys <b>1-6</b>.',searchPlaceholder:'Search: title, description, tags…',hint:'To add new apps, just add items to the <code>apps</code> array below.',footer:'© Prompt Hub • Works locally.',apps:[
-        {title:'Template Generator',desc:'Generate multilingual prompt templates with GHES/CRISPE/CAPE/5W1H frameworks',tags:['template','multilingual','framework']},
-        {title:'Prompt Library',desc:'Category & task organization, drag & drop, export/import',tags:['library','drag','save']},
-        {title:'Azure OpenAI Guide',desc:'Summary of features, operational tips, and API usage for Azure-based models (GPT-4.1/4o)',tags:['guide','azure','operations']},
-        {title:'Copilot GPT-5 Guide',desc:'Summary of multimodal features, advanced reasoning, and use cases for Copilot-based GPT-5',tags:['guide','copilot','gpt-5']},
-        {title:'CoT Prompt Generator',desc:'Generates logical prompts using the Chain of Thought (CoT) technique.',tags:['CoT','reasoning','chain of thought']},
-        {title:'Automotive Engineering Problem Solver',desc:'Systematically constructs prompts for technical document search and report generation.',tags:['automotive','engineering','problem solving','RAG']}
-      ]},
-      ko:{subtitle:'원하는 도구를 선택하세요. 숫자키 <b>1-6</b>으로도 바로 열 수 있습니다.',searchPlaceholder:'검색: 제목, 설명, 태그…',hint:'새 앱을 추가하려면 아래 <code>apps</code> 배열에 항목만 더하세요.',footer:'© Prompt Hub • 로컬에서 작동합니다.',apps:[
-        {title:'템플릿 생성기',desc:'GHES/CRISPE/CAPE/5W1H 등으로 다국어 프롬프트 템플릿 생성',tags:['템플릿','다국어','프레임워크']},
-        {title:'프롬프트 라이브러리',desc:'카테고리·태스크 정리, 드래그&드롭, 내보내기/가져오기',tags:['라이브러리','드래그','저장']},
-        {title:'Azure OpenAI 가이드',desc:'Azure 기반 모델(GPT-4.1/4o)의 특징, 운영 팁, API 사용법 정리',tags:['가이드','Azure','운영']},
-        {title:'Copilot GPT-5 가이드',desc:'Copilot 기반 GPT-5의 멀티모달 기능, 고급 추론, 활용 사례 정리',tags:['가이드','Copilot','GPT-5']},
-        {title:'CoT 프롬프트 생성기',desc:'생각의 사슬(Chain of Thought) 기법을 활용하여 논리적인 프롬프트를 생성합니다.',tags:['CoT','논리','생각의 사슬']},
-        {title:'RAG 훈련 생성기',desc:'기술 문서 검색 및 보고서 생성을 위한 프롬프트를 체계적으로 구성합니다.',tags:['자동차','엔지니어링','문제 해결','RAG']}
-      ]},
-      es:{subtitle:'Elige la herramienta que desees. También puedes abrir directamente con las teclas numéricas <b>1-6</b>.',searchPlaceholder:'Buscar: título, descripción, etiquetas…',hint:'Para agregar nuevas aplicaciones, simplemente agrega elementos al array <code>apps</code> a continuación.',footer:'© Prompt Hub • Funciona localmente.',apps:[
-        {title:'Generador de Plantillas',desc:'Genera plantillas de prompts multiidioma con marcos GHES/CRISPE/CAPE/5W1H',tags:['plantilla','multiidioma','marco']},
-        {title:'Biblioteca de Prompts',desc:'Organización de categorías y tareas, arrastrar y soltar, exportar/importar',tags:['biblioteca','arrastrar','guardar']},
-        {title:'Guía de Azure OpenAI',desc:'Resumen de características, consejos operativos y uso de la API para modelos basados en Azure (GPT-4.1/4o)',tags:['guía','azure','operaciones']},
-        {title:'Guía de Copilot GPT-5',desc:'Resumen de funciones multimodales, razonamiento avanzado y casos de uso para GPT-5 basado en Copilot',tags:['guía','copilot','gpt-5']},
-        {title:'Generador de Prompts CoT',desc:'Genera prompts lógicos utilizando la técnica de Cadena de Pensamiento (Chain of Thought).',tags:['CoT','razonamiento','cadena de pensamiento']},
-        {title:'Generador de Prompts para Solución de Problemas de Ingeniería Automotriz',desc:'Construye sistemáticamente prompts para la búsqueda de documentos técnicos y la generación de informes.',tags:['automotriz','ingeniería','solución de problemas','RAG']}
-      ]},
-      th:{subtitle:'เลือกเครื่องมือที่คุณต้องการ คุณยังสามารถเปิดได้โดยตรงด้วยปุ่มตัวเลข <b>1-6</b>',searchPlaceholder:'ค้นหา: ชื่อ, คำอธิบาย, แท็ก…',hint:'หากต้องการเพิ่มแอปใหม่ เพียงเพิ่มรายการลงในอาร์เรย์ <code>apps</code> ด้านล่าง',footer:'© Prompt Hub • ทำงานในเครื่อง',apps:[
-        {title:'เครื่องมือสร้างเทมเพลต',desc:'สร้างเทมเพลตพรอมต์หลายภาษาด้วยเฟรมเวิร์ก GHES/CRISPE/CAPE/5W1H',tags:['เทมเพลต','หลายภาษา','เฟรมเวิร์ก']},
-        {title:'ไลบรารีพรอมต์',desc:'การจัดหมวดหมู่และงาน, ลากและวาง, ส่งออก/นำเข้า',tags:['ไลบรารี','ลาก','บันทึก']},
-        {title:'คู่มือ Azure OpenAI',desc:'สรุปคุณสมบัติ เคล็ดลับการปฏิบัติงาน และการใช้ API สำหรับโมเดลบน Azure (GPT-4.1/4o)',tags:['คู่มือ','azure','การปฏิบัติงาน']},
-        {title:'คู่มือ Copilot GPT-5',desc:'สรุปคุณสมบัติหลายรูปแบบ การให้เหตุผลขั้นสูง และกรณีการใช้งานสำหรับ GPT-5 ที่ใช้ Copilot',tags:['คู่มือ','copilot','gpt-5']},
-        {title:'เครื่องมือสร้างพรอมต์ CoT',desc:'สร้างพรอมต์เชิงตรรกะโดยใช้เทคนิค Chain of Thought (CoT)',tags:['CoT','การให้เหตุผล','chain of thought']},
-        {title:'เครื่องมือแก้ปัญหาด้านวิศวกรรมยานยนต์',desc:'สร้างพรอมต์สำหรับการค้นหาเอกสารทางเทคนิคและการสร้างรายงานอย่างเป็นระบบ',tags:['ยานยนต์','วิศวกรรม','การแก้ปัญหา','RAG']}
-      ]},
-      fr:{subtitle:'Choisissez l\'outil que vous voulez. Vous pouvez aussi ouvrir directement avec les touches numériques <b>1-6</b>.',searchPlaceholder:'Rechercher : titre, description, étiquettes…',hint:'Pour ajouter de nouvelles applications, ajoutez simplement des éléments au tableau <code>apps</code> ci-dessous.',footer:'© Prompt Hub • Fonctionne en local.',apps:[
-        {title:'Générateur de Modèles',desc:'Générez des modèles de prompts multilingues avec les frameworks GHES/CRISPE/CAPE/5W1H',tags:['modèle','multilingue','framework']},
-        {title:'Bibliothèque de Prompts',desc:'Organisation par catégories et tâches, glisser-déposer, exporter/importer',tags:['bibliothèque','glisser','sauvegarder']},
-        {title:'Guide Azure OpenAI',desc:'Résumé des fonctionnalités, conseils opérationnels et utilisation de l\'API pour les modèles basés sur Azure (GPT-4.1/4o)',tags:['guide','azure','opérations']},
-        {title:'Guide Copilot GPT-5',desc:'Résumé des fonctionnalités multimodales, du raisonnement avancé et des cas d\'utilisation pour GPT-5 basé sur Copilot',tags:['guide','copilot','gpt-5']},
-        {title:'Générateur de Prompts CoT',desc:'Génère des prompts logiques en utilisant la technique de la Chaîne de Pensée (Chain of Thought).',tags:['CoT','raisonnement','chaîne de pensée']},
-        {title:'Générateur de Prompts pour la Résolution de Problèmes en Ingénierie Automobile',desc:'Construit systématiquement des prompts pour la recherche de documents techniques et la génération de rapports.',tags:['automobile','ingénierie','résolution de problèmes','RAG']}
-      ]}
+      ja: {
+        heroTagline: '<span class="sea">最適な</span>プロンプトを、<br><span class="accent">すぐに</span>使おう。',
+        heroDesc: '数字キー <kbd>1</kbd>～<kbd>6</kbd> で直接アクセス。検索で素早くフィルタリングできます。',
+        searchPlaceholder: 'タイトル、説明、タグで検索…',
+        footer: '© 2025 Prompt Book — ローカルで動作します。',
+        hiradoTitle: '平戸 — Hirado',
+        hiradoSubtitle: '長崎県平戸市 · 東西交流の原点',
+        hiradoFacts: [
+          { icon: '🏯', label: '歴史', text: '1550年、ポルトガル船が初めて入港。日本初の西洋貿易港として、オランダ・イギリスの商館が設置されました。' },
+          { icon: '⛪', label: '信仰', text: 'キリシタンの歴史が深く、聖フランシスコ・ザビエル記念教会は平戸のシンボルです。寺院と教会が共存する独特の風景。' },
+          { icon: '🌊', label: '自然', text: '美しい海岸線と生月島の断崖絶壁。新鮮な海の幸、特にアゴ（飛魚）出汁は絶品です。' },
+          { icon: '🌉', label: '松浦家', text: '平戸藩主・松浦氏は約900年間この地を治めました。松浦史料博物館には貴重な南蛮文化の資料が残されています。' }
+        ],
+        hiradoPoem: '遥かなる 平戸の海に<br>風は吹き 歴史を紡ぐ',
+        apps: [
+          { title: 'テンプレート生成器', desc: 'GHES/CRISPE/CAPE/5W1Hなどで多言語プロンプトテンプレート生成', tags: ['テンプレート', '多言語', 'フレームワーク'] },
+          { title: 'プロンプトライブラリ', desc: 'カテゴリ・タスク整理、ドラッグ&ドロップ、エクスポート/インポート', tags: ['ライブラリ', 'ドラッグ', '保存'] },
+          { title: 'Azure OpenAI ガイド', desc: 'Azure基盤モデル(GPT-4.1/4o)の特徴、運用ヒント、API使用法のまとめ', tags: ['ガイド', 'Azure', '運用'] },
+          { title: 'Copilot GPT-5 ガイド', desc: 'Copilot基盤GPT-5のマルチモーダル機能、高度な推論、ユースケース', tags: ['ガイド', 'Copilot', 'GPT-5'] },
+          { title: 'CoTプロンプト生成器', desc: '思考の連鎖(Chain of Thought)技術を活用して、論理的なプロンプトを生成', tags: ['CoT', '論理', '思考の連鎖'] },
+          { title: '自動車工学プロンプト', desc: '技術文書の検索とレポート生成のためのプロンプトを体系的に構成', tags: ['自動車', 'エンジニアリング', 'RAG'] }
+        ]
+      },
+      ko: {
+        heroTagline: '<span class="sea">최적의</span> 프롬프트를,<br><span class="accent">바로</span> 사용하세요.',
+        heroDesc: '숫자키 <kbd>1</kbd>~<kbd>6</kbd>으로 바로 접근. 검색으로 빠르게 필터링할 수 있습니다.',
+        searchPlaceholder: '제목, 설명, 태그로 검색…',
+        footer: '© 2025 Prompt Book — 로컬에서 작동합니다.',
+        hiradoTitle: '히라도 — Hirado',
+        hiradoSubtitle: '나가사키현 히라도시 · 동서교류의 원점',
+        hiradoFacts: [
+          { icon: '🏯', label: '역사', text: '1550년, 포르투갈 선박이 처음 입항. 일본 최초의 서양 무역항으로 네덜란드·영국 상관이 설치되었습니다.' },
+          { icon: '⛪', label: '신앙', text: '기독교 역사가 깊으며, 성 프란시스코 사비에르 기념교회는 히라도의 상징입니다. 사찰과 교회가 공존하는 독특한 풍경.' },
+          { icon: '🌊', label: '자연', text: '아름다운 해안선과 이키쓰키섬의 절벽. 신선한 해산물, 특히 아고(날치) 육수가 일품입니다.' },
+          { icon: '🌉', label: '마쓰라가', text: '히라도 번주 마쓰라씨는 약 900년간 이 땅을 다스렸습니다. 마쓰라 사료박물관에는 귀중한 난반 문화 자료가 남아 있습니다.' }
+        ],
+        hiradoPoem: '아득한 히라도의 바다에<br>바람이 불어 역사를 엮다',
+        apps: [
+          { title: '템플릿 생성기', desc: 'GHES/CRISPE/CAPE/5W1H 등으로 다국어 프롬프트 템플릿 생성', tags: ['템플릿', '다국어', '프레임워크'] },
+          { title: '프롬프트 라이브러리', desc: '카테고리·태스크 정리, 드래그&드롭, 내보내기/가져오기', tags: ['라이브러리', '드래그', '저장'] },
+          { title: 'Azure OpenAI 가이드', desc: 'Azure 기반 모델(GPT-4.1/4o)의 특징, 운영 팁, API 사용법 정리', tags: ['가이드', 'Azure', '운영'] },
+          { title: 'Copilot GPT-5 가이드', desc: 'Copilot 기반 GPT-5의 멀티모달 기능, 고급 추론, 활용 사례', tags: ['가이드', 'Copilot', 'GPT-5'] },
+          { title: 'CoT 프롬프트 생성기', desc: '생각의 사슬(Chain of Thought) 기법으로 논리적인 프롬프트 생성', tags: ['CoT', '논리', '생각의 사슬'] },
+          { title: '자동차공학 프롬프트', desc: '기술 문서 검색 및 보고서 생성을 위한 프롬프트를 체계적으로 구성', tags: ['자동차', '엔지니어링', 'RAG'] }
+        ]
+      },
+      en: {
+        heroTagline: 'Find the <span class="sea">perfect</span> prompt,<br>use it <span class="accent">instantly</span>.',
+        heroDesc: 'Press <kbd>1</kbd>–<kbd>6</kbd> for direct access. Search to filter quickly.',
+        searchPlaceholder: 'Search by title, description, or tags…',
+        footer: '© 2025 Prompt Book — Works locally, no data sent.',
+        hiradoTitle: 'Hirado — 平戸',
+        hiradoSubtitle: 'Nagasaki Prefecture · Where East Met West',
+        hiradoFacts: [
+          { icon: '🏯', label: 'History', text: 'In 1550, Portuguese ships first arrived. Hirado became Japan\'s first Western trading port, hosting Dutch and English trading houses.' },
+          { icon: '⛪', label: 'Faith', text: 'Deep Christian history — the St. Francis Xavier Memorial Church is Hirado\'s symbol. A unique landscape where temples and churches coexist.' },
+          { icon: '🌊', label: 'Nature', text: 'Beautiful coastlines and dramatic cliffs of Ikitsuki Island. Famous for fresh seafood, especially ago (flying fish) broth.' },
+          { icon: '🌉', label: 'Matsura Clan', text: 'The Matsura lords governed Hirado for ~900 years. The Matsura Museum preserves rare Nanban (Southern Barbarian) cultural artifacts.' }
+        ],
+        hiradoPoem: 'Across Hirado\'s ancient sea,<br>the wind still weaves its history.',
+        apps: [
+          { title: 'Template Generator', desc: 'Generate multilingual prompt templates with GHES/CRISPE/CAPE/5W1H frameworks', tags: ['template', 'multilingual', 'framework'] },
+          { title: 'Prompt Library', desc: 'Category & task organization, drag & drop, export/import', tags: ['library', 'drag', 'save'] },
+          { title: 'Azure OpenAI Guide', desc: 'Features, operational tips, and API usage for Azure-based models (GPT-4.1/4o)', tags: ['guide', 'Azure', 'operations'] },
+          { title: 'Copilot GPT-5 Guide', desc: 'Multimodal features, advanced reasoning, and use cases for Copilot GPT-5', tags: ['guide', 'Copilot', 'GPT-5'] },
+          { title: 'CoT Prompt Generator', desc: 'Generate logical prompts using the Chain of Thought technique', tags: ['CoT', 'reasoning', 'chain of thought'] },
+          { title: 'Auto Engineering Prompts', desc: 'Systematically construct prompts for technical document search and report generation', tags: ['automotive', 'engineering', 'RAG'] }
+        ]
+      },
+      zh: {
+        heroTagline: '找到<span class="sea">最佳</span>提示词，<br><span class="accent">立即</span>使用。',
+        heroDesc: '按数字键 <kbd>1</kbd>~<kbd>6</kbd> 直接访问。搜索快速过滤。',
+        searchPlaceholder: '按标题、描述、标签搜索…',
+        footer: '© 2025 Prompt Book — 本地运行，不发送数据。',
+        hiradoTitle: '平户 — Hirado',
+        hiradoSubtitle: '长崎县平户市 · 东西交流的原点',
+        hiradoFacts: [
+          { icon: '🏯', label: '历史', text: '1550年，葡萄牙船只首次入港。作为日本第一个西方贸易港口，设立了荷兰和英国的商馆。' },
+          { icon: '⛪', label: '信仰', text: '深厚的基督教历史——圣方济各·沙勿略纪念教堂是平户的象征。寺庙与教堂共存的独特景观。' },
+          { icon: '🌊', label: '自然', text: '美丽的海岸线和生月岛的悬崖峭壁。以新鲜海鲜闻名，尤其是飞鱼高汤。' },
+          { icon: '🌉', label: '松浦家', text: '平户藩主松浦氏治理此地约900年。松浦史料博物馆保存着珍贵的南蛮文化资料。' }
+        ],
+        hiradoPoem: '远眺平户之海<br>风吹历史长河',
+        apps: [
+          { title: '模板生成器', desc: '使用GHES/CRISPE/CAPE/5W1H等框架生成多语言提示模板', tags: ['模板', '多语言', '框架'] },
+          { title: '提示库', desc: '分类任务整理，拖拽功能，导出/导入', tags: ['库', '拖拽', '保存'] },
+          { title: 'Azure OpenAI 指南', desc: '基于Azure的模型(GPT-4.1/4o)的功能、操作技巧和API用法', tags: ['指南', 'Azure', '操作'] },
+          { title: 'Copilot GPT-5 指南', desc: '基于Copilot的GPT-5的多模态功能、高级推理和用例', tags: ['指南', 'Copilot', 'GPT-5'] },
+          { title: 'CoT提示生成器', desc: '使用思维链技术生成逻辑性强的提示', tags: ['CoT', '逻辑', '思维链'] },
+          { title: '汽车工程提示', desc: '系统构建用于技术文档搜索和报告生成的提示', tags: ['汽车', '工程', 'RAG'] }
+        ]
+      },
+      es: {
+        heroTagline: 'Encuentra el prompt <span class="sea">perfecto</span>,<br>úsalo <span class="accent">al instante</span>.',
+        heroDesc: 'Presiona <kbd>1</kbd>–<kbd>6</kbd> para acceso directo. Busca para filtrar rápidamente.',
+        searchPlaceholder: 'Buscar por título, descripción, etiquetas…',
+        footer: '© 2025 Prompt Book — Funciona localmente.',
+        hiradoTitle: 'Hirado — 平戸',
+        hiradoSubtitle: 'Prefectura de Nagasaki · Donde Este conoció al Oeste',
+        hiradoFacts: [
+          { icon: '🏯', label: 'Historia', text: 'En 1550, los barcos portugueses llegaron por primera vez. Hirado se convirtió en el primer puerto comercial occidental de Japón.' },
+          { icon: '⛪', label: 'Fe', text: 'Profunda historia cristiana — la Iglesia Memorial de San Francisco Javier es el símbolo de Hirado.' },
+          { icon: '🌊', label: 'Naturaleza', text: 'Hermosas costas y acantilados dramáticos de la isla Ikitsuki. Famosa por mariscos frescos.' },
+          { icon: '🌉', label: 'Clan Matsura', text: 'Los señores Matsura gobernaron Hirado durante ~900 años. El Museo Matsura preserva artefactos culturales Nanban.' }
+        ],
+        hiradoPoem: 'A través del mar antiguo de Hirado,<br>el viento aún teje su historia.',
+        apps: [
+          { title: 'Generador de Plantillas', desc: 'Genera plantillas de prompts multiidioma con marcos GHES/CRISPE/CAPE/5W1H', tags: ['plantilla', 'multiidioma', 'marco'] },
+          { title: 'Biblioteca de Prompts', desc: 'Organización de categorías y tareas, arrastrar y soltar, exportar/importar', tags: ['biblioteca', 'arrastrar', 'guardar'] },
+          { title: 'Guía Azure OpenAI', desc: 'Características, consejos operativos y uso de API para modelos Azure (GPT-4.1/4o)', tags: ['guía', 'Azure', 'operaciones'] },
+          { title: 'Guía Copilot GPT-5', desc: 'Funciones multimodales, razonamiento avanzado y casos de uso para Copilot GPT-5', tags: ['guía', 'Copilot', 'GPT-5'] },
+          { title: 'Generador de Prompts CoT', desc: 'Genera prompts lógicos utilizando la técnica de Cadena de Pensamiento', tags: ['CoT', 'razonamiento', 'cadena'] },
+          { title: 'Prompts de Ingeniería Automotriz', desc: 'Construye prompts para búsqueda de documentos técnicos y generación de informes', tags: ['automotriz', 'ingeniería', 'RAG'] }
+        ]
+      },
+      th: {
+        heroTagline: 'ค้นหาพรอมต์<span class="sea">ที่ดีที่สุด</span><br>ใช้งาน<span class="accent">ทันที</span>',
+        heroDesc: 'กดปุ่มตัวเลข <kbd>1</kbd>–<kbd>6</kbd> เพื่อเข้าถึงโดยตรง ค้นหาเพื่อกรองอย่างรวดเร็ว',
+        searchPlaceholder: 'ค้นหาตามชื่อ คำอธิบาย แท็ก…',
+        footer: '© 2025 Prompt Book — ทำงานในเครื่อง',
+        hiradoTitle: 'ฮิราโดะ — 平戸',
+        hiradoSubtitle: 'จังหวัดนางาซากิ · จุดบรรจบตะวันออกกับตะวันตก',
+        hiradoFacts: [
+          { icon: '🏯', label: 'ประวัติศาสตร์', text: 'ในปี 1550 เรือโปรตุเกสมาถึงเป็นครั้งแรก ฮิราโดะกลายเป็นท่าเรือค้าขายตะวันตกแห่งแรกของญี่ปุ่น' },
+          { icon: '⛪', label: 'ศรัทธา', text: 'ประวัติศาสตร์คริสเตียนอันยาวนาน — โบสถ์อนุสรณ์เซนต์ฟรานซิส เซเวียร์เป็นสัญลักษณ์ของฮิราโดะ' },
+          { icon: '🌊', label: 'ธรรมชาติ', text: 'ชายฝั่งที่สวยงามและหน้าผาของเกาะอิคิสึกิ มีชื่อเสียงด้านอาหารทะเลสด' },
+          { icon: '🌉', label: 'ตระกูลมัตสึระ', text: 'ตระกูลมัตสึระปกครองฮิราโดะเกือบ 900 ปี พิพิธภัณฑ์มัตสึระเก็บรักษาสิ่งประดิษฐ์วัฒนธรรมนันบัน' }
+        ],
+        hiradoPoem: 'ข้ามทะเลโบราณของฮิราโดะ<br>ลมยังคงถักทอประวัติศาสตร์',
+        apps: [
+          { title: 'เครื่องมือสร้างเทมเพลต', desc: 'สร้างเทมเพลตพรอมต์หลายภาษาด้วยเฟรมเวิร์ก GHES/CRISPE/CAPE/5W1H', tags: ['เทมเพลต', 'หลายภาษา', 'เฟรมเวิร์ก'] },
+          { title: 'ไลบรารีพรอมต์', desc: 'การจัดหมวดหมู่และงาน ลากและวาง ส่งออก/นำเข้า', tags: ['ไลบรารี', 'ลาก', 'บันทึก'] },
+          { title: 'คู่มือ Azure OpenAI', desc: 'คุณสมบัติ เคล็ดลับการปฏิบัติงาน และการใช้ API สำหรับโมเดล Azure', tags: ['คู่มือ', 'Azure', 'การปฏิบัติงาน'] },
+          { title: 'คู่มือ Copilot GPT-5', desc: 'คุณสมบัติหลายรูปแบบ การให้เหตุผลขั้นสูง และกรณีการใช้งาน', tags: ['คู่มือ', 'Copilot', 'GPT-5'] },
+          { title: 'เครื่องมือสร้างพรอมต์ CoT', desc: 'สร้างพรอมต์เชิงตรรกะโดยใช้เทคนิค Chain of Thought', tags: ['CoT', 'การให้เหตุผล', 'chain of thought'] },
+          { title: 'พรอมต์วิศวกรรมยานยนต์', desc: 'สร้างพรอมต์สำหรับการค้นหาเอกสารทางเทคนิคและการสร้างรายงาน', tags: ['ยานยนต์', 'วิศวกรรม', 'RAG'] }
+        ]
+      },
+      fr: {
+        heroTagline: 'Trouvez le prompt <span class="sea">parfait</span>,<br>utilisez-le <span class="accent">instantanément</span>.',
+        heroDesc: 'Appuyez sur <kbd>1</kbd>–<kbd>6</kbd> pour un accès direct. Recherchez pour filtrer rapidement.',
+        searchPlaceholder: 'Rechercher par titre, description, étiquettes…',
+        footer: '© 2025 Prompt Book — Fonctionne en local.',
+        hiradoTitle: 'Hirado — 平戸',
+        hiradoSubtitle: 'Préfecture de Nagasaki · Où l\'Est rencontra l\'Ouest',
+        hiradoFacts: [
+          { icon: '🏯', label: 'Histoire', text: 'En 1550, les navires portugais arrivèrent pour la première fois. Hirado devint le premier port commercial occidental du Japon.' },
+          { icon: '⛪', label: 'Foi', text: 'Une profonde histoire chrétienne — l\'église mémoriale Saint-François-Xavier est le symbole de Hirado.' },
+          { icon: '🌊', label: 'Nature', text: 'De magnifiques côtes et les falaises dramatiques de l\'île Ikitsuki. Célèbre pour ses fruits de mer frais.' },
+          { icon: '🌉', label: 'Clan Matsura', text: 'Les seigneurs Matsura ont gouverné Hirado pendant ~900 ans. Le musée Matsura préserve de rares artefacts culturels Nanban.' }
+        ],
+        hiradoPoem: 'À travers l\'ancienne mer de Hirado,<br>le vent tisse encore son histoire.',
+        apps: [
+          { title: 'Générateur de Modèles', desc: 'Générez des modèles de prompts multilingues avec les frameworks GHES/CRISPE/CAPE/5W1H', tags: ['modèle', 'multilingue', 'framework'] },
+          { title: 'Bibliothèque de Prompts', desc: 'Organisation par catégories et tâches, glisser-déposer, exporter/importer', tags: ['bibliothèque', 'glisser', 'sauvegarder'] },
+          { title: 'Guide Azure OpenAI', desc: 'Fonctionnalités, conseils opérationnels et utilisation de l\'API pour modèles Azure', tags: ['guide', 'Azure', 'opérations'] },
+          { title: 'Guide Copilot GPT-5', desc: 'Fonctionnalités multimodales, raisonnement avancé et cas d\'utilisation pour Copilot GPT-5', tags: ['guide', 'Copilot', 'GPT-5'] },
+          { title: 'Générateur de Prompts CoT', desc: 'Génère des prompts logiques en utilisant la technique de Chaîne de Pensée', tags: ['CoT', 'raisonnement', 'chaîne'] },
+          { title: 'Prompts d\'Ingénierie Automobile', desc: 'Construit des prompts pour la recherche de documents techniques et la génération de rapports', tags: ['automobile', 'ingénierie', 'RAG'] }
+        ]
+      }
     };
 
-    // ----- アプリのメタデータ (ファイル名は app/ フォルダ基準) -----
+    // ===== APP METADATA =====
     const baseApps = [
-      { id:'template-gen',  emoji:'🚀', file:'prompt-template-generator.html' },
-      { id:'prompt-library',emoji:'📚', file:'prompt_lib.html' },
-      { id:'azure-guide',   emoji:'☁️', file:'azure_openai_guide.html' },
-      { id:'copilot-guide', emoji:'🤖', file:'copilot_gpt5_guide.html' },
-      { id:'cot-prompt-gen',emoji:'💡', file:'cot-prompt-generator.html' },
-      { id:'auto-solver',   emoji:'🚗', file:'cot-prompt-generator-rag-train.html' }
+      { id: 'template-gen',   emoji: '🚀', file: 'prompt-template-generator.html' },
+      { id: 'prompt-library', emoji: '📚', file: 'prompt_lib.html' },
+      { id: 'azure-guide',    emoji: '☁️', file: 'azure_openai_guide.html' },
+      { id: 'copilot-guide',  emoji: '🤖', file: 'copilot_gpt5_guide.html' },
+      { id: 'cot-prompt-gen', emoji: '💡', file: 'cot-prompt-generator.html' },
+      { id: 'auto-solver',    emoji: '🔧', file: 'cot-prompt-generator-rag-train.html' }
     ];
 
-    // ----- DOM要素 -----
+    // ===== DOM =====
     const $grid = document.getElementById('grid');
     const $q = document.getElementById('q');
     const $langSelect = document.getElementById('langSelect');
-    const $subtitle = document.getElementById('subtitle');
-    const $hint = document.getElementById('hint');
+    const $heroTagline = document.getElementById('heroTagline');
+    const $heroDesc = document.getElementById('heroDesc');
     const $footer = document.getElementById('footer');
+    const $hiradoBtn = document.getElementById('hiradoBtn');
+    const $hiradoOverlay = document.getElementById('hiradoOverlay');
+    const $hiradoClose = document.getElementById('hiradoClose');
 
     let currentLang = 'ja';
     let currentApps = [];
 
+    // ===== HIRADO MODAL =====
+    $hiradoBtn.addEventListener('click', () => {
+      $hiradoOverlay.classList.add('active');
+      updateHiradoModal(currentLang);
+    });
+
+    $hiradoClose.addEventListener('click', () => {
+      $hiradoOverlay.classList.remove('active');
+    });
+
+    $hiradoOverlay.addEventListener('click', (e) => {
+      if (e.target === $hiradoOverlay) $hiradoOverlay.classList.remove('active');
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') $hiradoOverlay.classList.remove('active');
+    });
+
+    function updateHiradoModal(lang) {
+      const t = translations[lang];
+      document.getElementById('hiradoTitle').textContent = t.hiradoTitle;
+      document.getElementById('hiradoSubtitle').textContent = t.hiradoSubtitle;
+      
+      const factsContainer = document.getElementById('hiradoFacts');
+      factsContainer.innerHTML = t.hiradoFacts.map(f =>
+        `<div class="hirado-fact"><strong>${f.icon} ${f.label}:</strong> ${f.text}</div>`
+      ).join('');
+
+      document.getElementById('hiradoPoem').innerHTML = t.hiradoPoem;
+    }
+
+    // ===== LANGUAGE =====
     function updateLanguage(lang) {
       currentLang = lang;
       const t = translations[lang];
 
-      // インターフェースのテキスト更新
-      $subtitle.innerHTML = t.subtitle;
+      $heroTagline.innerHTML = t.heroTagline;
+      $heroDesc.innerHTML = t.heroDesc;
       $q.placeholder = t.searchPlaceholder;
-      $hint.innerHTML = t.hint;
       $footer.innerHTML = t.footer;
 
-      // アプリデータ（言語を適用）
       currentApps = baseApps.map((app, i) => ({
         ...app,
         href: APP_PREFIX + app.file,
         title: t.apps[i].title,
-        desc:  t.apps[i].desc,
-        tags:  t.apps[i].tags
+        desc: t.apps[i].desc,
+        tags: t.apps[i].tags
       }));
 
       document.documentElement.lang = lang;
-      const titleSuffix = {ja:'選択ページ', zh:'选择页面', en:'Selection Page', ko:'선택 페이지', es:'Página de Selección', th:'หน้าเลือก', fr:'Page de Sélection'};
-      document.title = `✨ Prompt Hub — ${titleSuffix[lang]}`;
-      localStorage.setItem('prompthub-lang', lang);
+      document.title = '📖 Prompt Book';
+      localStorage.setItem('promptbook-lang', lang);
       filter();
     }
 
+    // ===== RENDER =====
     function render(list) {
       $grid.innerHTML = '';
+
+      if (list.length === 0) {
+        $grid.innerHTML = `
+          <div class="no-results">
+            <div class="no-results-icon">🔍</div>
+            <div class="no-results-text">No results found</div>
+          </div>
+        `;
+        return;
+      }
+
       list.forEach((app, i) => {
         const a = document.createElement('a');
         a.className = 'card';
         a.href = app.href;
-        a.setAttribute('aria-label', `${app.title} を開く`);
-
-        const visual = app.img
-          ? `<img class="thumb" src="${app.img}" alt="" loading="lazy">`
-          : `<div class="emoji" aria-hidden="true">${app.emoji || '📦'}</div>`;
+        a.setAttribute('aria-label', `${app.title}`);
+        a.style.animationDelay = `${i * 0.05}s`;
 
         a.innerHTML = `
-          <div class="idx">#${i+1}</div>
-          <div class="visual">${visual}</div>
-          <div class="title">${app.title}</div>
-          <p class="desc">${app.desc}</p>
-          <div class="tags">${(app.tags||[]).map(t=>`<span class="tag">#${t}</span>`).join('')}</div>
+          <div class="card-header">
+            <div class="card-icon">${app.emoji || '📦'}</div>
+            <span class="card-num">${String(i + 1).padStart(2, '0')}</span>
+          </div>
+          <div class="card-title">${app.title}</div>
+          <p class="card-desc">${app.desc}</p>
+          <div class="card-tags">${(app.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
         `;
         $grid.appendChild(a);
       });
     }
 
+    // ===== SEARCH =====
     function filter() {
-      const key = ($q.value||'').trim().toLowerCase();
-      
-      if(!key){ render(currentApps); document.onkeydown=null; return; }
+      const key = ($q.value || '').trim().toLowerCase();
+
+      if (!key) { render(currentApps); return; }
       const out = currentApps.filter(a =>
         a.title.toLowerCase().includes(key) ||
-        a.desc.toLowerCase().includes(key)  ||
-        (a.tags||[]).some(t => t.toLowerCase().includes(key))
+        a.desc.toLowerCase().includes(key) ||
+        (a.tags || []).some(t => t.toLowerCase().includes(key))
       );
       render(out);
-      if(out.length===1){
-        document.onkeydown = e => { if(e.key==='Enter'){ location.href = out[0].href; } };
-      }else{
-        document.onkeydown = null;
-      }
     }
 
-    // 数字キーでアプリを開く
-    document.addEventListener('keydown', e => {
-      if(/^[1-6]$/.test(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey){
-        const idx = Number(e.key)-1;
-        if(currentApps[idx]) location.href = currentApps[idx].href;
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Number keys 1-6 to open apps
+      if (/^[1-6]$/.test(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey && document.activeElement !== $q) {
+        const idx = Number(e.key) - 1;
+        if (currentApps[idx]) location.href = currentApps[idx].href;
+      }
+      // "/" to focus search
+      if (e.key === '/' && document.activeElement !== $q) {
+        e.preventDefault();
+        $q.focus();
       }
     });
 
-    // イベントリスナーの設定
-    $langSelect.addEventListener('change', e => updateLanguage(e.target.value));
+    // Enter to open single result
+    $q.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const key = $q.value.trim().toLowerCase();
+        const matches = currentApps.filter(a =>
+          a.title.toLowerCase().includes(key) ||
+          a.desc.toLowerCase().includes(key) ||
+          (a.tags || []).some(t => t.toLowerCase().includes(key))
+        );
+        if (matches.length === 1) location.href = matches[0].href;
+      }
+    });
+
+    // Easter Egg #6: Konami-style → type "hirado" anywhere to open the modal
+    let secretBuffer = '';
+    document.addEventListener('keypress', (e) => {
+      if (document.activeElement === $q) return;
+      secretBuffer += e.key.toLowerCase();
+      if (secretBuffer.length > 10) secretBuffer = secretBuffer.slice(-10);
+      if (secretBuffer.includes('hirado')) {
+        $hiradoOverlay.classList.add('active');
+        updateHiradoModal(currentLang);
+        secretBuffer = '';
+      }
+    });
+
+    // ===== EVENT LISTENERS =====
+    $langSelect.addEventListener('change', (e) => updateLanguage(e.target.value));
     $q.addEventListener('input', filter);
 
-    // 初期化
-    const savedLang = localStorage.getItem('prompthub-lang') || 'ja';
+    // ===== INIT =====
+    const savedLang = localStorage.getItem('promptbook-lang') || 'ja';
     $langSelect.value = savedLang;
     updateLanguage(savedLang);
   </script>
