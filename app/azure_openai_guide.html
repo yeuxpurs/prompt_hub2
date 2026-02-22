@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Azure OpenAI GPT-4 모델 완전 가이드 (수정본)</title>
+    <title>Azure OpenAI 최신 모델 가이드 (GPT-5.1 포함) • 2026-02-22</title>
     <style>
         /* 기본 스타일 (변경 없음) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -54,13 +54,27 @@
         .copy-btn { position: absolute; top: 10px; right: 10px; padding: 5px 10px; font-size: 0.8rem; }
         .recommended { color: #28a745; font-weight: bold; font-size: 0.9rem; }
         mark { background: #fff3cd; padding: 2px 4px; border-radius: 3px; color: #333; }
-    </style>
+    
+        /* --- 2026-02-22 업데이트: GPT-5.1 반영 및 UI 개선 --- */
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 15px; }
+        .comparison-table { min-width: 980px; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); color: #fff; vertical-align: middle; }
+        .muted { color: #555; font-size: 0.95rem; }
+        .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 800; background: #eef2ff; color: #3b4cca; border: 1px solid #dfe6ff; }
+        .pill.preview { background: #fff3cd; color: #8a6d3b; border-color: #ffeeba; }
+        .pill.reasoning { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
+        .footer { margin-top: 2.5rem; padding: 1.5rem; text-align: center; color: rgba(255,255,255,0.9); }
+        .footer a { color: #fff; text-decoration: underline; }
+        .footer small { display: block; margin-top: 0.5rem; opacity: 0.9; line-height: 1.5; }
+        pre { margin: 0; }
+</style>
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1>🚀 Azure OpenAI GPT-4 모델 완전 가이드</h1>
-            <p>GPT-4o, GPT-4o-mini, GPT-4.1, GPT-4.1-mini 마스터하기</p>
+            <h1>🚀 Azure OpenAI 최신 모델 가이드 <span class="badge">GPT‑5.1 반영</span></h1>
+            <p>GPT-5.1 · GPT-4.1 · GPT-4o 계열을 “업무 특성” 기준으로 빠르게 선택하고 안전하게 운영하기</p>
+            <p style="margin-top: 0.75rem; font-size: 0.95rem; opacity: 0.9;">마지막 업데이트: <strong>2026-02-22</strong></p>
         </header>
 
         <!-- DEBUG: onclick 핸들러에 'this'를 전달하여 클릭된 요소를 명확히 식별하도록 수정 -->
@@ -74,26 +88,139 @@
 
         <!-- 모델 비교 섹션 -->
         <section class="content-section active" id="overview">
-            <h2>📊 GPT-4 계열 모델 종합 비교</h2>
-            <div class="warning-box"><strong>⚠️ 중요:</strong> 사내 Azure OpenAI Chat(웹 UI)은 텍스트 전용입니다. Vision 기능과 1M 토큰 컨텍스트는 API 호출을 통해서만 사용 가능합니다.</div>
-            <table class="comparison-table">
-                <thead><tr><th>기능/특징</th><th>GPT-4o</th><th>GPT-4o-mini</th><th>GPT-4.1</th><th>GPT-4.1-mini</th></tr></thead>
-                <tbody>
-                    <tr><td><strong>핵심 강점</strong></td><td>고정밀 밸런스<br>다국어, 함수 호출 우수</td><td>비용 효율성 및 속도<br>99.99% SLA 보장</td><td>초장문 처리 및 최고 정확도<br>최대 1M 토큰</td><td>효율 중심 장문 처리<br>1M 토큰, 속도·비용 절감</td></tr>
-                    <tr><td><strong>컨텍스트 토큰</strong></td><td>128K</td><td>128K</td><td>최대 1M</td><td>1M</td></tr>
-                    <tr><td><strong>Vision 입력</strong></td><td>✅ API 전용</td><td>✅ API 전용</td><td>✅ API 전용</td><td>✅ API 전용</td></tr>
-                    <tr><td><strong>정확도 수준</strong></td><td>매우 높음</td><td>높음</td><td>가장 높음</td><td>높음</td></tr>
-                    <tr><td><strong>응답 속도</strong></td><td>빠름</td><td>매우 빠름</td><td>보통</td><td>빠름</td></tr>
-                    <tr><td><strong>비용 효율성</strong></td><td>중간</td><td>매우 높음</td><td>낮음</td><td>높음</td></tr>
-                </tbody>
-            </table>
+            <h2>📊 Azure OpenAI 모델 종합 비교 <span class="pill reasoning">GPT‑5.1</span></h2>
+
+            <div class="warning-box">
+                <strong>⚠️ 체크 포인트 (Azure 기준)</strong>
+                <ul style="margin-top: 0.75rem; padding-left: 1.2rem;">
+                    <li><strong>Reasoning 모델(예: GPT-5.1)</strong>은 <code>reasoning_effort</code> 같은 전용 파라미터가 있고, <code>temperature</code> 등 일부 파라미터는 조건부(또는 미지원)일 수 있습니다.</li>
+                    <li><strong>컨텍스트 한도</strong>는 “모델 스펙”과 “배포 타입(표준/프로비저닝/배치)”에 따라 실제로 쓸 수 있는 최대치가 달라질 수 있습니다.</li>
+                    <li><span class="pill preview">Preview</span> 모델은 프로덕션에 비추천이며, 동일 배포가 자동 업그레이드될 수 있습니다.</li>
+                    <li><strong>제한 액세스(등록/승인)</strong>가 필요한 모델이 있습니다(구독 단위).</li>
+                </ul>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>모델 (Azure Model ID)</th>
+                            <th>API</th>
+                            <th>성격</th>
+                            <th>컨텍스트 / 입력 / 출력</th>
+                            <th>학습 데이터(컷오프)</th>
+                            <th>추천 용도</th>
+                            <th>주의사항</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>GPT-5.1</strong><br><span class="muted">gpt-5.1 (2025-11-13)</span></td>
+                            <td>Chat + Responses</td>
+                            <td><span class="pill reasoning">Reasoning</span> (선택형)</td>
+                            <td>400k / 272k / 128k</td>
+                            <td>2024-09-30</td>
+                            <td>복잡한 추론·계획·에이전트, 코드 생성/리팩터링, 장문 리포트 생성</td>
+                            <td><code>reasoning_effort</code> 기본값 <code>none</code> → “생각”이 필요하면 명시 / 제한 액세스 가능</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GPT-5.1-chat</strong><br><span class="muted">gpt-5.1-chat (2025-11-13)</span></td>
+                            <td>Chat + Responses</td>
+                            <td><span class="pill preview">Preview</span> <span class="pill reasoning">Reasoning</span> (내장)</td>
+                            <td>128k / 111,616 / 16,384</td>
+                            <td>2024-09-30</td>
+                            <td>대화형 UI, 빠른 PoC, “기본 추론 포함” 챗 경험</td>
+                            <td>Reasoning 모델은 <code>temperature</code> 등 파라미터 미지원 가능 / Preview는 프로덕션 비추천</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GPT-4.1</strong><br><span class="muted">gpt-4.1 (2025-04-14)</span></td>
+                            <td>Chat + Responses</td>
+                            <td>Non‑reasoning</td>
+                            <td>1,047,576* / ‑ / 32,768</td>
+                            <td>2024-05-31</td>
+                            <td>초장문 입력(대규모 문서/코드베이스), 지시따르기, 도구호출/구조화 출력</td>
+                            <td>*배포 타입에 따라 요청 한도 128k/300k 등 / 도구 정의가 매우 크면 실패 가능</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GPT-4.1-mini</strong><br><span class="muted">gpt-4.1-mini (2025-04-14)</span></td>
+                            <td>Chat + Responses</td>
+                            <td>Non‑reasoning (smaller/faster)</td>
+                            <td>1,047,576* / ‑ / 32,768</td>
+                            <td>2024-05-31</td>
+                            <td>장문 처리 + 지연/비용 절충(요약·분류·RAG 통합)</td>
+                            <td>*배포 타입별 요청 한도 동일 / “long context” 목적이면 우선 후보</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GPT-4o</strong><br><span class="muted">gpt-4o (2024-11-20 / 2024-08-06)</span></td>
+                            <td>Chat (Azure)</td>
+                            <td>Omni (멀티모달)</td>
+                            <td>128k / 128k / 16,384**</td>
+                            <td>2023-10</td>
+                            <td>범용 업무, 다국어/이미지 포함 분석, 기획/커뮤니케이션</td>
+                            <td>**초기 버전(2024-05-13)은 출력 4,096 / “버전” 확인 권장</td>
+                        </tr>
+                        <tr>
+                            <td><strong>GPT-4o-mini</strong><br><span class="muted">gpt-4o-mini (2024-07-18)</span></td>
+                            <td>Chat (Azure)</td>
+                            <td>Mini (고처리량)</td>
+                            <td>128k / 128k / 16,384</td>
+                            <td>2023-10</td>
+                            <td>대량 처리(분류·요약·라우팅), 실시간 챗봇, 비용/속도 우선</td>
+                            <td>GPT‑3.5 Turbo 대체 포지션 / JSON Mode·병렬 Tool 호출 지원</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="info-box">
+                <strong>✨ 한 줄 요약</strong>
+                <ul style="margin-top: 0.75rem; padding-left: 1.2rem;">
+                    <li><strong>GPT-5.1</strong> = 추론/에이전트/코딩 최우선 (필요 시 <code>reasoning_effort</code>를 올려 “생각”을 켜기)</li>
+                    <li><strong>GPT-4.1</strong> = (비추론) 장문 입력 + 지시따르기 + 도구호출, 컨텍스트가 가장 큰 계열</li>
+                    <li><strong>GPT-4o</strong> = 범용 멀티모달/다국어 밸런스</li>
+                    <li><strong>mini</strong> = 속도/비용 우선의 대량 처리</li>
+                </ul>
+            </div>
+
             <div class="interactive-demo">
-                <h3>🎮 모델 선택 도우미</h3>
-                <p>아래 질문에 답하여 최적의 모델을 찾아보세요:</p>
+                <h3>🎮 모델 선택 도우미 (업무 특성 기반)</h3>
+                <p class="muted">아래 질문에 답하면 “단일 모델” 또는 “2‑스텝 조합”을 추천합니다.</p>
+
                 <div id="model-quiz">
-                    <div class="quiz-question"><p><strong>Q1. 주요 사용 목적은?</strong></p><div class="model-selector"><div class="model-option" onclick="selectQuizOption(this, 1, 'speed')">빠른 응답이 중요</div><div class="model-option" onclick="selectQuizOption(this, 1, 'accuracy')">높은 정확도가 중요</div><div class="model-option" onclick="selectQuizOption(this, 1, 'cost')">비용 효율성이 중요</div><div class="model-option" onclick="selectQuizOption(this, 1, 'long')">긴 문서 처리</div></div></div>
-                    <div class="quiz-question"><p><strong>Q2. 처리할 데이터 크기는?</strong></p><div class="model-selector"><div class="model-option" onclick="selectQuizOption(this, 2, 'small')">짧은 텍스트 (몇 문장)</div><div class="model-option" onclick="selectQuizOption(this, 2, 'medium')">중간 문서 (몇 페이지)</div><div class="model-option" onclick="selectQuizOption(this, 2, 'large')">긴 문서 (수십 페이지)</div><div class="model-option" onclick="selectQuizOption(this, 2, 'huge')">초장문 (수백 페이지)</div></div></div>
-                    <div id="recommendation" style="display:none; margin-top: 2rem; padding: 1rem; background: #e8f5e8; border-radius: 10px;"><h4>🎯 추천 모델: <span id="recommended-model"></span></h4><p id="recommendation-reason"></p></div>
+                    <div class="quiz-question">
+                        <p><strong>Q1. 우선순위는?</strong></p>
+                        <div class="model-selector">
+                            <div class="model-option" onclick="selectQuizOption(this, 1, 'speed')">⚡ 속도/지연</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 1, 'accuracy')">🎯 정확도/품질</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 1, 'cost')">💰 비용/처리량</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 1, 'balance')">⚖️ 균형/범용</div>
+                        </div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Q2. 입력(문서/데이터) 크기는?</strong></p>
+                        <div class="model-selector">
+                            <div class="model-option" onclick="selectQuizOption(this, 2, 'small')">📝 짧음</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 2, 'medium')">📄 보통</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 2, 'large')">📚 김</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 2, 'huge')">📦 초대형(장문/묶음)</div>
+                        </div>
+                    </div>
+
+                    <div class="quiz-question">
+                        <p><strong>Q3. 작업 복잡도는?</strong></p>
+                        <div class="model-selector">
+                            <div class="model-option" onclick="selectQuizOption(this, 3, 'simple')">🔁 단순/반복(요약·분류)</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 3, 'complex')">🧠 복잡/다단계 추론</div>
+                            <div class="model-option" onclick="selectQuizOption(this, 3, 'coding')">💻 코딩/에이전트/툴</div>
+                        </div>
+                    </div>
+
+                    <div id="recommendation" style="display:none; margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #28a745, #20c997); border-radius: 15px; color: white;">
+                        <h4>🎯 추천: <span id="recommended-model"></span></h4>
+                        <p id="recommendation-reason"></p>
+                        <p style="margin-top: 0.75rem; opacity: 0.95; font-size: 0.95rem;">※ 실제 사용 가능 모델/버전은 리소스 지역과 제한 액세스 승인 여부에 따라 달라질 수 있습니다.</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -101,26 +228,210 @@
         <!-- 상세 분석 섹션 -->
         <section class="content-section" id="details">
             <h2>🔍 모델별 상세 분석</h2>
-            <div class="model-card"><h3>🎯 GPT-4o (Omni) - 밸런스형 플래그십</h3><div class="feature-grid"><div class="feature-card"><h4>🌍 다국어 처리</h4><p>50개 이상 언어 지원, 높은 번역 품질과 문화적 맥락 이해</p></div><div class="feature-card"><h4>🔧 함수 호출</h4><p>JSON 출력, API 연동, 구조화된 데이터 추출에 최적화</p></div><div class="feature-card"><h4>👁️ Vision 기능</h4><p>이미지 분석, 차트 해석, OCR, 시각적 질의응답</p></div><div class="feature-card"><h4>⚡ 추론 능력</h4><p>복합적 사고, 논리적 분석, 창의적 문제 해결</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 다국어 비즈니스 문서, API 연동이 필요한 애플리케이션, 이미지가 포함된 분석 작업</div></div>
-            <div class="model-card"><h3>⚡ GPT-4o-mini - 속도와 효율성의 최적화</h3><div class="feature-grid"><div class="feature-card"><h4>💨 초고속 응답</h4><p>평균 응답 시간 1-2초, 실시간 애플리케이션에 최적</p></div><div class="feature-card"><h4>💰 최고 비용 효율</h4><p>GPT-4o 대비 85% 비용 절감, 대량 처리에 유리</p></div><div class="feature-card"><h4>🛡️ 안정성 보장</h4><p>99.99% SLA, 엔터프라이즈급 안정성</p></div><div class="feature-card"><h4>🔒 버전 고정</h4><p>모델 버전 고정으로 일관된 결과 보장</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 실시간 챗봇, 대량 문서 분류, 빠른 요약 작업, 고객 서비스 자동화</div></div>
-            <div class="model-card"><h3>🏆 GPT-4.1 - 최고 성능 프리미엄</h3><div class="feature-grid"><div class="feature-card"><h4>📚 1M 토큰 컨텍스트</h4><p>약 750,000 단어, 500페이지 문서를 한 번에 처리</p></div><div class="feature-card"><h4>🎯 최고 정확도</h4><p>코딩, 수학, 추론 모든 영역에서 최상위 성능</p></div><div class="feature-card"><h4>🔍 초장문 RAG</h4><p>방대한 문서 검색 및 정보 합성 능력</p></div><div class="feature-card"><h4>⚖️ 법률/계약서</h4><p>복잡한 법률 문서 분석 및 위험 요소 식별</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 대규모 계약서 검토, 복잡한 코드베이스 분석, 학술 연구, 정밀한 분석이 필요한 업무</div></div>
-            <div class="model-card"><h3>⚖️ GPT-4.1-mini - 장문 처리의 균형점</h3><div class="feature-grid"><div class="feature-card"><h4>📊 효율적 장문 처리</h4><p>1M 토큰을 빠르고 경제적으로 처리</p></div><div class="feature-card"><h4>⏰ 향상된 속도</h4><p>GPT-4.1 대비 2-3배 빠른 응답 속도</p></div><div class="feature-card"><h4>💵 합리적 비용</h4><p>장문 처리 대비 최적의 가격 대비 성능</p></div><div class="feature-card"><h4>📈 로그 분석</h4><p>대용량 시스템 로그 및 데이터 분석에 특화</p></div></div><div class="info-box"><strong>💼 최적 활용처:</strong> 대용량 로그 분석, 긴 회의록 요약, 대규모 데이터 마이닝, 비용 효율적인 장문 Q&A</div></div>
+
+            <div class="model-card">
+                <h3>🧠 GPT-5.1 - Reasoning 플래그십 (코딩/에이전트 최강)</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🧩 다단계 추론 (선택형)</h4>
+                        <p><code>reasoning_effort</code>로 “생각의 깊이”를 조절합니다. 기본값은 <code>none</code>(= 추론 안 함)입니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📤 장문 출력</h4>
+                        <p>최대 <strong>128k</strong> 토큰까지 출력 가능(장문 리포트·코드·문서 생성에 유리).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🛠️ Tool/Function + Structured Outputs</h4>
+                        <p>함수 호출, 병렬 tool 호출, 구조화 출력으로 “에이전트 워크플로”에 최적.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🖼️ 텍스트+이미지 입력</h4>
+                        <p>이미지/차트/스크린샷 기반의 분석, 근거 추출에 활용할 수 있습니다.</p>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>💼 최적 활용처:</strong> 복잡한 의사결정 지원, 코드 생성·리팩터링·테스트, 다단계 업무 자동화(에이전트), 장문 리포트 생성
+                </div>
+                <div class="warning-box">
+                    <strong>주의:</strong> 제한 액세스(등록/승인) 모델일 수 있습니다. “추론”이 필요하면 <code>reasoning_effort</code>를 명시해야 합니다.
+                </div>
+            </div>
+
+            <div class="model-card">
+                <h3>💬 GPT-5.1-chat - Reasoning Chat <span class="pill preview">Preview</span></h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🧠 내장 추론</h4>
+                        <p>대화형 사용에 최적화된 reasoning 모델입니다(“기본 추론 포함”).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚙️ 파라미터 호환성</h4>
+                        <p>Reasoning 모델은 <code>temperature</code> 같은 샘플링 파라미터가 미지원(또는 조건부)일 수 있습니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📏 컨텍스트/출력</h4>
+                        <p>컨텍스트 <strong>128k</strong>, 출력 <strong>16k</strong>로 대화/요약/분석에 충분한 폭을 제공합니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🚧 Preview 운영 주의</h4>
+                        <p>Preview는 프로덕션에 비추천입니다. 검증/PoC 용도로 사용하고, 버전/변경에 대비하세요.</p>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>💼 최적 활용처:</strong> 내부 Chat UI 프로토타이핑, 대화 품질 실험, 빠른 PoC
+                </div>
+            </div>
+
+            <div class="model-card">
+                <h3>🏆 GPT-4.1 - 장문 + 도구호출 최강의 비추론 모델</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📚 초장문 컨텍스트</h4>
+                        <p>최대 <strong>1,047,576</strong> 토큰 컨텍스트(수백 페이지급 입력). 단, <strong>배포 타입에 따라 실제 요청 한도</strong>가 달라질 수 있습니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔧 Tool/Function Calling</h4>
+                        <p>Chat/Responses API 모두에서 tool calling과 structured outputs를 지원합니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📤 출력</h4>
+                        <p>최대 <strong>32,768</strong> 토큰 출력(긴 분석 리포트/코드 리뷰 결과 등).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🧾 지식 컷오프</h4>
+                        <p>학습 데이터: 2024-05-31까지.</p>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>💼 최적 활용처:</strong> 긴 문서(규정/계약/기술문서 묶음) 분석, 대규모 코드베이스 탐색, 장문 RAG(소스 묶음 질의)
+                </div>
+                <div class="warning-box">
+                    <strong>주의:</strong> tool(함수) 정의가 <strong>300k 토큰</strong>을 넘으면, 1M 컨텍스트 한도에 도달하기 전에 실패할 수 있습니다(도구 스키마를 슬림하게 유지하세요).
+                </div>
+            </div>
+
+            <div class="model-card">
+                <h3>⚖️ GPT-4.1-mini - 장문 처리의 “가성비” 밸런스 (비추론)</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📚 1M 컨텍스트</h4>
+                        <p>GPT-4.1과 동일한 <strong>1,047,576</strong> 컨텍스트(배포 타입별 요청 한도는 동일한 범주).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚡ 저지연</h4>
+                        <p>추론 단계 없는(non‑reasoning) 계열이라 긴 입력에서도 상대적으로 빠른 편입니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🧰 도구호출/구조화</h4>
+                        <p>tool calling과 structured outputs를 잘 활용할 수 있습니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📤 출력</h4>
+                        <p>최대 <strong>32,768</strong> 토큰 출력.</p>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>💼 최적 활용처:</strong> 비용을 아끼면서도 긴 입력(회의록/로그/문서 묶음) 처리, 대규모 요약/분류, RAG 결과 통합
+                </div>
+            </div>
+
+            <div class="model-card">
+                <h3>🎯 GPT-4o (Omni) - 범용 멀티모달 밸런스</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🖼️ 텍스트+이미지 처리</h4>
+                        <p>텍스트/이미지 입력을 한 모델에서 처리(차트/스크린샷 Q&A).</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🌍 다국어 + 범용 문서</h4>
+                        <p>다국어 커뮤니케이션·기획/문서화 등 “범용 업무”에 강합니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📏 컨텍스트/출력</h4>
+                        <p>컨텍스트 <strong>128k</strong>. 출력은 배포된 <strong>버전에 따라 4k 또는 16k</strong>로 달라질 수 있습니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🧩 JSON/Tool Calling</h4>
+                        <p>JSON 모드, 병렬 함수 호출로 워크플로 통합에 유리합니다.</p>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>💼 최적 활용처:</strong> 다국어 커뮤니케이션, 이미지 포함 자료 분석, 범용 챗봇, 마케팅/기획 문서
+                </div>
+            </div>
+
+            <div class="model-card">
+                <h3>⚡ GPT-4o-mini - 빠르고 저렴한 대량 처리용</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>💨 처리량/비용</h4>
+                        <p>대량 분류/요약/라우팅 같은 반복 작업에 적합합니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🖼️ 이미지 입력도 가능</h4>
+                        <p>텍스트/이미지 처리, JSON 모드, 병렬 tool 호출을 지원합니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📏 컨텍스트/출력</h4>
+                        <p>컨텍스트 <strong>128k</strong>, 출력 <strong>16,384</strong>.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔁 GPT-3.5 대체 포지션</h4>
+                        <p>GPT-3.5 Turbo 계열 대체 목적의 빠르고 경제적인 모델입니다.</p>
+                    </div>
+                </div>
+                <div class="info-box">
+                    <strong>💼 최적 활용처:</strong> 실시간 FAQ/챗봇, 이메일/티켓 분류, 짧은 요약, 다수 요청 동시 처리
+                </div>
+            </div>
         </section>
 
         <!-- 프롬프트 실습 섹션 -->
         <section class="content-section" id="prompts">
-            <h2>✍️ G-C-E-S 프롬프트 실습</h2>
-            <div class="info-box"><strong>📝 G-C-E-S 프레임워크:</strong><br><strong>G</strong>oal (목표) → <strong>C</strong>ontext (맥락) → <strong>E</strong>xpectation (기대 결과) → <strong>S</strong>ource (참고 데이터)</div>
+            <h2>✍️ G‑C‑E‑S 프롬프트 실습</h2>
+
+            <div class="info-box">
+                <strong>📝 G‑C‑E‑S 프레임워크:</strong><br>
+                <strong>G</strong>oal (목표) → <strong>C</strong>ontext (맥락) → <strong>E</strong>xpectation (기대 결과) → <strong>S</strong>ource (참고 데이터)
+            </div>
+
+            <div class="warning-box">
+                <strong>GPT‑5.1 팁:</strong> Reasoning 모델은 “무엇을 출력할지(E)”를 더 구체적으로 쓰면 품질이 크게 올라갑니다. 
+                (예: <em>“근거를 표로 정리하고, 마지막에 결론/리스크/다음 액션을 제시”</em>)
+            </div>
+
             <div class="prompt-builder">
                 <h3>🛠️ 프롬프트 빌더</h3>
-                <div class="model-selector"><div class="model-option selected" onclick="selectModel(this, 'gpt-4o')">GPT-4o</div><div class="model-option" onclick="selectModel(this, 'gpt-4o-mini')">GPT-4o-mini</div><div class="model-option" onclick="selectModel(this, 'gpt-4.1')">GPT-4.1</div><div class="model-option" onclick="selectModel(this, 'gpt-4.1-mini')">GPT-4.1-mini</div></div>
-                <div class="prompt-section"><label>[G] Goal - 목표:</label><textarea id="goal-input" placeholder="예: 일본 고객사에게 보낼 감사 이메일 초안을 작성하고 교정해 주세요."></textarea></div>
-                <div class="prompt-section"><label>[C] Context - 맥락:</label><textarea id="context-input" placeholder="예: 당신은 IT 솔루션 영업 담당자입니다. 대상 고객은 일본 대기업의 임원이며..."></textarea></div>
-                <div class="prompt-section"><label>[E] Expectation - 기대 결과:</label><textarea id="expectation-input" placeholder="예: 한국어 원본과 일본어 번역본을 함께 제시해 주세요. 일본어는 150자 이내로..."></textarea></div>
-                <div class="prompt-section"><label>[S] Source - 참고 데이터:</label><textarea id="source-input" placeholder="예: (포함할 핵심 내용: 계약 체결 감사, 성공적인 프로젝트 수행 약속...)"></textarea></div>
-                <button class="btn" onclick="generatePrompt()">🔥 프롬프트 생성</button>
-                <button class="btn btn-secondary" onclick="loadTemplate()">📋 템플릿 불러오기</button>
+
+                <div class="model-selector">
+                    <div class="model-option selected" onclick="selectModel(this, 'gpt-5.1')">GPT‑5.1</div>
+                    <div class="model-option" onclick="selectModel(this, 'gpt-5.1-chat')">GPT‑5.1‑chat</div>
+                    <div class="model-option" onclick="selectModel(this, 'gpt-4.1')">GPT‑4.1</div>
+                    <div class="model-option" onclick="selectModel(this, 'gpt-4.1-mini')">GPT‑4.1‑mini</div>
+                    <div class="model-option" onclick="selectModel(this, 'gpt-4o')">GPT‑4o</div>
+                    <div class="model-option" onclick="selectModel(this, 'gpt-4o-mini')">GPT‑4o‑mini</div>
+                </div>
+
+                <div class="prompt-section">
+                    <label>🎯 Goal (목표):</label>
+                    <textarea id="goal-input" placeholder="무엇을 달성하고 싶은지 명확히 작성하세요"></textarea>
+                </div>
+                <div class="prompt-section">
+                    <label>📋 Context (맥락):</label>
+                    <textarea id="context-input" placeholder="역할, 상황, 제약조건을 제공하세요"></textarea>
+                </div>
+                <div class="prompt-section">
+                    <label>✅ Expectation (기대 결과):</label>
+                    <textarea id="expectation-input" placeholder="원하는 출력 형식(표/JSON/요약 길이 등)을 명시하세요"></textarea>
+                </div>
+                <div class="prompt-section">
+                    <label>📚 Source (참고 데이터):</label>
+                    <textarea id="source-input" placeholder="참고할 데이터나 문서를 붙여넣으세요"></textarea>
+                </div>
+
+                <button class="btn" onclick="generatePrompt()">🚀 프롬프트 생성</button>
                 <button class="btn btn-secondary" onclick="clearPrompt()">🧹 초기화</button>
+
                 <div class="output-box" id="generated-prompt">생성된 프롬프트가 여기에 표시됩니다...</div>
             </div>
         </section>
@@ -128,34 +439,166 @@
         <!-- 활용 시나리오 섹션 -->
         <section class="content-section" id="scenarios">
             <h2>🎯 실무 활용 시나리오</h2>
+
             <div class="scenario-cards">
-                <div class="scenario-card" onclick="showScenario(this, 'multilingual')"><h4>🌍 다국어 비즈니스</h4><p>글로벌 협업, 번역, 현지화</p><span class="recommended">→ GPT-4o 추천</span></div>
-                <div class="scenario-card" onclick="showScenario(this, 'customer-service')"><h4>📞 고객 서비스</h4><p>실시간 응답, 문의 분류, 챗봇</p><span class="recommended">→ GPT-4o-mini 추천</span></div>
-                <div class="scenario-card" onclick="showScenario(this, 'legal-analysis')"><h4>⚖️ 법률 문서 분석</h4><p>계약서 검토, 리스크 분석</p><span class="recommended">→ GPT-4.1 추천</span></div>
-                <div class="scenario-card" onclick="showScenario(this, 'code-review')"><h4>💻 코드 리뷰</h4><p>대규모 코드베이스 분석</p><span class="recommended">→ GPT-4.1 추천</span></div>
-                <div class="scenario-card" onclick="showScenario(this, 'data-analysis')"><h4>📊 데이터 분석</h4><p>로그 분석, 패턴 발견</p><span class="recommended">→ GPT-4.1-mini 추천</span></div>
-                <div class="scenario-card" onclick="showScenario(this, 'content-creation')"><h4>✍️ 콘텐츠 제작</h4><p>마케팅 자료, 기술 문서</p><span class="recommended">→ GPT-4o 추천</span></div>
+                <div class="scenario-card" onclick="showScenario(this, 'multilingual')">
+                    <h4>🌍 다국어 비즈니스</h4>
+                    <p>글로벌 협업, 번역, 현지화</p>
+                    <span class="recommended">→ GPT‑4o 추천</span>
+                </div>
+
+                <div class="scenario-card" onclick="showScenario(this, 'customer-service')">
+                    <h4>📞 고객 서비스/대량 처리</h4>
+                    <p>실시간 응답, 문의 분류, 라우팅</p>
+                    <span class="recommended">→ GPT‑4o‑mini 추천</span>
+                </div>
+
+                <div class="scenario-card" onclick="showScenario(this, 'legal-analysis')">
+                    <h4>⚖️ 법률/규정 문서 분석</h4>
+                    <p>계약서·정책·규정 리스크 점검</p>
+                    <span class="recommended">→ GPT‑4.1 + GPT‑5.1 추천</span>
+                </div>
+
+                <div class="scenario-card" onclick="showScenario(this, 'code-review')">
+                    <h4>💻 코드 리뷰/리팩터링</h4>
+                    <p>대규모 코드 변경, 테스트 생성</p>
+                    <span class="recommended">→ GPT‑5.1 추천</span>
+                </div>
+
+                <div class="scenario-card" onclick="showScenario(this, 'agentic')">
+                    <h4>🤖 에이전트 업무 자동화</h4>
+                    <p>툴 호출, 다단계 실행, 운영 자동화</p>
+                    <span class="recommended">→ GPT‑5.1 추천</span>
+                </div>
+
+                <div class="scenario-card" onclick="showScenario(this, 'data-analysis')">
+                    <h4>📊 로그/데이터 분석</h4>
+                    <p>로그 패턴, 원인 추적, 요약 리포트</p>
+                    <span class="recommended">→ GPT‑4.1‑mini 추천</span>
+                </div>
+
+                <div class="scenario-card" onclick="showScenario(this, 'content-creation')">
+                    <h4>✍️ 콘텐츠 제작</h4>
+                    <p>마케팅, 제안서, 기술 문서</p>
+                    <span class="recommended">→ GPT‑4o 추천</span>
+                </div>
+
+                <div class="scenario-card" onclick="showScenario(this, 'structured')">
+                    <h4>🧾 구조화 출력/ETL</h4>
+                    <p>JSON 추출, 규칙 기반 변환</p>
+                    <span class="recommended">→ GPT‑4o‑mini 추천</span>
+                </div>
             </div>
-            <div id="scenario-details" style="display:none; margin-top: 2rem;"><div class="model-card"><h3 id="scenario-title"></h3><div id="scenario-content"></div></div></div>
+
+            <div id="scenario-details" style="display:none; margin-top: 2rem;">
+                <div class="model-card">
+                    <h3 id="scenario-title"></h3>
+                    <div id="scenario-content"></div>
+                </div>
+            </div>
         </section>
 
         <!-- 베스트 프랙티스 섹션 -->
         <section class="content-section" id="best-practices">
             <h2>💡 베스트 프랙티스 & 고급 활용법</h2>
+
+            <div class="model-card">
+                <h3>🧠 GPT‑5.1 (Reasoning) 운영 체크리스트</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>1) 기본값은 “추론 없음”</h4>
+                        <p>GPT‑5.1은 <code>reasoning_effort</code> 기본값이 <code>none</code>입니다. “생각이 필요”하면 <code>low/medium/high</code>를 명시하세요.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>2) 샘플링 파라미터 제약</h4>
+                        <p><code>temperature/top_p/logprobs</code>는 (GPT‑5 계열) <strong>reasoning_effort=none</strong>일 때만 허용되는 경우가 있습니다. 그 외 설정에서 함께 보내면 오류가 날 수 있습니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>3) Chat vs Responses</h4>
+                        <p>Reasoning 모델은 Chat Completions에선 <code>max_completion_tokens</code>, Responses에선 <code>max_output_tokens</code>를 쓰는 등 파라미터 차이가 있습니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>4) 출력 “길이/밀도” 제어</h4>
+                        <p>GPT‑5 계열은 <code>verbosity</code> 같은 새 파라미터로 출력 밀도를 조절할 수 있습니다(장문 리포트 운영에 유용).</p>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <strong>추천 패턴:</strong> 기본은 <code>reasoning_effort=none</code>으로 빠르게 → 부족하면 <code>low/medium/high</code>로 올려 재시도 → 최종 결과에만 고비용 추론을 사용
+                </div>
+
+                <div class="output-box">
+<pre>예) Chat Completions (개념 예시)
+{
+  "model": "YOUR-DEPLOYMENT-NAME",
+  "messages": [...],
+  "max_completion_tokens": 4000,
+  "reasoning_effort": "medium"
+}</pre>
+                </div>
+            </div>
+
+            <div class="model-card">
+                <h3>📚 긴 컨텍스트(특히 GPT‑4.1) 실전 팁</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>도구 스키마는 “슬림”하게</h4>
+                        <p>함수/툴 정의가 너무 크면(예: 300k 토큰급) 모델의 최대 컨텍스트에 도달하기 전에 실패할 수 있습니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>문서 통째 투입 = 만능 아님</h4>
+                        <p>초장문은 “근거 추출 → 요약/정리 → 최종 답변” 2~3단계가 더 안정적입니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>조합 추천(장문 + 추론)</h4>
+                        <p><strong>GPT‑4.1(장문에서 근거 추출)</strong> + <strong>GPT‑5.1(추론/결론)</strong> 조합이 고품질·고안정 패턴입니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>버전/배포 타입 확인</h4>
+                        <p>동일 모델이라도 버전/배포 타입에 따라 출력 한도나 요청 한도가 달라질 수 있습니다.</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="interactive-demo">
                 <h3>📊 ROI 계산기</h3>
-                <p>GPT-4 모델 도입으로 인한 비용 절감 효과를 계산해보세요</p>
+                <p class="muted">아래는 “가정 기반” 간이 계산기입니다. (예: 자동화 70%, 작업 1건당 AI 비용 500원 가정)</p>
+
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
                     <div>
-                        <div class="prompt-section"><label>월간 처리 작업량:</label><input type="number" id="monthly-tasks" placeholder="예: 1000" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;"></div>
-                        <div class="prompt-section"><label>작업당 소요 시간 (분):</label><input type="number" id="time-per-task" placeholder="예: 30" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;"></div>
-                        <div class="prompt-section"><label>시간당 인건비 (원):</label><input type="number" id="hourly-rate" placeholder="예: 50000" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;"></div>
+                        <div class="prompt-section">
+                            <label>월간 처리 작업량:</label>
+                            <input type="number" id="monthly-tasks" placeholder="예: 1000" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div class="prompt-section">
+                            <label>작업당 소요 시간 (분):</label>
+                            <input type="number" id="time-per-task" placeholder="예: 30" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                        </div>
+                        <div class="prompt-section">
+                            <label>시간당 인건비 (원):</label>
+                            <input type="number" id="hourly-rate" placeholder="예: 50000" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+                        </div>
                         <button class="btn" onclick="calculateROI()">💰 ROI 계산</button>
                     </div>
-                    <div id="roi-result" style="display:none;"><div class="info-box"><h4>📈 절감 효과 분석</h4><div id="roi-details"></div></div></div>
+
+                    <div id="roi-result" style="display:none;">
+                        <div class="info-box">
+                            <h4>📈 절감 효과 분석</h4>
+                            <div id="roi-details"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
+        <footer class="footer">
+            <div><strong>References:</strong> 모델 스펙/제약은 공식 문서를 기준으로 주기적으로 갱신하세요.</div>
+            <small>
+                <a href="https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-models/concepts/models-sold-directly-by-azure?view=foundry-classic" target="_blank" rel="noopener">Microsoft Learn · Models sold directly by Azure</a> ·
+                <a href="https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/reasoning?view=foundry-classic" target="_blank" rel="noopener">Microsoft Learn · Reasoning models</a> ·
+                <a href="https://developers.openai.com/api/docs/models/gpt-5.1" target="_blank" rel="noopener">OpenAI API · GPT‑5.1</a> ·
+                <a href="https://developers.openai.com/api/docs/guides/latest-model/" target="_blank" rel="noopener">OpenAI API · GPT‑5 최신 모델 가이드</a>
+            </small>
+        </footer>
     </div>
 
     <script>
@@ -260,7 +703,7 @@
             const templates = {
                 'gpt-4o': { goal: '일본 고객사에게 보낼 감사 이메일 초안 작성', context: '당신은 IT 솔루션 영업 담당자입니다.', expectation: '한국어 원본과 일본어 번역본을 함께 제시.', source: '(핵심 내용: 계약 체결 감사, 성공적인 프로젝트 수행 약속)' },
                 'gpt-4o-mini': { goal: '고객 문의 내용 유형 분류', context: '당신은 고객 서비스 센터 AI 어시스턴트입니다.', expectation: '카테고리 이름 하나만 출력.', source: '"상품 배송이 언제 되나요?"' },
-                'gpt-4.1': { goal: '500페이지 분량 계약서에서 독소 조항 분석', context: '당신은 국제 M&A 전문 변호사입니다.', expectation: '위험도 높은 5개 조항을 표로 정리.', source: '(계약서 전문 텍스트)' },
+                'gpt-4.1': { goal: '수백 페이지 분량 계약서에서 독소 조항 분석', context: '당신은 국제 M&A 전문 변호사입니다.', expectation: '위험도 높은 5개 조항을 표로 정리.', source: '(계약서 전문 텍스트)' },
                 'gpt-4.1-mini': { goal: '24시간 서버 로그 파일 분석하여 에러 패턴 식별', context: '당신은 DevOps 엔지니어입니다.', expectation: '가장 빈번한 3가지 에러 유형과 원인 추론.', source: '(서버 로그 파일 텍스트)' }
             };
             const template = templates[currentModel];
