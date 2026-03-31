@@ -3,1117 +3,1025 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copilot GPT-5.2 · GPT-5.1 Guide</title>
+    <title>Azure OpenAI Internal Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
-        
-        body {
-            font-family: 'Noto Sans JP', 'Inter', sans-serif;
-            line-height: 1.7;
-            scroll-behavior: smooth;
-            /* 딥 퍼플과 슬레이트 톤의 다이내믹 그라데이션 배경 */
-            background: linear-gradient(-45deg, #0f172a, #312e81, #4c1d95, #1e1b4b);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            min-height: 100vh;
-            color: #1e293b;
-            transition: font-family 0.3s ease;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        /* 글래스모피즘(Glassmorphism) UI 효과 */
-        .glass-header {
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-        }
-        
-        .content-container {
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .section-card {
-            background: linear-gradient(145deg, #ffffff, #f8fafc);
-            border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .section-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 4px;
-            background: linear-gradient(90deg, #6366f1, #a855f7);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .section-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-        }
-        
-        .section-card:hover::before { opacity: 1; }
-        
-        .nav-link {
-            transition: all 0.2s ease;
-            color: rgba(255, 255, 255, 0.85);
-        }
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            transform: translateX(6px);
-        }
-
-        .code-block {
-            background: #0f172a;
-            color: #e2e8f0;
-            border-radius: 14px;
-            padding: 1.5rem;
-            position: relative;
-            overflow-x: auto;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-            font-size: 0.85rem;
-            line-height: 1.6;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
-        }
-        
-        .copy-btn {
-            position: absolute;
-            top: 0.8rem; right: 0.8rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 0.35rem 0.8rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s;
-            backdrop-filter: blur(4px);
-        }
-        .copy-btn:hover { background: rgba(255, 255, 255, 0.25); }
-        .copy-btn.copied { background-color: #10b981; border-color: #10b981; }
-        
-        .tag {
-            display: inline-flex; align-items: center; padding: 0.35rem 0.9rem;
-            border-radius: 50px; font-size: 0.75rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .tag-auto { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
-        .tag-fast { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
-        .tag-deep { background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; }
-
-        .mode-badge {
-            display: inline-flex; align-items: center; padding: 3px 10px;
-            border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px;
-        }
-        
-        .floating-elements {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: -1;
-        }
-        
-        .floating-circle {
-            position: absolute; border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
-            animation: float 10s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-30px) scale(1.05); }
-        }
-
-        .update-box {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 5px solid #3b82f6; padding: 1.5rem; border-radius: 12px;
-            margin-bottom: 2rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
-        }
-
-        /* 다국어 선택 드롭다운 스타일 */
-        .lang-select-wrapper { position: relative; }
-        .lang-select {
-            appearance: none;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 0.5rem 2.5rem 0.5rem 1.2rem;
-            border-radius: 99px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.2s;
-            outline: none;
-        }
-        .lang-select:hover, .lang-select:focus {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-        .lang-select option { background: #1e293b; color: white; }
-
-        /* 다국어 전환 부드러운 애니메이션 */
-        [data-i18n] { transition: opacity 0.3s ease-in-out; }
+        body { font-family: 'Inter', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #0078d4 0%, #001f6d 100%); }
+        .card { transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        .lang-active { background-color: #ffffff; color: #0078d4; font-weight: bold; }
+        .tab-active { border-bottom: 3px solid #0078d4; color: #0078d4; font-weight: bold; }
     </style>
 </head>
-<body>
-    <div class="floating-elements">
-        <div class="floating-circle" style="width: 350px; height: 350px; top: -5%; left: -5%; animation-delay: 0s;"></div>
-        <div class="floating-circle" style="width: 250px; height: 250px; top: 40%; right: 0%; animation-delay: 2s;"></div>
-        <div class="floating-circle" style="width: 150px; height: 150px; bottom: 5%; left: 15%; animation-delay: 4s;"></div>
-    </div>
+<body class="bg-gray-50 min-h-screen">
 
-    <header class="glass-header sticky top-0 z-50">
-        <div class="container mx-auto px-4 md:px-8 py-4 relative flex flex-col md:flex-row items-center justify-between gap-4">
-            <div class="flex items-center gap-4 w-full md:w-auto">
-                <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="text-white hover:bg-white/20 p-2.5 rounded-full transition-colors border border-transparent hover:border-white/20">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-                </button>
-                <div class="flex-1">
-                    <h1 class="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-indigo-200 tracking-tight" data-i18n="page_title">Copilot GPT-5.2 · GPT-5.1 Guide</h1>
-                    <p class="text-indigo-100 text-xs md:text-sm mt-1 font-medium" data-i18n="page_subtitle">GPT-5.2 Deep Think · GPT-5.1 · Fast Response · Auto Mode</p>
-                </div>
+<div id="app" class="max-w-6xl mx-auto pb-20">
+    <!-- Header -->
+    <header class="gradient-bg text-white p-6 md:p-10 rounded-b-3xl shadow-lg mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 id="main-title" class="text-2xl md:text-4xl font-bold mb-2">Azure OpenAI 導入・活用ガイド</h1>
+                <p id="main-subtitle" class="text-blue-100 opacity-90">知的支援ツールを業務の味方に</p>
             </div>
-            <div class="flex items-center gap-3">
-                <div class="hidden lg:flex gap-2 mr-2">
-                    <span class="tag tag-deep" data-i18n="tag_deep">🧠 GPT-5.2 Deep Think</span>
-                    <span class="tag tag-fast" data-i18n="tag_fast">⚡ GPT-5.1</span>
-                    <span class="tag tag-auto" data-i18n="tag_auto">✨ Auto</span>
-                </div>
-                <div class="lang-select-wrapper">
-                    <select id="lang-selector" class="lang-select">
-                        <option value="ja">🇯🇵 日本語</option>
-                        <option value="zh">🇨🇳 中文</option>
-                        <option value="en">🇺🇸 English</option>
-                        <option value="ko">🇰🇷 한국어</option>
-                        <option value="es">🇪🇸 Español</option>
-                        <option value="fr">🇫🇷 Français</option>
-                    </select>
-                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-white">
-                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                    </div>
-                </div>
+            <div class="flex flex-wrap justify-center gap-2 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+                <button onclick="setLang('ja')" id="btn-ja" class="px-3 py-1 rounded-lg text-sm transition lang-active">日本語</button>
+                <button onclick="setLang('zh')" id="btn-zh" class="px-3 py-1 rounded-lg text-sm transition">中文</button>
+                <button onclick="setLang('en')" id="btn-en" class="px-3 py-1 rounded-lg text-sm transition">English</button>
+                <button onclick="setLang('es')" id="btn-es" class="px-3 py-1 rounded-lg text-sm transition">Español</button>
+                <button onclick="setLang('fr')" id="btn-fr" class="px-3 py-1 rounded-lg text-sm transition">Français</button>
+                <button onclick="setLang('ko')" id="btn-ko" class="px-3 py-1 rounded-lg text-sm transition">한국어</button>
             </div>
         </div>
     </header>
 
-    <div class="container mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8 relative z-10">
-        <nav class="lg:w-64 lg:sticky top-28 self-start hidden lg:block">
-            <div class="glass-header rounded-2xl p-6 border border-white/10 shadow-xl">
-                <h3 class="font-bold mb-4 text-white border-b border-white/20 pb-3" data-i18n="nav_toc">📋 목차</h3>
-                <ul class="space-y-1 text-sm font-medium">
-                    <li><a href="#section1" class="nav-link block px-3 py-2 rounded-lg" data-i18n="nav_1">1. 3가지 핵심 모드</a></li>
-                    <li><a href="#section2" class="nav-link block px-3 py-2 rounded-lg" data-i18n="nav_2">2. 모드별 추천 레시피</a></li>
-                    <li><a href="#section3" class="nav-link block px-3 py-2 rounded-lg" data-i18n="nav_3">3. 모드 스위칭 파이프라인</a></li>
-                    <li><a href="#section4" class="nav-link block px-3 py-2 rounded-lg" data-i18n="nav_4">4. 프롬프트 체크리스트</a></li>
-                    <li><a href="#section5" class="nav-link block px-3 py-2 rounded-lg" data-i18n="nav_5">5. 운영 가이드</a></li>
-                </ul>
-            </div>
-        </nav>
+    <!-- Navigation Tabs -->
+    <nav class="sticky top-0 bg-white/80 backdrop-blur-md z-10 border-b overflow-x-auto whitespace-nowrap mb-8 px-4 flex justify-start space-x-8">
+        <button onclick="setSection('intro')" id="tab-intro" class="py-4 px-2 tab-active">Overview</button>
+        <button onclick="setSection('files')" id="tab-files" class="py-4 px-2">Files</button>
+        <button onclick="setSection('models')" id="tab-models" class="py-4 px-2">Models</button>
+        <button onclick="setSection('usecases')" id="tab-usecases" class="py-4 px-2">Use Cases</button>
+        <button onclick="setSection('prompt')" id="tab-prompt" class="py-4 px-2">Prompting</button>
+        <button onclick="setSection('safety')" id="tab-safety" class="py-4 px-2">Safety</button>
+    </nav>
 
-        <main class="flex-1 space-y-8">
-            <div class="content-container p-6 md:p-10 space-y-10">
-            
-            <div class="update-box">
-                <h3 class="font-bold text-blue-900 text-lg mb-2" data-i18n="update_title">🚀 GPT-5.2 + GPT-5.1 지원 핵심 (2026.02)</h3>
-                <p class="text-blue-800 mb-0 leading-relaxed" data-i18n="update_desc">
-                    회사 Copilot/사내 챗에서 <strong>GPT-5.1</strong>과 <strong>GPT-5.2 (Deep Think)</strong>가 모두 선택 가능해졌습니다.<br/>
-                    <strong>원칙:</strong> 속도·반복 작업은 <strong>GPT-5.1 + ⚡ 빠른 응답</strong>, 복잡한 추론·코딩·리스크 판단은 <strong>GPT-5.2 + 🧠 Deep Think</strong>.
-                </p>
-            </div>
+    <!-- Content Area -->
+    <main id="content-area" class="px-4">
+        <!-- JS will inject content here -->
+    </main>
 
-            <section id="section1" class="section-card p-6 md:p-8">
-                <h2 class="text-2xl font-bold mb-5 text-slate-800" data-i18n="sec1_title">
-                    <span class="text-indigo-600">1.</span> 어떤 모드를 써야 할까?
-                </h2>
-                <p class="text-slate-600 mb-6 font-medium" data-i18n="sec1_desc">
-                    먼저 <strong>대상 모델(아래 4개)</strong>을 확인하고, 그 다음 <strong>모드(Auto / 빠른 응답 / Deep Think)</strong>로 속도·품질을 조절합니다.
-                </p>
+    <!-- Footer -->
+    <footer class="mt-20 px-6 py-10 border-t text-center text-gray-500 text-sm">
+        <p id="footer-note">※ 本資料のモデル情報は一般公開情報に基づきます。実際の利用上限は社内管理者の設定を確認してください。</p>
+    </footer>
+</div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-                    <!-- GPT 5.2 Deep Think -->
-                    <div class="bg-indigo-50/60 hover:bg-indigo-100/50 border border-indigo-100 rounded-xl p-6 transition">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-2xl">🧠</span>
-                            <h3 class="font-bold text-indigo-900 text-lg" data-i18n="s1_gpt52r_t">GPT 5.2 Deep Think</h3>
-                        </div>
-                        <p class="text-sm text-slate-600 mb-4 h-10" data-i18n="s1_gpt52r_d">
-                            Deep Think 계열 모델입니다. 상세한 용도 및 사양은 [확인 필요]입니다.
+<script>
+    const contentData = {
+        ja: {
+            title: "Azure OpenAI 導入・活用ガイド",
+            subtitle: "知的支援ツールを業務の味方に",
+            footer: "※ 本資料のモデル情報は一般公開情報に基づきます。実際の利用上限は社内管理者の設定を確認してください。",
+            nav: { intro: "概要", files: "ファイル形式", models: "モデル比較", usecases: "活用例", prompt: "プロンプト術", safety: "注意点" },
+            intro: `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">💡</span>Azure OpenAI とは</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            OpenAI の強力な AI モデルを、Microsoft Azure の高度なセキュリティと管理下で利用できる企業向けサービスです。
                         </p>
-                        <div class="text-xs bg-white rounded-lg p-3 text-indigo-800 font-bold border border-indigo-100 shadow-sm" data-i18n="s1_gpt52r_e">
-                            👍 상세 정보: [확인 필요]
-                        </div>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li>✅ <strong>データ保護:</strong> 入力データは学習に利用されません。</li>
+                            <li>✅ <strong>認証:</strong> 社内 ID によるアクセス制限が可能です。</li>
+                            <li>✅ <strong>汎用性:</strong> 文章要約から画像分析まで幅広く対応。</li>
+                        </ul>
                     </div>
-
-                    <!-- GPT 5.2 Instant -->
-                    <div class="bg-emerald-50/60 hover:bg-emerald-100/50 border border-emerald-100 rounded-xl p-6 transition">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-2xl">⚡</span>
-                            <h3 class="font-bold text-emerald-900 text-lg" data-i18n="s1_gpt52i_t">GPT 5.2 Instant</h3>
-                        </div>
-                        <p class="text-sm text-slate-600 mb-4 h-10" data-i18n="s1_gpt52i_d">
-                            Instant 계열 모델입니다. 상세한 용도 및 사양은 [확인 필요]입니다.
-                        </p>
-                        <div class="text-xs bg-white rounded-lg p-3 text-emerald-800 font-bold border border-emerald-100 shadow-sm" data-i18n="s1_gpt52i_e">
-                            👍 상세 정보: [확인 필요]
-                        </div>
-                    </div>
-
-                    <!-- GPT 5.3 Instant -->
-                    <div class="bg-sky-50/60 hover:bg-sky-100/50 border border-sky-100 rounded-xl p-6 transition">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-2xl">⚡</span>
-                            <h3 class="font-bold text-sky-900 text-lg" data-i18n="s1_gpt53i_t">GPT 5.3 Instant</h3>
-                        </div>
-                        <p class="text-sm text-slate-600 mb-4 h-10" data-i18n="s1_gpt53i_d">
-                            Instant 계열 모델입니다. 상세한 용도 및 사양은 [확인 필요]입니다.
-                        </p>
-                        <div class="text-xs bg-white rounded-lg p-3 text-sky-800 font-bold border border-sky-100 shadow-sm" data-i18n="s1_gpt53i_e">
-                            👍 상세 정보: [확인 필요]
-                        </div>
-                    </div>
-
-                    <!-- GPT 5.4 Deep Think -->
-                    <div class="bg-purple-50/60 hover:bg-purple-100/50 border border-purple-100 rounded-xl p-6 transition">
-                        <div class="flex items-center gap-3 mb-3">
-                            <span class="text-2xl">🧠</span>
-                            <h3 class="font-bold text-purple-900 text-lg" data-i18n="s1_gpt54r_t">GPT 5.4 Deep Think</h3>
-                        </div>
-                        <p class="text-sm text-slate-600 mb-4 h-10" data-i18n="s1_gpt54r_d">
-                            Deep Think 계열 모델입니다. 상세한 용도 및 사양은 [확인 필요]입니다.
-                        </p>
-                        <div class="text-xs bg-white rounded-lg p-3 text-purple-800 font-bold border border-purple-100 shadow-sm" data-i18n="s1_gpt54r_e">
-                            👍 상세 정보: [확인 필요]
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-blue-50/40 border border-blue-100 rounded-xl p-5 hover:shadow-sm transition">
-                        <div class="flex items-center gap-2 mb-2"><span class="text-xl">✨</span><h3 class="font-bold text-blue-900" data-i18n="s1_auto_t">자동 (Auto)</h3></div>
-                        <p class="text-xs text-slate-600 mb-4 h-10" data-i18n="s1_auto_d">AI가 질문의 복잡도를 판단해 적절한 모드를 스스로 선택합니다.</p>
-                        <div class="text-[11px] bg-white rounded-md p-2 text-blue-800 font-medium border border-blue-100" data-i18n="s1_auto_e">👍 추천: 일반적인 업무, 균형 잡힌 답변</div>
-                    </div>
-                    <div class="bg-amber-50/40 border border-amber-100 rounded-xl p-5 hover:shadow-sm transition">
-                        <div class="flex items-center gap-2 mb-2"><span class="text-xl">⚡</span><h3 class="font-bold text-amber-900" data-i18n="s1_fast_t">빠른 응답</h3></div>
-                        <p class="text-xs text-slate-600 mb-4 h-10" data-i18n="s1_fast_d">지연 시간 없이 즉답합니다. 깊은 생각보다 속도가 중요할 때 씁니다.</p>
-                        <div class="text-[11px] bg-white rounded-md p-2 text-amber-800 font-medium border border-amber-100" data-i18n="s1_fast_e">👍 추천: 번역, 텍스트 요약, 단순 이메일 작성</div>
-                    </div>
-                    <div class="bg-purple-50/40 border border-purple-100 rounded-xl p-5 hover:shadow-sm transition">
-                        <div class="flex items-center gap-2 mb-2"><span class="text-xl">🧠</span><h3 class="font-bold text-purple-900" data-i18n="s1_deep_t">Deep Think</h3></div>
-                        <p class="text-xs text-slate-600 mb-4 h-10" data-i18n="s1_deep_d">답변 전 내부적으로 깊은 추론을 수행합니다. 시간이 걸리지만 정확합니다.</p>
-                        <div class="text-[11px] bg-white rounded-md p-2 text-purple-800 font-medium border border-purple-100" data-i18n="s1_deep_e">👍 추천: 복잡한 코딩, 데이터 분석, 수학 계산</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 나머지 섹션은 동일하게 유지 (레시피, 파이프라인 등) -->
-            <section id="section2" class="section-card p-6 md:p-8">
-                <h2 class="text-2xl font-bold mb-8 text-slate-800" data-i18n="sec2_title">
-                    <span class="text-indigo-600">2.</span> 모드별 실전 레시피 12선
-                </h2>
-                
-                <div class="space-y-10">
-                    <div>
-                        <h3 class="text-lg font-bold mb-5 flex items-center gap-2 text-slate-800 border-b border-slate-200 pb-2" data-i18n="s2_a_t">
-                            🚀 A. 스피드 업무 <span class="text-sm font-normal text-gray-500">(⚡ 빠른 응답 권장)</span>
-                        </h3>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div>
-                                <span class="mode-badge bg-amber-100 text-amber-800" data-i18n="tag_fast">⚡ 빠른 응답</span>
-                                <h4 class="font-semibold mb-2 text-slate-700" data-i18n="s2_a1_t">1. 실시간 회의 통역/기록</h4>
-                                <div class="code-block">
-                                    <button class="copy-btn" onclick="copyCode(this)" data-i18n="btn_copy">복사</button>
-                                    <pre><code data-i18n="s2_a1_c"></code></pre>
-                                </div>
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">⚖️</span>ChatGPT との違い</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">管理権限</span>
+                                <span class="text-gray-800">組織で集中管理</span>
                             </div>
-                            <div>
-                                <span class="mode-badge bg-amber-100 text-amber-800" data-i18n="tag_fast">⚡ 빠른 응답</span>
-                                <h4 class="font-semibold mb-2 text-slate-700" data-i18n="s2_a2_t">2. 고객 대응 리라이팅</h4>
-                                <div class="code-block">
-                                    <button class="copy-btn" onclick="copyCode(this)" data-i18n="btn_copy">복사</button>
-                                    <pre><code data-i18n="s2_a2_c"></code></pre>
-                                </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">データ二次利用</span>
+                                <span class="text-gray-800">一切なし（厳守）</span>
                             </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-bold mb-5 flex items-center gap-2 text-slate-800 border-b border-slate-200 pb-2" data-i18n="s2_b_t">
-                            🧠 B. 분석 및 논리 <span class="text-sm font-normal text-gray-500">(🧠 Deep Think 필수)</span>
-                        </h3>
-                        <div class="space-y-6">
-                            <div>
-                                <span class="mode-badge bg-purple-100 text-purple-800" data-i18n="tag_deep">🧠 Deep Think</span>
-                                <h4 class="font-semibold mb-2 text-slate-700" data-i18n="s2_b1_t">3. 복잡한 코드 리팩토링/디버깅</h4>
-                                <div class="code-block">
-                                    <button class="copy-btn" onclick="copyCode(this)" data-i18n="btn_copy">복사</button>
-                                    <pre><code data-i18n="s2_b1_c"></code></pre>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                <div>
-                                    <span class="mode-badge bg-purple-100 text-purple-800" data-i18n="tag_deep">🧠 Deep Think</span>
-                                    <h4 class="font-semibold mb-2 text-slate-700" data-i18n="s2_b2_t">4. 데이터 테이블 심층 분석</h4>
-                                    <div class="code-block">
-                                        <button class="copy-btn" onclick="copyCode(this)" data-i18n="btn_copy">복사</button>
-                                        <pre><code data-i18n="s2_b2_c"></code></pre>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span class="mode-badge bg-purple-100 text-purple-800" data-i18n="tag_deep">🧠 Deep Think</span>
-                                    <h4 class="font-semibold mb-2 text-slate-700" data-i18n="s2_b3_t">5. 전략 기획서/RFP 분석</h4>
-                                    <div class="code-block">
-                                        <button class="copy-btn" onclick="copyCode(this)" data-i18n="btn_copy">복사</button>
-                                        <pre><code data-i18n="s2_b3_c"></code></pre>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="text-lg font-bold mb-5 flex items-center gap-2 text-slate-800 border-b border-slate-200 pb-2" data-i18n="s2_c_t">
-                            ✨ C. 창작 및 일반 <span class="text-sm font-normal text-gray-500">(✨ 자동 모드 권장)</span>
-                        </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <span class="mode-badge bg-blue-100 text-blue-800" data-i18n="tag_auto">✨ Auto</span>
-                                <h4 class="font-semibold mb-2 text-slate-700" data-i18n="s2_c1_t">6. 브랜드 이미지 생성</h4>
-                                <div class="code-block">
-                                    <button class="copy-btn" onclick="copyCode(this)" data-i18n="btn_copy">복사</button>
-                                    <pre><code data-i18n="s2_c1_c"></code></pre>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="mode-badge bg-blue-100 text-blue-800" data-i18n="tag_auto">✨ Auto</span>
-                                <h4 class="font-semibold mb-2 text-slate-700" data-i18n="s2_c2_t">7. PPT 초안 작성</h4>
-                                <div class="code-block">
-                                    <button class="copy-btn" onclick="copyCode(this)" data-i18n="btn_copy">복사</button>
-                                    <pre><code data-i18n="s2_c2_c"></code></pre>
-                                </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">ネットワーク</span>
+                                <span class="text-gray-800">専用回線/VNet対応可</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <section id="section3" class="section-card p-6 md:p-8">
-                <h2 class="text-2xl font-bold mb-4 text-slate-800" data-i18n="sec3_title">
-                    <span class="text-indigo-600">3.</span> 모드 스위칭 파이프라인
-                </h2>
-                <p class="text-slate-600 mb-8 font-medium" data-i18n="sec3_desc">하나의 모드만 고집하지 마세요. 작업 단계별로 최적의 모드로 전환하여 효율을 극대화합니다.</p>
-                
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 shadow-sm">
-                    <h4 class="font-bold mb-6 text-indigo-900 text-lg flex items-center gap-2">
-                        📊 <span data-i18n="s3_scen">Scenario: 현장 결함 분석부터 보고서 메일 발송까지</span>
-                    </h4>
-                    
-                    <div class="relative pl-10 border-l-2 border-slate-300 space-y-8">
-                        <div class="relative">
-                            <span class="absolute -left-[53px] bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow">1</span>
-                            <div class="bg-white border border-blue-100 p-5 rounded-lg shadow-sm hover:shadow-md transition">
-                                <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
-                                    <h5 class="font-bold text-blue-900" data-i18n="s3_1_t">현장 사진 업로드 및 인식</h5>
-                                    <span class="mode-badge bg-blue-50 text-blue-800 mb-0 border border-blue-200" data-i18n="tag_auto">✨ Auto</span>
-                                </div>
-                                <p class="text-sm text-slate-600 mb-3" data-i18n="s3_1_d">이미지 인식은 자동 모드가 훌륭합니다.</p>
-                                <div class="bg-slate-800 text-slate-200 p-4 rounded-lg text-sm font-mono" data-i18n="s3_1_c"></div>
+            `,
+            files: `
+                <div class="bg-white p-8 rounded-2xl shadow-sm border">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">対応ファイル形式と活用法</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">テキスト (.txt)</h4>
+                            <p class="text-sm text-gray-600">議事録メモやメール本文の要約に最適。最も高速に処理されます。</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">ドキュメント (.pdf)</h4>
+                            <p class="text-sm text-gray-600">報告書や規程の読み取り。デジタルPDFならテキスト、スキャンなら画像として解釈。</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">画像 (.jpg, .png, .gif 等)</h4>
+                            <p class="text-sm text-gray-600">ホワイトボードの写真や UI キャプチャから情報を抽出。マルチモーダル対応。</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            models: `
+                <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4 border-b">モデル名</th>
+                                <th class="p-4 border-b">主な用途</th>
+                                <th class="p-4 border-b">コンテキスト長</th>
+                                <th class="p-4 border-b">マルチモーダル</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-4o</td>
+                                <td class="p-4 border-b text-gray-600">高品質・汎用。重要文書や画像分析。</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ 対応</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold text-gray-400">gpt-4o-mini</td>
+                                <td class="p-4 border-b text-gray-600">高速・低コスト。大量の定型業務や翻訳。</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ 対応</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50 bg-yellow-50">
+                                <td class="p-4 border-b font-bold">gpt-4.1 / mini</td>
+                                <td class="p-4 border-b text-gray-600">長文処理特化。膨大な資料や履歴の分析。</td>
+                                <td class="p-4 border-b text-red-600 font-bold">最大 1M</td>
+                                <td class="p-4 border-b">✅ 対応</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-5.1</td>
+                                <td class="p-4 border-b text-gray-600">高度な論理推論。複雑な分析レポート。</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">400k</td>
+                                <td class="p-4 border-b">✅ 対応</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            usecases: `
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📋</div>
+                        <h4 class="font-bold mb-2">全社共通</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">会議の議事録要約、長文メールの要点整理、多言語翻訳。</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">💻</div>
+                        <h4 class="font-bold mb-2">開発・IT</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">コードレビュー補助、技術仕様書ドラフト、エラーログ分析。</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📢</div>
+                        <h4 class="font-bold mb-2">企画・マーケ</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">企画書のたたき台作成、キャッチコピー案出し、自由記述アンケート分類。</p>
+                    </div>
+                </div>
+            `,
+            prompt: `
+                <div class="space-y-6">
+                    <div class="bg-blue-700 text-white p-8 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4">リバースプロンプト & Copilot 連携</h3>
+                        <p class="mb-6 opacity-90">「AI に良い指示をさせるために、AI を使う」という考え方です。</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 1: Azure OpenAI</h4>
+                                <p class="text-sm">指示を試作し、修正を繰り返して「理想のプロンプト」を磨き上げます。</p>
+                            </div>
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 2: M365 Copilot</h4>
+                                <p class="text-sm">磨いた指示を Word や Teams で活用し、組織全体の業務を自動化します。</p>
                             </div>
                         </div>
-                        
-                        <div class="relative">
-                            <span class="absolute -left-[53px] bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow">2</span>
-                            <div class="bg-white border border-purple-100 p-5 rounded-lg shadow-sm hover:shadow-md transition">
-                                <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
-                                    <h5 class="font-bold text-purple-900" data-i18n="s3_2_t">원인 분석 및 대책 수립</h5>
-                                    <span class="mode-badge bg-purple-50 text-purple-800 mb-0 border border-purple-200" data-i18n="tag_deep">🧠 Deep Think</span>
-                                </div>
-                                <p class="text-sm text-slate-600 mb-3" data-i18n="s3_2_d">논리적 추론이 필요하므로 모드를 변경합니다.</p>
-                                <div class="bg-slate-800 text-slate-200 p-4 rounded-lg text-sm font-mono" data-i18n="s3_2_c"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h4 class="font-bold mb-4 text-gray-700 italic">効果的な 4 要素 (Goal / Context / Source / Expectations)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            <strong>目的 (Goal):</strong> 何をしたいか<br>
+                            <strong>背景 (Context):</strong> 誰向けか、どんな状況か<br>
+                            <strong>参照 (Source):</strong> どの資料を使うか<br>
+                            <strong>期待 (Expectations):</strong> 形式、トーン、長さ
+                        </p>
+                    </div>
+                </div>
+            `,
+            safety: `
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-2xl">
+                    <h3 class="text-xl font-bold text-red-700 mb-4">安全に利用するための鉄則</h3>
+                    <div class="space-y-4 text-gray-800">
+                        <p><strong>1. ハルシネーション（もっともらしい嘘）に注意:</strong> AIは自信満々に間違えることがあります。必ず人間が事実確認を行ってください。</p>
+                        <p><strong>2. 社内ルールを厳守:</strong> 顧客情報や機密情報の入力可否は、最新の社内セキュリティポリシーに従ってください。</p>
+                        <p><strong>3. 最終判断は「人」:</strong> AIは補助ツールです。対外回答や重要判断は、必ず担当者が責任を持って行ってください。</p>
+                    </div>
+                </div>
+            `
+        },
+        ko: {
+            title: "Azure OpenAI 도입 및 활용 가이드",
+            subtitle: "지능형 지원 도구를 업무의 동반자로",
+            footer: "※ 본 자료의 모델 정보는 일반 공개 정보에 기반합니다. 실제 이용 한도는 사내 관리자 설정을 확인하세요.",
+            nav: { intro: "개요", files: "파일 형식", models: "모델 비교", usecases: "활용 사례", prompt: "프롬프트 전략", safety: "주의사항" },
+            intro: `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">💡</span>Azure OpenAI란?</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            OpenAI의 강력한 AI 모델을 Microsoft Azure의 고도화된 보안 및 관리 체계 내에서 사용할 수 있는 기업용 서비스입니다.
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li>✅ <strong>데이터 보호:</strong> 입력 데이터는 모델 학습에 사용되지 않습니다.</li>
+                            <li>✅ <strong>인증:</strong> 사내 계정(Entra ID)을 통한 철저한 액세스 제어.</li>
+                            <li>✅ <strong>범용성:</strong> 문서 요약부터 이미지 분석까지 폭넓게 대응.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">⚖️</span>일반 ChatGPT와의 차이</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">관리 권한</span>
+                                <span class="text-gray-800">조직 단위 집중 관리</span>
                             </div>
-                        </div>
-
-                        <div class="relative">
-                            <span class="absolute -left-[53px] bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow">3</span>
-                            <div class="bg-white border border-amber-100 p-5 rounded-lg shadow-sm hover:shadow-md transition">
-                                <div class="flex flex-wrap justify-between items-center mb-3 gap-2">
-                                    <h5 class="font-bold text-amber-900" data-i18n="s3_3_t">보고 메일 초안 작성</h5>
-                                    <span class="mode-badge bg-amber-50 text-amber-800 mb-0 border border-amber-200" data-i18n="tag_fast">⚡ Fast Response</span>
-                                </div>
-                                <p class="text-sm text-slate-600 mb-3" data-i18n="s3_3_d">분석된 내용을 바탕으로 빠르게 텍스트만 생성합니다.</p>
-                                <div class="bg-slate-800 text-slate-200 p-4 rounded-lg text-sm font-mono" data-i18n="s3_3_c"></div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">데이터 2차 활용</span>
+                                <span class="text-gray-800">일절 없음 (엄수)</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">네트워크</span>
+                                <span class="text-gray-800">전용선/VNet 대응 가능</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <section id="section4" class="section-card p-6">
-                    <h2 class="text-xl font-bold mb-5 text-slate-800" data-i18n="sec4_title">
-                        <span class="text-indigo-600">4.</span> 프롬프트 체크리스트
-                    </h2>
-                    <div class="space-y-4">
-                        <div class="bg-indigo-50/50 p-5 rounded-xl border border-indigo-100">
-                            <h4 class="font-bold text-indigo-800 mb-3 border-b border-indigo-200 pb-2" data-i18n="s4_req_t">✅ 필수 요소</h4>
-                            <ul class="space-y-2 text-sm text-slate-700">
-                                <li data-i18n="s4_req_1"></li>
-                                <li data-i18n="s4_req_2"></li>
-                                <li data-i18n="s4_req_3"></li>
-                                <li data-i18n="s4_req_4"></li>
-                            </ul>
+            `,
+            files: `
+                <div class="bg-white p-8 rounded-2xl shadow-sm border">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">지원 파일 형식 및 활용법</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">텍스트 (.txt)</h4>
+                            <p class="text-sm text-gray-600">회의록 메모나 메일 본문 요약에 최적. 가장 빠른 처리가 가능합니다.</p>
                         </div>
-                        <div class="bg-red-50/50 p-5 rounded-xl border border-red-100">
-                            <h4 class="font-bold text-red-700 mb-3 border-b border-red-200 pb-2" data-i18n="s4_warn_t">🚫 공통 주의사항</h4>
-                            <ul class="space-y-2 text-sm text-slate-700">
-                                <li data-i18n="s4_warn_1"></li>
-                                <li data-i18n="s4_warn_2"></li>
-                                <li data-i18n="s4_warn_3"></li>
-                            </ul>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">문서 (.pdf)</h4>
+                            <p class="text-sm text-gray-600">보고서 및 규정 분석. 디지털 파일은 텍스트로, 스캔본은 이미지로 해석.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">이미지 (.jpg, .png, .gif 등)</h4>
+                            <p class="text-sm text-gray-600">화이트보드 사진이나 화면 캡처에서 정보 추출. 멀티모달 지원.</p>
                         </div>
                     </div>
-                </section>
-
-                <section id="section5" class="section-card p-6">
-                    <h2 class="text-xl font-bold mb-5 text-slate-800" data-i18n="sec5_title">
-                        <span class="text-indigo-600">5.</span> 실무 운영 팁 (TIP)
-                    </h2>
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-4 p-5 bg-slate-50 border border-slate-100 rounded-xl transition hover:shadow-md">
-                            <div class="text-2xl mt-1">💡</div>
-                            <div>
-                                <h4 class="font-bold text-slate-800 mb-1" data-i18n="s5_1_t">긴 대화는 '요약' 후 새 창에서</h4>
-                                <p class="text-sm text-slate-600 leading-relaxed" data-i18n="s5_1_d">대화가 길어지면 AI가 이전 맥락을 잊거나 느려질 수 있습니다.<br>「これまでの内容を要約して」→コピー→新しいチャットルームで始める</p>
+                </div>
+            `,
+            models: `
+                <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4 border-b">모델명</th>
+                                <th class="p-4 border-b">주요 용도</th>
+                                <th class="p-4 border-b">컨텍스트 길이</th>
+                                <th class="p-4 border-b">멀티모달</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-4o</td>
+                                <td class="p-4 border-b text-gray-600">고성능 범용. 중요 문서 및 이미지 분석.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ 지원</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold text-gray-400">gpt-4o-mini</td>
+                                <td class="p-4 border-b text-gray-600">고속 저비용. 대량 정형 업무 및 번역.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ 지원</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50 bg-yellow-50">
+                                <td class="p-4 border-b font-bold">gpt-4.1 / mini</td>
+                                <td class="p-4 border-b text-gray-600">장문 처리 특화. 방대한 자료 및 이력 분석.</td>
+                                <td class="p-4 border-b text-red-600 font-bold">최대 1M</td>
+                                <td class="p-4 border-b">✅ 지원</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-5.1</td>
+                                <td class="p-4 border-b text-gray-600">고도화된 논리 추론. 복잡한 분석 리포트.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">400k</td>
+                                <td class="p-4 border-b">✅ 지원</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            usecases: `
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📋</div>
+                        <h4 class="font-bold mb-2">전사 공통</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">회의록 요약, 장문 메일 요점 정리, 다국어 번역.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">💻</div>
+                        <h4 class="font-bold mb-2">개발·IT</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">코드 리뷰 보조, 기술 명세서 초안, 에러 로그 분석.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📢</div>
+                        <h4 class="font-bold mb-2">기획·마케팅</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">기획서 초안 작성, 카피라이팅 아이디어, 설문 결과 분류.</p>
+                    </div>
+                </div>
+            `,
+            prompt: `
+                <div class="space-y-6">
+                    <div class="bg-blue-700 text-white p-8 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4">리버스 프롬프트 & Copilot 연계</h3>
+                        <p class="mb-6 opacity-90">"AI에게 좋은 지시를 내리기 위해 AI를 활용한다"는 개념입니다.</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 1: Azure OpenAI</h4>
+                                <p class="text-sm">지시문을 시험 제작하고 반복 수정하여 '이상적인 프롬프트'를 연마합니다.</p>
                             </div>
-                        </div>
-                        <div class="flex items-start gap-4 p-5 bg-slate-50 border border-slate-100 rounded-xl transition hover:shadow-md">
-                            <div class="text-2xl mt-1">📂</div>
-                            <div>
-                                <h4 class="font-bold text-slate-800 mb-1" data-i18n="s5_2_t">참조 파일은 한 번에</h4>
-                                <p class="text-sm text-slate-600 leading-relaxed" data-i18n="s5_2_d">파일을 1つ씩 업로드하는 것보다 관련 문서를 한 번에 드래그&드롭하는 것이 좋습니다.</p>
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 2: M365 Copilot</h4>
+                                <p class="text-sm">연마된 지시문을 Word나 Teams에서 활용해 조직 전체 업무를 자동화합니다.</p>
                             </div>
                         </div>
                     </div>
-                </section>
-            </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h4 class="font-bold mb-4 text-gray-700 italic">효과적인 4요소 (Goal / Context / Source / Expectations)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            <strong>목적 (Goal):</strong> 무엇을 하고 싶은가<br>
+                            <strong>배경 (Context):</strong> 누구를 위한 것인가, 어떤 상황인가<br>
+                            <strong>참조 (Source):</strong> 어떤 자료를 활용하는가<br>
+                            <strong>기대 (Expectations):</strong> 형식, 말투, 길이 등
+                        </p>
+                    </div>
+                </div>
+            `,
+            safety: `
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-2xl">
+                    <h3 class="text-xl font-bold text-red-700 mb-4">안전한 이용을 위한 철칙</h3>
+                    <div class="space-y-4 text-gray-800">
+                        <p><strong>1. 할루시네이션(그럴듯한 거짓말) 주의:</strong> AI는 자신감 있게 틀린 정보를 말할 수 있습니다. 반드시 사람이 사실 확인을 거쳐야 합니다.</p>
+                        <p><strong>2. 사내 규정 엄수:</strong> 고객 정보 및 기밀 정보 입력 여부는 최신 사내 보안 정책을 따라주세요.</p>
+                        <p><strong>3. 최종 판단은 '사람'의 몫:</strong> AI는 보조 도구입니다. 대외 답변이나 중요 판단은 반드시 담당자가 책임지고 수행해야 합니다.</p>
+                    </div>
+                </div>
+            `
+        },
+        en: {
+            title: "Azure OpenAI Internal Guide",
+            subtitle: "Empowering Business with Intelligent Assistance",
+            footer: "※ Model info based on public docs. Consult local admins for actual limits.",
+            nav: { intro: "Overview", files: "Files", models: "Models", usecases: "Use Cases", prompt: "Prompting", safety: "Safety" },
+            intro: `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">💡</span>What is Azure OpenAI?</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            An enterprise service providing OpenAI's powerful models within the advanced security and governance of Microsoft Azure.
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li>✅ <strong>Data Protection:</strong> Input data is NOT used for model training.</li>
+                            <li>✅ <strong>Authentication:</strong> Secure access via Entra ID (Corp IDs).</li>
+                            <li>✅ <strong>Versatility:</strong> From summarization to complex visual analysis.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">⚖️</span>Vs. Public ChatGPT</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Governance</span>
+                                <span class="text-gray-800">Centralized Management</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Data Usage</span>
+                                <span class="text-gray-800">Zero reuse (Strict)</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Network</span>
+                                <span class="text-gray-800">Dedicated VNet support</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            files: `
+                <div class="bg-white p-8 rounded-2xl shadow-sm border">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Supported File Formats</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Text (.txt)</h4>
+                            <p class="text-sm text-gray-600">Best for meeting notes or email summaries. Fastest processing.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Documents (.pdf)</h4>
+                            <p class="text-sm text-gray-600">Analyzing reports or policies. Digital PDFs as text, scans as images.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Images (.jpg, .png, etc.)</h4>
+                            <p class="text-sm text-gray-600">Extract info from whiteboard photos or UI captures. Multimodal.</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            models: `
+                <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4 border-b">Model Name</th>
+                                <th class="p-4 border-b">Primary Use</th>
+                                <th class="p-4 border-b">Context Window</th>
+                                <th class="p-4 border-b">Multimodal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-4o</td>
+                                <td class="p-4 border-b text-gray-600">High quality. Important docs & images.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ Yes</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold text-gray-400">gpt-4o-mini</td>
+                                <td class="p-4 border-b text-gray-600">Fast & cheap. Routine tasks & translation.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ Yes</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50 bg-yellow-50">
+                                <td class="p-4 border-b font-bold">gpt-4.1 / mini</td>
+                                <td class="p-4 border-b text-gray-600">Long-form. Analysis of massive data/history.</td>
+                                <td class="p-4 border-b text-red-600 font-bold">Up to 1M</td>
+                                <td class="p-4 border-b">✅ Yes</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-5.1</td>
+                                <td class="p-4 border-b text-gray-600">Advanced reasoning. Complex analysis reports.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">400k</td>
+                                <td class="p-4 border-b">✅ Yes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            usecases: `
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📋</div>
+                        <h4 class="font-bold mb-2">Corporate Wide</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Meeting summaries, email drafting, and multi-lang translation.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">💻</div>
+                        <h4 class="font-bold mb-2">Dev & IT</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Code review assistance, tech spec drafts, error log analysis.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📢</div>
+                        <h4 class="font-bold mb-2">Planning & Mktg</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Proposal drafting, ad copy brainstorming, survey categorization.</p>
+                    </div>
+                </div>
+            `,
+            prompt: `
+                <div class="space-y-6">
+                    <div class="bg-blue-700 text-white p-8 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4">Reverse Prompting & Copilot</h3>
+                        <p class="mb-6 opacity-90">"Using AI to create better instructions for AI."</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 1: Azure OpenAI</h4>
+                                <p class="text-sm">Refine and polish your instructions to find the 'Ideal Prompt'.</p>
+                            </div>
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 2: M365 Copilot</h4>
+                                <p class="text-sm">Deploy polished prompts into Word/Teams for automated workflows.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h4 class="font-bold mb-4 text-gray-700 italic">The 4 Core Elements (Goal / Context / Source / Expectations)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            <strong>Goal:</strong> What are you doing?<br>
+                            <strong>Context:</strong> Who is it for?<br>
+                            <strong>Source:</strong> What data to use?<br>
+                            <strong>Expectations:</strong> Tone, length, format.
+                        </p>
+                    </div>
+                </div>
+            `,
+            safety: `
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-2xl">
+                    <h3 class="text-xl font-bold text-red-700 mb-4">Security & Safety Golden Rules</h3>
+                    <div class="space-y-4 text-gray-800">
+                        <p><strong>1. Watch for Hallucinations:</strong> AI can confidently state false facts. Always human-verify outputs.</p>
+                        <p><strong>2. Follow Internal Rules:</strong> Adhere to corp policy regarding PII and sensitive data input.</p>
+                        <p><strong>3. Human in the Loop:</strong> AI is an assistant. Humans are responsible for final decisions and external comms.</p>
+                    </div>
+                </div>
+            `
+        },
+        zh: {
+            title: "Azure OpenAI 企业导入与活用指南",
+            subtitle: "让智能辅助工具成为您的业务伙伴",
+            footer: "※ 模型信息基于公开文档。实际限制请咨询公司管理员。",
+            nav: { intro: "概述", files: "文件格式", models: "模型比较", usecases: "活用案例", prompt: "提示词技巧", safety: "注意事项" },
+            intro: `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">💡</span>什么是 Azure OpenAI？</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            它是 Microsoft Azure 框架下的 OpenAI 强大模型。提供企业级安全性、身份验证和治理。
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li>✅ <strong>数据保护：</strong> 输入数据不会被用于基座模型训练。</li>
+                            <li>✅ <strong>身份验证：</strong> 支持公司 ID (Entra ID) 进行权限管理。</li>
+                            <li>✅ <strong>多功能：</strong> 从文本总结到复杂的图像分析。</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">⚖️</span>与 ChatGPT 的区别</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">管理权限</span>
+                                <span class="text-gray-800">组织单位集中管理</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">数据二次利用</span>
+                                <span class="text-gray-800">完全禁止（严守）</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">网络</span>
+                                <span class="text-gray-800">支持专用线路/VNet</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            files: `
+                <div class="bg-white p-8 rounded-2xl shadow-sm border">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">支持的文件格式与用法</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">纯文本 (.txt)</h4>
+                            <p class="text-sm text-gray-600">适合会议纪要或邮件总结。处理速度最快。</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">文档 (.pdf)</h4>
+                            <p class="text-sm text-gray-600">分析报告或规章制度。数字PDF作为文本，扫描件作为图像。</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">图像 (.jpg, .png 等)</h4>
+                            <p class="text-sm text-gray-600">从白板照片或 UI 截图提取信息。支持多模态。</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            models: `
+                <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4 border-b">模型名称</th>
+                                <th class="p-4 border-b">主要用途</th>
+                                <th class="p-4 border-b">上下文长度</th>
+                                <th class="p-4 border-b">多模态</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-4o</td>
+                                <td class="p-4 border-b text-gray-600">高质量通用。重要文档与图像分析。</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ 支持</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold text-gray-400">gpt-4o-mini</td>
+                                <td class="p-4 border-b text-gray-600">高速低成本。大批量定型业务与翻译。</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ 支持</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50 bg-yellow-50">
+                                <td class="p-4 border-b font-bold">gpt-4.1 / mini</td>
+                                <td class="p-4 border-b text-gray-600">长文本特化。海量资料与历史分析。</td>
+                                <td class="p-4 border-b text-red-600 font-bold">最高 1M</td>
+                                <td class="p-4 border-b">✅ 支持</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-5.1</td>
+                                <td class="p-4 border-b text-gray-600">高级逻辑推理。复杂分析报告。</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">400k</td>
+                                <td class="p-4 border-b">✅ 支持</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            usecases: `
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📋</div>
+                        <h4 class="font-bold mb-2">全公司通用</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">会议纪要总结、长邮件要点整理、多语言翻译。</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">💻</div>
+                        <h4 class="font-bold mb-2">开发与 IT</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">代码评审辅助、技术规格草案、错误日志分析。</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📢</div>
+                        <h4 class="font-bold mb-2">策划与营销</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">策划书底稿编写、文案头脑风暴、调查问卷分类。</p>
+                    </div>
+                </div>
+            `,
+            prompt: `
+                <div class="space-y-6">
+                    <div class="bg-blue-700 text-white p-8 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4">反向提示词与 Copilot 联动</h3>
+                        <p class="mb-6 opacity-90">“为了让 AI 给出好指令，而使用 AI”的理念。</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 1: Azure OpenAI</h4>
+                                <p class="text-sm">试验指令并反复修改，打磨出“理想提示词”。</p>
+                            </div>
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Step 2: M365 Copilot</h4>
+                                <p class="text-sm">在 Word 或 Teams 中部署打磨好的指令，实现流程自动化。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h4 class="font-bold mb-4 text-gray-700 italic">高效 4 要素 (Goal / Context / Source / Expectations)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            <strong>目标 (Goal):</strong> 想要实现什么<br>
+                            <strong>背景 (Context):</strong> 面向谁，什么情况<br>
+                            <strong>来源 (Source):</strong> 使用什么资料<br>
+                            <strong>期望 (Expectations):</strong> 形式、语气、长度等
+                        </p>
+                    </div>
+                </div>
+            `,
+            safety: `
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-2xl">
+                    <h3 class="text-xl font-bold text-red-700 mb-4">安全使用准则</h3>
+                    <div class="space-y-4 text-gray-800">
+                        <p><strong>1. 注意“幻觉”现象：</strong> AI 可能会自信地编造错误事实。必须由人工核实输出。</p>
+                        <p><strong>2. 严守公司规定：</strong> 输入客户信息或敏感数据时，请务必遵守最新的公司安全政策。</p>
+                        <p><strong>3. 最终判断权在人：</strong> AI 是辅助工具。对外回复或重要判断必须由负责人承担并执行。</p>
+                    </div>
+                </div>
+            `
+        },
+        es: {
+            title: "Guía de Azure OpenAI para Empleados",
+            subtitle: "La IA como tu nuevo asistente inteligente",
+            footer: "※ Info basada en documentos públicos. Consulte límites con su administrador.",
+            nav: { intro: "Resumen", files: "Archivos", models: "Modelos", usecases: "Casos", prompt: "Prompts", safety: "Seguridad" },
+            intro: `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">💡</span>¿Qué es Azure OpenAI?</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            Modelos potentes de OpenAI integrados con la seguridad y gobernanza de Microsoft Azure para empresas.
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li>✅ <strong>Protección de datos:</strong> Sus datos NO se usan para entrenar modelos base.</li>
+                            <li>✅ <strong>Autenticación:</strong> Acceso seguro con cuentas corporativas (Entra ID).</li>
+                            <li>✅ <strong>Multimodal:</strong> Analiza tanto texto como imágenes.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">⚖️</span>Diferencia con ChatGPT</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Gobernanza</span>
+                                <span class="text-gray-800">Gestión centralizada</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Uso de datos</span>
+                                <span class="text-gray-800">Sin reutilización (Estricto)</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Red</span>
+                                <span class="text-gray-800">Soporte VNet/Privado</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            files: `
+                <div class="bg-white p-8 rounded-2xl shadow-sm border">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Archivos Soportados</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Texto (.txt)</h4>
+                            <p class="text-sm text-gray-600">Ideal para notas o resúmenes. Procesamiento rápido.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Documentos (.pdf)</h4>
+                            <p class="text-sm text-gray-600">Análisis de informes. PDFs digitales como texto, escaneos como imagen.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Imágenes (.jpg, .png, etc.)</h4>
+                            <p class="text-sm text-gray-600">Extrae información de fotos o capturas de pantalla.</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            models: `
+                <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4 border-b">Nombre del Modelo</th>
+                                <th class="p-4 border-b">Uso Principal</th>
+                                <th class="p-4 border-b">Ventana de Contexto</th>
+                                <th class="p-4 border-b">Multimodal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-4o</td>
+                                <td class="p-4 border-b text-gray-600">Alta calidad. Documentos e imágenes importantes.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ Sí</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold text-gray-400">gpt-4o-mini</td>
+                                <td class="p-4 border-b text-gray-600">Rápido y económico. Tareas rutinarias.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ Sí</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50 bg-yellow-50">
+                                <td class="p-4 border-b font-bold">gpt-4.1 / mini</td>
+                                <td class="p-4 border-b text-gray-600">Larga duración. Análisis masivo de datos.</td>
+                                <td class="p-4 border-b text-red-600 font-bold">Hasta 1M</td>
+                                <td class="p-4 border-b">✅ Sí</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-5.1</td>
+                                <td class="p-4 border-b text-gray-600">Razonamiento avanzado. Informes complejos.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">400k</td>
+                                <td class="p-4 border-b">✅ Sí</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            usecases: `
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📋</div>
+                        <h4 class="font-bold mb-2">General Corporativo</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Resúmenes de reuniones y traducción multilingüe.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">💻</div>
+                        <h4 class="font-bold mb-2">TI y Desarrollo</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Apoyo en revisión de código y especificaciones técnicas.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📢</div>
+                        <h4 class="font-bold mb-2">Planificación</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Borradores de propuestas e ideas creativas de marketing.</p>
+                    </div>
+                </div>
+            `,
+            prompt: `
+                <div class="space-y-6">
+                    <div class="bg-blue-700 text-white p-8 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4">Prompt Inverso y Copilot</h3>
+                        <p class="mb-6 opacity-90">"Usar la IA para crear mejores instrucciones para la IA."</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Paso 1: Azure OpenAI</h4>
+                                <p class="text-sm">Refina tus instrucciones para encontrar el 'Prompt Ideal'.</p>
+                            </div>
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Paso 2: M365 Copilot</h4>
+                                <p class="text-sm">Usa los prompts pulidos en Word/Teams para automatizar tareas.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h4 class="font-bold mb-4 text-gray-700 italic">Los 4 Elementos (Goal / Context / Source / Expectations)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            <strong>Objetivo (Goal):</strong> ¿Qué quieres hacer?<br>
+                            <strong>Contexto:</strong> ¿Para quién es?<br>
+                            <strong>Referencia:</strong> ¿Qué datos usar?<br>
+                            <strong>Expectativas:</strong> Tono, longitud, formato.
+                        </p>
+                    </div>
+                </div>
+            `,
+            safety: `
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-2xl">
+                    <h3 class="text-xl font-bold text-red-700 mb-4">Reglas de Seguridad</h3>
+                    <div class="space-y-4 text-gray-800">
+                        <p><strong>1. Cuidado con Alucinaciones:</strong> La IA puede mentir con confianza. Verifique siempre los resultados.</p>
+                        <p><strong>2. Reglas Internas:</strong> Siga la política corporativa sobre datos sensibles.</p>
+                        <p><strong>3. Humano al mando:</strong> La IA es un asistente. El humano es responsable de las decisiones finales.</p>
+                    </div>
+                </div>
+            `
+        },
+        fr: {
+            title: "Guide Interne Azure OpenAI",
+            subtitle: "L'IA comme partenaire au quotidien",
+            footer: "※ Infos basées sur docs publiques. Vérifiez les limites avec votre admin.",
+            nav: { intro: "Aperçu", files: "Fichiers", models: "Modèles", usecases: "Usages", prompt: "Prompts", safety: "Sécurité" },
+            intro: `
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">💡</span>Azure OpenAI, c'est quoi ?</h3>
+                        <p class="text-gray-700 leading-relaxed mb-4">
+                            Modèles OpenAI puissants sous la protection et la gouvernance de Microsoft Azure.
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-600">
+                            <li>✅ <strong>Données protégées:</strong> Non utilisées pour l'entraînement.</li>
+                            <li>✅ <strong>Authentification:</strong> Accès sécurisé via ID entreprise.</li>
+                            <li>✅ <strong>Polyvalence:</strong> Résumés, traduction et analyse d'images.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100">
+                        <h3 class="text-xl font-bold text-blue-700 mb-4 flex items-center"><span class="mr-2">⚖️</span>Vs. ChatGPT Public</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Gouvernance</span>
+                                <span class="text-gray-800">Gestion centralisée</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Utilisation données</span>
+                                <span class="text-gray-800">Aucune réutilisation (Strict)</span>
+                            </div>
+                            <div class="flex justify-between border-b border-blue-100 pb-2">
+                                <span class="font-semibold text-gray-600">Réseau</span>
+                                <span class="text-gray-800">Support VNet/Privé</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            files: `
+                <div class="bg-white p-8 rounded-2xl shadow-sm border">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Formats de Fichiers</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Texte (.txt)</h4>
+                            <p class="text-sm text-gray-600">Idéal pour les notes ou résumés de mails. Traitement rapide.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Documents (.pdf)</h4>
+                            <p class="text-sm text-gray-600">Analyse de rapports. PDFs digitaux en texte, scans en image.</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-xl border">
+                            <h4 class="font-bold text-blue-600 mb-2">Images (.jpg, .png, etc.)</h4>
+                            <p class="text-sm text-gray-600">Extraction d'infos depuis des photos ou captures d'écran.</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            models: `
+                <div class="overflow-x-auto bg-white rounded-2xl shadow-sm border">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+                            <tr>
+                                <th class="p-4 border-b">Nom du Modèle</th>
+                                <th class="p-4 border-b">Usage Principal</th>
+                                <th class="p-4 border-b">Fenêtre Contextuelle</th>
+                                <th class="p-4 border-b">Multimodal</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm">
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-4o</td>
+                                <td class="p-4 border-b text-gray-600">Haute qualité. Docs et images importants.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ Oui</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold text-gray-400">gpt-4o-mini</td>
+                                <td class="p-4 border-b text-gray-600">Rapide et économique. Tâches de routine.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">128k</td>
+                                <td class="p-4 border-b">✅ Oui</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50 bg-yellow-50">
+                                <td class="p-4 border-b font-bold">gpt-4.1 / mini</td>
+                                <td class="p-4 border-b text-gray-600">Longue forme. Analyse massive de données.</td>
+                                <td class="p-4 border-b text-red-600 font-bold">Jusqu'à 1M</td>
+                                <td class="p-4 border-b">✅ Oui</td>
+                            </tr>
+                            <tr class="hover:bg-blue-50">
+                                <td class="p-4 border-b font-bold">gpt-5.1</td>
+                                <td class="p-4 border-b text-gray-600">Raisonnement avancé. Rapports complexes.</td>
+                                <td class="p-4 border-b text-blue-600 font-semibold">400k</td>
+                                <td class="p-4 border-b">✅ Oui</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `,
+            usecases: `
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📋</div>
+                        <h4 class="font-bold mb-2">Commun Entreprise</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Résumés de réunions et traductions multilingues.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">💻</div>
+                        <h4 class="font-bold mb-2">Dév & IT</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Aide à la revue de code et spécifications techniques.</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl border shadow-sm hover:shadow-md transition">
+                        <div class="text-2xl mb-2">📢</div>
+                        <h4 class="font-bold mb-2">Marketing</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">Brouillons de propositions et idées de communication.</p>
+                    </div>
+                </div>
+            `,
+            prompt: `
+                <div class="space-y-6">
+                    <div class="bg-blue-700 text-white p-8 rounded-2xl shadow-lg">
+                        <h3 class="text-2xl font-bold mb-4">Reverse Prompting & Copilot</h3>
+                        <p class="mb-6 opacity-90">"Utiliser l'IA pour créer de meilleures instructions pour l'IA."</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Étape 1: Azure OpenAI</h4>
+                                <p class="text-sm">Affinez vos instructions pour trouver le 'Prompt Idéal'.</p>
+                            </div>
+                            <div class="bg-white/10 p-4 rounded-xl">
+                                <h4 class="font-bold mb-2">Étape 2: M365 Copilot</h4>
+                                <p class="text-sm">Utilisez les prompts polis dans Word/Teams pour vos flux de travail.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border">
+                        <h4 class="font-bold mb-4 text-gray-700 italic">Les 4 Éléments (Objectif / Contexte / Source / Attentes)</h4>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            <strong>Objectif:</strong> Que voulez-vous faire ?<br>
+                            <strong>Contexte:</strong> Pour qui est-ce ?<br>
+                            <strong>Source:</strong> Quelles données utiliser ?<br>
+                            <strong>Attentes:</strong> Ton, longueur, format.
+                        </p>
+                    </div>
+                </div>
+            `,
+            safety: `
+                <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-r-2xl">
+                    <h3 class="text-xl font-bold text-red-700 mb-4">Règles de Sécurité</h3>
+                    <div class="space-y-4 text-gray-800">
+                        <p><strong>1. Attention aux Hallucinations:</strong> L'IA peut mentir avec assurance. Vérifiez toujours les sorties.</p>
+                        <p><strong>2. Règles Internes:</strong> Respectez la politique de confidentialité de l'entreprise.</p>
+                        <p><strong>3. Décision Humaine:</strong> L'IA est un assistant. L'humain reste responsable des décisions finales.</p>
+                    </div>
+                </div>
+            `
+        }
+    };
 
-            </div>
-        </main>
-    </div>
-    
-    <script>
-        // 번역 데이터 (Reasoning -> Deep Think로 수정됨)
-        const i18n = {
-            ja: {
-                page_title: "Copilot GPT-5.2 · GPT-5.1 実務ガイド",
-                page_subtitle: "GPT-5.2 Deep Think · GPT-5.1 · 高速応答 · 自動モード",
-                nav_toc: "📋 目次",
-                nav_1: "1. 3つのコアモード",
-                nav_2: "2. モード別実践レシピ",
-                nav_3: "3. モード切替パイプライン",
-                nav_4: "4. プロンプトチェックリスト",
-                nav_5: "5. 運用ガイド",
-                tag_deep: "🧠 GPT-5.2 Deep Think",
-                tag_fast: "⚡ GPT-5.1",
-                tag_auto: "✨ Auto",
-                update_title: "🚀 GPT-5.2 + GPT-5.1 サポートの核心 (2026.02)",
-                update_desc: "社内Copilot/チャットで<strong>GPT-5.1</strong>と<strong>GPT-5.2 (Deep Think)</strong>の両方が選択可能になりました。<br/><strong>原則：</strong>速度・反復作業は<strong>GPT-5.1 + ⚡ 高速応答</strong>、複雑な推論・コーディング・リスク判断は<strong>GPT-5.2 + 🧠 Deep Think</strong>。",
-                sec1_title: "<span class='text-indigo-600'>1.</span> どのモードを使うべきか？",
-                sec1_desc: "まず<strong>対象モデル（下記4モデル）</strong>を確認し、次に<strong>モード（Auto / 高速応答 / Deep Think）</strong>で速度・品質を調整します。",
-                s1_gpt52r_t: "GPT 5.2 Deep Think",
-                s1_gpt52r_d: "Deep Think 系モデルです。詳細な用途・仕様は [要確認] です。",
-                s1_gpt52r_e: "👍 詳細情報: [要確認]",
-                s1_gpt52i_t: "GPT 5.2 Instant",
-                s1_gpt52i_d: "Instant 系モデルです。詳細な用途・仕様は [要確認] です。",
-                s1_gpt52i_e: "👍 詳細情報: [要確認]",
-                s1_gpt53i_t: "GPT 5.3 Instant",
-                s1_gpt53i_d: "Instant 系モデルです。詳細な用途・仕様は [要確認] です。",
-                s1_gpt53i_e: "👍 詳細情報: [要確認]",
-                s1_gpt54r_t: "GPT 5.4 Deep Think",
-                s1_gpt54r_d: "Deep Think 系モデルです。詳細な用途・仕様は [要確認] です。",
-                s1_gpt54r_e: "👍 詳細情報: [要確認]",
-                s1_auto_t: "自動 (Auto)",
-                s1_auto_d: "AIが質問の複雑さを判断し、適切なモードを自ら選択します。",
-                s1_auto_e: "👍 推奨: 一般的な業務、モード選択が面倒な時、バランスの取れた回答が必要な時",
-                s1_fast_t: "高速応答",
-                s1_fast_d: "遅延なしで即答します。深く考えるよりも速度が重要な時に使います。",
-                s1_fast_e: "👍 推奨: 翻訳、テキスト要約、簡単なメール作成、軽い雑談、ブレインストーミング",
-                s1_deep_t: "Deep Think",
-                s1_deep_d: "回答前に内部で深い推論を実行します。時間はかかりますが正確です。",
-                s1_deep_e: "👍 推奨: 複雑なコーディング、データ分析、数学計算、戦略企画、論理的推論",
-                sec2_title: "<span class='text-indigo-600'>2.</span> モード別実践レシピ 12選",
-                s2_a_t: "🚀 A. スピード業務 <span class='text-sm font-normal text-gray-500'>(⚡ 高速応答推奨)</span>",
-                s2_a1_t: "1. リアルタイム会議通訳/記録",
-                s2_a1_c: "役割: 会議の同時通訳および速記。\n言語: 日本語↔英語、遅延なしで即時出力。\n指示: 発言者の核心内容だけを要約して箇条書きでリアルタイムに羅列。\n感情的な表現は除外し、事実(Fact)を中心に記録。\n形式: [時間] 発言者: 内容の要約",
-                s2_a2_t: "2. 顧客対応のリライト",
-                s2_a2_c: "私の荒い言葉遣いを[丁寧/共感/解決志向]のトーンに即時変換して。\n入力: 「いや、なんで配送来ないんですか、もう1週間経つのに」\n出力: 顧客に送る洗練されたメッセージの3つのオプションだけを見せて。余計な言葉は不要。",
-                s2_b_t: "🧠 B. 分析と論理 <span class='text-sm font-normal text-gray-500'>(🧠 Deep Think 必須)</span>",
-                s2_b1_t: "3. 複雑なコードのリファクタリング/デバッグ",
-                s2_b1_c: "以下のPythonコードでメモリリークが発生している。\n1. コードの論理的な流れをまず分析し(段階的な説明/根拠を含む)、\n2. 原因となるボトルネックの箇所を見つけ、\n3. 最適化されたコードに書き直して。\n4. 既存のコードとのパフォーマンスの違い(Big-O)を説明して。\n[コード貼り付け]",
-                s2_b2_t: "4. データテーブルの深層分析",
-                s2_b2_c: "[添付されたExcel/画像]の売上データを分析して。\n単なる要約ではなく、「前年比下落の原因」に関する仮説を3段階で推論して。\n外れ値(Outlier)が全体の平均に与えた影響を計算し、\nこれを除外した場合のトレンド線を説明して。",
-                s2_b3_t: "5. 戦略企画書/RFPの分析",
-                s2_b3_c: "添付のRFP（提案依頼書）の「評価基準」項目を入念に分析して。\n私たちが提案書を作成する際に最も力を入れるべき「Hidden Need」が何であるかを論理的に導き出し、\n競合他社が見落としそうなニッチ戦略を3つ提案して。",
-                s2_c_t: "✨ C. 創作と一般 <span class='text-sm font-normal text-gray-500'>(✨ 自動モード推奨)</span>",
-                s2_c1_t: "6. ブランド画像の生成",
-                s2_c1_c: "[製品名] ローンチ用の画像生成。\nスタイル: ミニマリズム、パステルトーンの背景、自然光。\n構成: 製品が中央に配置され、影は右側に柔らかく。\n比率: 16:9（ウェブバナー用）",
-                s2_c2_t: "7. PPTの草案作成",
-                s2_c2_c: "[テーマ]に関する10枚分の投資誘致用プレゼン資料の構成を作って。\n各スライドのタイトル、入れるべき核心データ、そしてDALL-Eで生成する画像プロンプトまで提案して。",
-                sec3_title: "<span class='text-indigo-600'>3.</span> モード切り替えパイプライン",
-                sec3_desc: "1つのモードに固執しないでください。作業の段階ごとに最適なモードに切り替えて効率を最大化します。",
-                s3_scen: "シナリオ: 現場の欠陥分析から報告メール送信まで",
-                s3_1_t: "現場写真のアップロードと認識",
-                s3_1_d: "画像認識は自動モードが優れています。",
-                s3_1_c: "「これらの写真の欠陥部分をボックスで囲み、どの部品であるかを識別して。」",
-                s3_2_t: "原因分析と対策の立案",
-                s3_2_d: "論理的な推論が必要なため、モードを変更します。",
-                s3_2_c: "「識別された欠陥（亀裂）が発生した原因を、金属疲労破壊の観点から3段階で深層分析して。再発防止のための工学的ソリューションを提案して。」",
-                s3_3_t: "報告メールの草案作成",
-                s3_3_d: "分析された内容をもとに、素早くテキストだけを生成します。",
-                s3_3_c: "「上記の分析内容をチームリーダーに報告するメールとして作成して。結論から述べる頭括式で、トーンは丁寧かつ毅然と。」",
-                sec4_title: "<span class='text-indigo-600'>4.</span> 失敗しないプロンプトチェックリスト",
-                s4_req_t: "✅ 必須要素",
-                s4_req_1: "□ <strong>役割(Persona):</strong> 「あなたは10年目のシニア開発者です」",
-                s4_req_2: "□ <strong>目標(Goal):</strong> 「バグを見つけて修正して」",
-                s4_req_3: "□ <strong>文脈(Context):</strong> 「このコードはレガシーシステムの一部です」",
-                s4_req_4: "□ <strong>形式(Format):</strong> 「マークダウンの表でまとめて」",
-                s4_warn_t: "🚫 共通の注意事項",
-                s4_warn_1: "□ <strong>Deep Thinkの乱用禁止:</strong> 単純な挨拶は「高速応答」で。",
-                s4_warn_2: "□ <strong>情報セキュリティ:</strong> 個人情報(PII)やパスワードのアップロード禁止。",
-                s4_warn_3: "□ <strong>ハルシネーションの確認:</strong> Deep Thinkも100%ではありません。クロスチェックが必須。",
-                sec5_title: "<span class='text-indigo-600'>5.</span> 実務運用のヒント (TIP)",
-                s5_1_t: "長い会話は「要約」して新しいウィンドウで",
-                s5_1_d: "会話が長くなるとAIが以前の文脈を忘れたり遅くなったりします。<br>「これまでの内容を要約して」→コピー→新しいチャットルームで「この要約に基づいて...」と始めてください。",
-                s5_2_t: "参照ファイルは一度に",
-                s5_2_d: "ファイルを1つずつアップロードするよりも、関連ドキュメントを一度にドラッグ＆ドロップし、「これらのファイルを統合して分析して」と言う方が文脈の維持に優れています。",
-                btn_copy: "コピー",
-                btn_copied: "完了！"
-            },
-            zh: {
-                page_title: "Copilot GPT-5.2 · GPT-5.1 实用指南",
-                page_subtitle: "GPT-5.2 Deep Think · GPT-5.1 · 快速响应 · 自动模式",
-                nav_toc: "📋 目录",
-                nav_1: "1. 3个核心模式",
-                nav_2: "2. 模式推荐配方",
-                nav_3: "3. 模式切换流水线",
-                nav_4: "4. 提示词检查清单",
-                nav_5: "5. 运营指南",
-                tag_deep: "🧠 GPT-5.2 Deep Think",
-                tag_fast: "⚡ GPT-5.1",
-                tag_auto: "✨ Auto",
-                update_title: "🚀 GPT-5.2 + GPT-5.1 支持核心 (2026.02)",
-                update_desc: "在企业Copilot/内部聊天中，现在可以选择 <strong>GPT-5.1</strong> 和 <strong>GPT-5.2 (Deep Think)</strong>。<br/><strong>原则:</strong> 速度和重复任务使用 <strong>GPT-5.1 + ⚡ 快速响应</strong>，复杂推理、编程和风险判断使用 <strong>GPT-5.2 + 🧠 Deep Think</strong>。",
-                sec1_title: "<span class='text-indigo-600'>1.</span> 我该使用哪种模式？",
-                sec1_desc: "请先确认<strong>目标模型（下方4个模型）</strong>，然后再使用<strong>模式（Auto / 快速响应 / Deep Think）</strong>调整速度和质量。",
-                s1_gpt52r_t: "GPT 5.2 Deep Think",
-                s1_gpt52r_d: "Deep Think 系列模型。详细用途和规格为 [确认中]。",
-                s1_gpt52r_e: "👍 详细信息: [确认中]",
-                s1_gpt52i_t: "GPT 5.2 Instant",
-                s1_gpt52i_d: "Instant 系列模型。详细用途和规格为 [确认中]。",
-                s1_gpt52i_e: "👍 详细信息: [确认中]",
-                s1_gpt53i_t: "GPT 5.3 Instant",
-                s1_gpt53i_d: "Instant 系列模型。详细用途和规格为 [确认中]。",
-                s1_gpt53i_e: "👍 详细信息: [确认中]",
-                s1_gpt54r_t: "GPT 5.4 Deep Think",
-                s1_gpt54r_d: "Deep Think 系列模型。详细用途和规格为 [确认中]。",
-                s1_gpt54r_e: "👍 详细信息: [确认中]",
-                s1_auto_t: "自动 (Auto)",
-                s1_auto_d: "AI判断问题的复杂性并自动选择适当的模式。",
-                s1_auto_e: "👍 推荐: 日常任务，不想手动选择模式时",
-                s1_fast_t: "快速响应",
-                s1_fast_d: "无延迟即时响应。当速度比深度思考更重要时使用。",
-                s1_fast_e: "👍 推荐: 翻译、摘要、简单邮件、头脑风暴",
-                s1_deep_t: "Deep Think",
-                s1_deep_d: "在回答之前进行内部深度推理。需要时间但非常准确。",
-                s1_deep_e: "👍 推荐: 复杂编程、数据分析、逻辑推理",
-                sec2_title: "<span class='text-indigo-600'>2.</span> 模式实战配方 12选",
-                s2_a_t: "🚀 A. 速度任务 <span class='text-sm font-normal text-gray-500'>(⚡ 推荐快速响应)</span>",
-                s2_a1_t: "1. 实时会议翻译/记录",
-                s2_a1_c: "角色：同声传译和速记员。\n语言：中英互译，无延迟即时输出。\n指令：仅将发言者的核心要点提炼为项目符号。排除情感表达，以事实(Fact)为主。\n格式：[时间] 发言人：内容摘要",
-                s2_a2_t: "2. 客户回复重写",
-                s2_a2_c: "请立即将我粗糙的语气转换为[礼貌/同理心/解决导向]的语气。\n输入：“为什么还没发货，都一个星期了！”\n输出：仅显示3个发送给客户的优化消息选项。不要多余的话。",
-                s2_b_t: "🧠 B. 分析与逻辑 <span class='text-sm font-normal text-gray-500'>(🧠 需要 Deep Think)</span>",
-                s2_b1_t: "3. 复杂代码重构/调试",
-                s2_b1_c: "下面的Python代码存在内存泄漏。\n1. 首先分析逻辑流程(包括分步说明/依据)\n2. 找到瓶颈\n3. 重写为优化代码\n4. 解释与现有代码的性能差异(Big-O)\n[贴入代码]",
-                s2_b2_t: "4. 데이터 테이블 심층 분석",
-                s2_b2_c: "分析[附件图片/Excel]中的销售数据。\n不要简单总结，分3个阶段推导关于“同比下降原因”的假设。\n计算异常值(Outlier)对整体平均值的影响，并解释趋势线。",
-                s2_b3_t: "5. 战略计划书/RFP分析",
-                s2_b3_c: "仔细分析附件RFP（需求建议书）中的“评估标准”项目。\n逻辑推导出我们在撰写提案时最应着力的“隐藏需求(Hidden Need)”，\n并提出3个竞争对手可能忽略的利基战略。",
-                s2_c_t: "✨ C. 创作与常规 <span class='text-sm font-normal text-gray-500'>(✨ 推荐自动模式)</span>",
-                s2_c1_t: "6. 品牌图像生成",
-                s2_c1_c: "生成[产品名称]的发布图像。\n风格：极简主义，柔和色调背景，自然光。\n构图：产品居中，阴影向右柔和延伸。\n比例：16:9（网页横幅）",
-                s2_c2_t: "7. PPT草稿制作",
-                s2_c2_c: "为[主题]制定一份10页的投资路演PPT结构。\n提出每页的标题、需包含的核心数据以及用于生成图像的提示词。",
-                sec3_title: "<span class='text-indigo-600'>3.</span> 模式切换流水线",
-                sec3_desc: "不要局限于一种模式。根据任务阶段切换到最佳模式以最大化效率。",
-                s3_scen: "场景：从现场缺陷分析到发送报告邮件",
-                s3_1_t: "上传并识别现场照片",
-                s3_1_d: "自动模式在图像识别方面非常出色。",
-                s3_1_c: "“用框标出这些照片中的缺陷部位，并识别这是什么零件。”",
-                s3_2_t: "原因分析及对策",
-                s3_2_d: "因为需要逻辑推理，所以更改模式。",
-                s3_2_c: "“从金属疲劳破坏的角度分3个阶段深度分析发现的缺陷(裂纹)的原因。并提出防止再次发生的工程解决方案。”",
-                s3_3_t: "起草报告邮件",
-                s3_3_d: "根据分析内容快速生成纯文本。",
-                s3_3_c: "“将上述分析内容写成向团队领导报告的邮件。结论先行，语气礼貌但坚定。”",
-                sec4_title: "<span class='text-indigo-600'>4.</span> 提示词检查清单",
-                s4_req_t: "✅ 必备要素",
-                s4_req_1: "□ <strong>角色(Persona):</strong> \"你是一名10年经验的高级开发人员\"",
-                s4_req_2: "□ <strong>目标(Goal):</strong> \"找出并修复Bug\"",
-                s4_req_3: "□ <strong>背景(Context):</strong> \"这段代码是旧系统的一部分\"",
-                s4_req_4: "□ <strong>格式(Format):</strong> \"用Markdown表格整理\"",
-                s4_warn_t: "🚫 5.1/5.2 共同注意事项",
-                s4_warn_1: "□ <strong>不要滥用 Deep Think:</strong> 简单的问候请使用快速响应。",
-                s4_warn_2: "□ <strong>信息安全:</strong> 严禁上传个人隐私(PII)或密码。",
-                s4_warn_3: "□ <strong>检查幻觉:</strong> Deep Think也不是100%准确。必须交叉验证。",
-                sec5_title: "<span class='text-indigo-600'>5.</span> 实务运营指南 (TIP)",
-                s5_1_t: "长对话请“总结”后开启新窗口",
-                s5_1_d: "如果对话过长，AI可能会忘记之前的背景。<br>请说“总结到目前为止的内容” → 复制 → 在新聊天中以“基于这些总结...”开始。",
-                s5_2_t: "一次性上传参考文件",
-                s5_2_d: "与其逐个上传文件，不如一次性拖放相关文档并说“综合分析这些文件”，这样有利于保持上下文。",
-                btn_copy: "复制",
-                btn_copied: "完成！"
-            },
-            en: {
-                page_title: "Copilot GPT-5.2 · GPT-5.1 Practical Guide",
-                page_subtitle: "GPT-5.2 Deep Think · GPT-5.1 · Fast Response · Auto Mode",
-                nav_toc: "📋 Table of Contents",
-                nav_1: "1. 3 Core Modes",
-                nav_2: "2. Recipes by Mode",
-                nav_3: "3. Mode Switching",
-                nav_4: "4. Prompt Checklist",
-                nav_5: "5. Operation Tips",
-                tag_deep: "🧠 GPT-5.2 Deep Think",
-                tag_fast: "⚡ GPT-5.1",
-                tag_auto: "✨ Auto",
-                update_title: "🚀 GPT-5.2 + GPT-5.1 Core Support (Feb 2026)",
-                update_desc: "Both <strong>GPT-5.1</strong> and <strong>GPT-5.2 (Deep Think)</strong> are now available in Enterprise Copilot.<br/><strong>Rule:</strong> Use <strong>GPT-5.1 + ⚡ Fast Response</strong> for speed/repetitive tasks, and <strong>GPT-5.2 + 🧠 Deep Think</strong> for complex reasoning, coding, and risk analysis.",
-                sec1_title: "<span class='text-indigo-600'>1.</span> Which mode should I use?",
-                sec1_desc: "First, review the <strong>target models (the 4 models below)</strong>, then adjust speed/quality with the <strong>Mode (Auto / Fast / Deep Think)</strong>.",
-                s1_gpt52r_t: "GPT 5.2 Deep Think",
-                s1_gpt52r_d: "Deep Think-series model. Detailed use cases and specifications are [TBD].",
-                s1_gpt52r_e: "👍 Details: [TBD]",
-                s1_gpt52i_t: "GPT 5.2 Instant",
-                s1_gpt52i_d: "Instant-series model. Detailed use cases and specifications are [TBD].",
-                s1_gpt52i_e: "👍 Details: [TBD]",
-                s1_gpt53i_t: "GPT 5.3 Instant",
-                s1_gpt53i_d: "Instant-series model. Detailed use cases and specifications are [TBD].",
-                s1_gpt53i_e: "👍 Details: [TBD]",
-                s1_gpt54r_t: "GPT 5.4 Deep Think",
-                s1_gpt54r_d: "Deep Think-series model. Detailed use cases and specifications are [TBD].",
-                s1_gpt54r_e: "👍 Details: [TBD]",
-                s1_auto_t: "Auto",
-                s1_auto_d: "AI judges the complexity of the prompt and selects the appropriate mode itself.",
-                s1_auto_e: "👍 Rec: General tasks, balanced answers",
-                s1_fast_t: "Fast Response",
-                s1_fast_d: "Responds instantly with no latency. Used when speed matters more than deep thought.",
-                s1_fast_e: "👍 Rec: Translation, text summarization, simple emails, brainstorming",
-                s1_deep_t: "Deep Think",
-                s1_deep_d: "Performs deep internal reasoning before answering. Takes more time but is highly accurate.",
-                s1_deep_e: "👍 Rec: Complex coding, data analysis, logical reasoning",
-                sec2_title: "<span class='text-indigo-600'>2.</span> 12 Practical Recipes",
-                s2_a_t: "🚀 A. Speed Tasks <span class='text-sm font-normal text-gray-500'>(⚡ Fast Response Rec.)</span>",
-                s2_a1_t: "1. Real-time Meeting Notes",
-                s2_a1_c: "Role: Simultaneous interpreter & stenographer.\nLang: Korean↔English, output instantly.\nInstruction: Summarize key points into real-time bullet points. Exclude emotions and focus on Facts.\nFormat: [Time] Speaker: Summary",
-                s2_a2_t: "2. Tone Rewriting",
-                s2_a2_c: "Instantly convert my rough tone to a [Polite/Empathetic/Solution-oriented] tone.\nInput: \"Why is the delivery taking so long! It's been a week!\"\nOutput: Show exactly 3 refined message options. No extra words.",
-                s2_b_t: "🧠 B. Analysis & Logic <span class='text-sm font-normal text-gray-500'>(🧠 Deep Think Req.)</span>",
-                s2_b1_t: "3. Complex Code Refactoring",
-                s2_b1_c: "This Python code is leaking memory.\n1. Analyze logical flow first (include step-by-step reasons),\n2. Find the bottleneck,\n3. Rewrite into optimized code,\n4. Explain Big-O difference.\n[Paste code]",
-                s2_b2_t: "4. Deep Data Analysis",
-                s2_b2_c: "Analyze the sales data in the [Attached Excel/Image].\nNot just a summary, deduce hypotheses for the 'YoY decline cause' in 3 steps.\nCalculate the impact of Outliers on the average and explain the trend line excluding them.",
-                s2_b3_t: "5. RFP/Strategy Analysis",
-                s2_b3_c: "Carefully analyze the 'Evaluation Criteria' in the attached RFP.\nLogically derive the 'Hidden Need' we must focus on when writing our proposal,\nand suggest 3 niche strategies competitors might miss.",
-                s2_c_t: "✨ C. Creative & General <span class='text-sm font-normal text-gray-500'>(✨ Auto Rec.)</span>",
-                s2_c1_t: "6. Brand Image Generation",
-                s2_c1_c: "Generate a launch image for [Product].\nStyle: Minimalism, pastel background, natural light.\nComposition: Product in center, soft shadow right.\nRatio: 16:9 (Web banner)",
-                s2_c2_t: "7. PPT Draft Creation",
-                s2_c2_c: "Create a 10-slide pitch deck structure for [Topic].\nSuggest slide titles, core data to include, and image generation prompts.",
-                sec3_title: "<span class='text-indigo-600'>3.</span> Mode Switching Pipeline",
-                sec3_desc: "Don't stick to one mode. Switch to the optimal mode per task phase to maximize efficiency.",
-                s3_scen: "Scenario: Defect analysis to report email",
-                s3_1_t: "Upload & Recognize Photos",
-                s3_1_d: "Auto mode is excellent for image recognition.",
-                s3_1_c: "“Mark the defective areas in these photos with boxes and identify the parts.”",
-                s3_2_t: "Cause Analysis & Solution",
-                s3_2_d: "Change mode since logical reasoning is needed.",
-                s3_2_c: "“Deeply analyze the cause of the crack from a metal fatigue perspective in 3 steps. Propose an engineering solution to prevent recurrence.”",
-                s3_3_t: "Draft Report Email",
-                s3_3_d: "Quickly generate text based on the analysis.",
-                s3_3_c: "“Write an email to report this to the team leader. Conclusion first, polite but firm tone.”",
-                sec4_title: "<span class='text-indigo-600'>4.</span> Prompt Checklist",
-                s4_req_t: "✅ Must Include",
-                s4_req_1: "□ <strong>Persona:</strong> \"You are a senior developer\"",
-                s4_req_2: "□ <strong>Goal:</strong> \"Find and fix the bug\"",
-                s4_req_3: "□ <strong>Context:</strong> \"This is a legacy system\"",
-                s4_req_4: "□ <strong>Format:</strong> \"Organize in Markdown table\"",
-                s4_warn_t: "🚫 5.1/5.2 Cautions",
-                s4_warn_1: "□ <strong>Overusing Deep Think:</strong> Use Fast Response for greetings.",
-                s4_warn_2: "□ <strong>Information Security:</strong> No PII or passwords.",
-                s4_warn_3: "□ <strong>Hallucinations:</strong> Deep Think is not 100% either. Cross-check is a must.",
-                sec5_title: "<span class='text-indigo-600'>5.</span> Operation Tips",
-                s5_1_t: "Summarize long chats",
-                s5_1_d: "If the chat gets too long, AI forgets context.<br>Say 'Summarize the chat so far' → Copy → Start a new chat.",
-                s5_2_t: "Upload files at once",
-                s5_2_d: "Instead of uploading one by one, drag & drop all related documents at once and say 'Analyze these files together' to maintain context.",
-                btn_copy: "Copy",
-                btn_copied: "Copied!"
-            },
-            ko: {
-                page_title: "Copilot GPT-5.2 · GPT-5.1 실무 가이드",
-                page_subtitle: "GPT-5.2 Deep Think · GPT-5.1 · 빠른 응답 · 자동 모드",
-                nav_toc: "📋 목차",
-                nav_1: "1. 3가지 핵심 모드",
-                nav_2: "2. 모드별 추천 레시피",
-                nav_3: "3. 모드 스위칭 파이프라인",
-                nav_4: "4. 프롬프트 체크리스트",
-                nav_5: "5. 운영 가이드",
-                tag_deep: "🧠 GPT-5.2 Deep Think",
-                tag_fast: "⚡ GPT-5.1",
-                tag_auto: "✨ Auto",
-                update_title: "🚀 GPT-5.2 + GPT-5.1 지원 핵심 (2026.02)",
-                update_desc: "회사 Copilot/사내 챗에서 <strong>GPT-5.1</strong>과 <strong>GPT-5.2 (Deep Think)</strong>가 모두 선택 가능해졌습니다.<br/><strong>원칙:</strong> 속도·반복 작업은 <strong>GPT-5.1 + ⚡ 빠른 응답</strong>, 복잡한 추론·코딩·리스크 판단은 <strong>GPT-5.2 + 🧠 Deep Think</strong>.",
-                sec1_title: "<span class='text-indigo-600'>1.</span> 어떤 모드를 써야 할까?",
-                sec1_desc: "먼저 <strong>대상 모델(아래 4개)</strong>을 확인하고, 그 다음 <strong>모드(Auto / 빠른 응답 / Deep Think)</strong>로 속도·품질을 조절합니다.",
-                s1_gpt52r_t: "GPT 5.2 Deep Think",
-                s1_gpt52r_d: "Deep Think 계열 모델입니다. 세부 용도·사양은 [확인 필요]입니다.",
-                s1_gpt52r_e: "👍 상세 정보: [확인 필요]",
-                s1_gpt52i_t: "GPT 5.2 Instant",
-                s1_gpt52i_d: "Instant 계열 모델입니다. 세부 용도·사양은 [확인 필요]입니다.",
-                s1_gpt52i_e: "👍 상세 정보: [확인 필요]",
-                s1_gpt53i_t: "GPT 5.3 Instant",
-                s1_gpt53i_d: "Instant 계열 모델입니다. 세부 용도·사양은 [확인 필요]입니다.",
-                s1_gpt53i_e: "👍 상세 정보: [확인 필요]",
-                s1_gpt54r_t: "GPT 5.4 Deep Think",
-                s1_gpt54r_d: "Deep Think 계열 모델입니다. 세부 용도·사양은 [확인 필요]입니다.",
-                s1_gpt54r_e: "👍 상세 정보: [확인 필요]",
-                s1_auto_t: "자동 (Auto)",
-                s1_auto_d: "AI가 질문의 복잡도를 판단해 적절한 모드를 스스로 선택합니다.",
-                s1_auto_e: "👍 추천: 일반적인 업무, 모드 선택이 귀찮을 때, 균형 잡힌 답변이 필요할 때",
-                s1_fast_t: "빠른 응답",
-                s1_fast_d: "지연 시간 없이 즉답합니다. 깊은 생각보다 속도가 중요할 때 씁니다.",
-                s1_fast_e: "👍 추천: 번역, 텍스트 요약, 단순 이메일 작성, 가벼운 잡담",
-                s1_deep_t: "Deep Think",
-                s1_deep_d: "답변 전 내부적으로 깊은 추론을 수행합니다. 시간이 걸리지만 정확합니다.",
-                s1_deep_e: "👍 추천: 복잡한 코딩, 데이터 분석, 수학 계산, 전략 기획, 논리적 추론",
-                sec2_title: "<span class='text-indigo-600'>2.</span> 모드별 실전 레시피 12선",
-                s2_a_t: "🚀 A. 스피드 업무 <span class='text-sm font-normal text-gray-500'>(⚡ 빠른 응답 권장)</span>",
-                s2_a1_t: "1. 실시간 회의 통역/기록",
-                s2_a1_c: "역할: 회의 동시통역 및 속기사.\n언어: 한국어↔영어, 지연 없이 즉시 출력.\n지시: 발화자의 핵심 내용만 요약해서 불릿포인트로 실시간 나열.\n감정적 표현은 제외하고 사실(Fact) 위주로 기록.\n형식: [시간] 발화자: 내용 요약",
-                s2_a2_t: "2. 고객 대응 리라이팅",
-                s2_a2_c: "내 거친 말투를 [정중함/공감/해결지향] 톤으로 즉시 변환해줘.\n입력: \"아니 배송이 왜 안와요 지금 일주일 째인데\"\n출력: 고객에게 보낼 정제된 메시지 3가지 옵션만 딱 보여줘. 사족 금지.",
-                s2_b_t: "🧠 B. 분석 및 논리 <span class='text-sm font-normal text-gray-500'>(🧠 Deep Think 필수)</span>",
-                s2_b1_t: "3. 복잡한 코드 리팩토링/디버깅",
-                s2_b1_c: "아래 파이썬 코드는 메모리 누수가 발생하고 있어.\n1. 코드의 논리적 흐름을 먼저 분석하고(단계별 설명/근거 포함),\n2. 원인이 되는 병목 지점을 찾아서,\n3. 최적화된 코드로 다시 작성해줘.\n4. 기존 코드와 성능 차이(Big-O)를 설명해줘.\n[코드 붙여넣기]",
-                s2_b2_t: "4. 데이터 테이블 심층 분석",
-                s2_b2_c: "[첨부된 엑셀/이미지]의 매출 데이터를 분석해.\n단순 요약이 아니라, '전년 대비 하락 원인'에 대한 가설을 3단계로 추론해줘.\n특이값(Outlier)이 전체 평균에 미친 영향을 계산하고,\n이를 제외했을 때의 추세선을 설명해줘.",
-                s2_b3_t: "5. 전략 기획서/RFP 분석",
-                s2_b3_c: "첨부된 RFP(제안요청서)의 '평가 기준' 항목을 꼼꼼히 분석해.\n우리가 제안서 작성 시 가장 힘을 줘야 할 'Hidden Need'가 무엇인지 논리적으로 도출하고,\n경쟁사가 놓칠만한 틈새 전략 3가지를 제안해줘.",
-                s2_c_t: "✨ C. 창작 및 일반 <span class='text-sm font-normal text-gray-500'>(✨ 자동 모드 권장)</span>",
-                s2_c1_t: "6. 브랜드 이미지 생성",
-                s2_c1_c: "[제품명] 런칭용 이미지 생성.\n스타일: 미니멀리즘, 파스텔 톤 배경, 자연광.\n구성: 제품이 중앙에 위치, 그림자는 오른쪽으로 부드럽게.\n비율: 16:9 (웹 배너용)",
-                s2_c2_t: "7. PPT 초안 작성",
-                s2_c2_c: "[주제]에 대한 10장 분량의 투자 유치용 발표 자료 구조를 잡아줘.\n각 슬라이드의 제목, 들어갈 핵심 데이터, 그리고 DALL-E로 생성할 이미지 프롬프트까지 제안해줘.",
-                sec3_title: "<span class='text-indigo-600'>3.</span> 모드 스위칭 파이프라인",
-                sec3_desc: "하나의 모드만 고집하지 마세요. 작업 단계별로 최적의 모드로 전환하여 효율을 극대화합니다.",
-                s3_scen: "시나리오: 현장 결함 분석부터 보고서 메일 발송까지",
-                s3_1_t: "현장 사진 업로드 및 인식",
-                s3_1_d: "이미지 인식은 자동 모드가 훌륭합니다.",
-                s3_1_c: "\"이 사진들의 결함 부위를 박스로 표시하고, 어떤 부품인지 식별해줘.\"",
-                s3_2_t: "원인 분석 및 대책 수립",
-                s3_2_d: "논리적 추론이 필요하므로 모드를 변경합니다.",
-                s3_2_c: "\"식별된 결함(균열)이 발생한 원인을 금속 피로 파괴 관점에서 3단계로 심층 분석해. 재발 방지를 위한 공학적 솔루션을 제안해.\"",
-                s3_3_t: "보고 메일 초안 작성",
-                s3_3_d: "분석된 내용을 바탕으로 빠르게 텍스트만 생성합니다.",
-                s3_3_c: "\"위 분석 내용을 팀장님께 보고할 이메일로 작성해. 결론부터 말하는 두괄식으로, 톤은 정중하지만 단호하게.\"",
-                sec4_title: "<span class='text-indigo-600'>4.</span> 실패 없는 프롬프트 체크리스트",
-                s4_req_t: "✅ 필수 포함 요소",
-                s4_req_1: "□ <strong>역할(Persona):</strong> \"너는 10년차 시니어 개발자야\"",
-                s4_req_2: "□ <strong>목표(Goal):</strong> \"버그를 찾아서 수정해줘\"",
-                s4_req_3: "□ <strong>맥락(Context):</strong> \"이 코드는 레거시 시스템의 일부야\"",
-                s4_req_4: "□ <strong>형식(Format):</strong> \"마크다운 표로 정리해줘\"",
-                s4_warn_t: "🚫 공통 주의사항",
-                s4_warn_1: "□ <strong>Deep Think 과용 금지:</strong> 단순 인사는 '빠른 응답'으로.",
-                s4_warn_2: "□ <strong>정보 보안:</strong> 개인정보나 비밀번호 업로드 금지.",
-                s4_warn_3: "□ <strong>할루시네이션 확인:</strong> Deep Think도 100%는 아님. 교차 검증 필수.",
-                sec5_title: "<span class='text-indigo-600'>5.</span> 실무 운영 팁 (TIP)",
-                s5_1_t: "긴 대화는 '요약' 후 새 창에서",
-                s5_1_d: "대화가 길어지면 AI가 이전 맥락을 잊거나 느려질 수 있습니다.<br>\"지금까지 내용 요약해줘\" → 복사 → 새 채팅방에서 시작하세요.",
-                s5_2_t: "참조 파일은 한 번에",
-                s5_2_d: "파일을 하나씩 올리기보다, 관련 문서를 한 번에 드래그&드롭하고 \"이 파일들을 통합해서 분석해줘\"라고 하는 것이 좋습니다.",
-                btn_copy: "복사",
-                btn_copied: "완료!"
-            },
-            es: {
-                page_title: "Guía Práctica Copilot GPT-5.2 · GPT-5.1",
-                page_subtitle: "GPT-5.2 Deep Think · GPT-5.1 · Respuesta Rápida · Automático",
-                nav_toc: "📋 Índice",
-                nav_1: "1. 3 Modos Principales",
-                nav_2: "2. Recetas por Modo",
-                nav_3: "3. Cambio de Modo",
-                nav_4: "4. Lista de Verificación",
-                nav_5: "5. Guía de Uso",
-                tag_deep: "🧠 GPT-5.2 Deep Think",
-                tag_fast: "⚡ GPT-5.1",
-                tag_auto: "✨ Auto",
-                update_title: "🚀 Soporte GPT-5.2 + GPT-5.1 (Feb 2026)",
-                update_desc: "Tanto <strong>GPT-5.1</strong> como <strong>GPT-5.2 (Deep Think)</strong> ya están disponibles.<br/><strong>Regla:</strong> Usa <strong>GPT-5.1 + ⚡ Respuesta Rápida</strong> para velocidad, y <strong>GPT-5.2 + 🧠 Deep Think</strong> para razonamiento complejo.",
-                sec1_title: "<span class='text-indigo-600'>1.</span> ¿Qué modo debo usar?",
-                sec1_desc: "Primero, revisa los <strong>modelos objetivo (los 4 modelos de abajo)</strong> y luego ajusta con el <strong>Modo (Auto / Rápido / Deep Think)</strong>.",
-                s1_gpt52r_t: "GPT 5.2 Deep Think",
-                s1_gpt52r_d: "Modelo de la serie Deep Think. Los casos de uso y especificaciones son [TBD].",
-                s1_gpt52r_e: "👍 Detalles: [TBD]",
-                s1_gpt52i_t: "GPT 5.2 Instant",
-                s1_gpt52i_d: "Modelo de la serie Instant. Los casos de uso y especificaciones son [TBD].",
-                s1_gpt52i_e: "👍 Detalles: [TBD]",
-                s1_gpt53i_t: "GPT 5.3 Instant",
-                s1_gpt53i_d: "Modelo de la serie Instant. Los casos de uso y especificaciones son [TBD].",
-                s1_gpt53i_e: "👍 Detalles: [TBD]",
-                s1_gpt54r_t: "GPT 5.4 Deep Think",
-                s1_gpt54r_d: "Modelo de la serie Deep Think. Los casos de uso y especificaciones son [TBD].",
-                s1_gpt54r_e: "👍 Detalles: [TBD]",
-                s1_auto_t: "Automático (Auto)",
-                s1_auto_d: "La IA juzga la complejidad de la pregunta y selecciona el modo apropiado.",
-                s1_auto_e: "👍 Recomendado: Tareas generales, respuestas equilibradas",
-                s1_fast_t: "Respuesta Rápida",
-                s1_fast_d: "Responde instantáneamente. Úsalo cuando la velocidad importa más.",
-                s1_fast_e: "👍 Recomendado: Traducciones, resúmenes, correos simples",
-                s1_deep_t: "Deep Think",
-                s1_deep_d: "Realiza un razonamiento interno profundo antes de responder. Muy preciso.",
-                s1_deep_e: "👍 Recomendado: Código complejo, análisis de datos, lógica",
-                sec2_title: "<span class='text-indigo-600'>2.</span> 12 Recetas Prácticas",
-                s2_a_t: "🚀 A. Velocidad <span class='text-sm font-normal text-gray-500'>(⚡ Respuesta Rápida)</span>",
-                s2_a1_t: "1. Notas de Reunión en Tiempo Real",
-                s2_a1_c: "Rol: Intérprete simultáneo.\nIdioma: Español↔Inglés, sin retraso.\nInstrucción: Resume los puntos clave en viñetas. Excluye emociones.\nFormato: [Hora] Orador: Resumen",
-                s2_a2_t: "2. Reescritura de Tono",
-                s2_a2_c: "Convierte mi tono áspero a uno [Educado/Empático].\nEntrada: \"¡Por qué tarda tanto el envío!\"\nSalida: Muestra 3 opciones de mensajes refinados. Sin relleno.",
-                s2_b_t: "🧠 B. Análisis y Lógica <span class='text-sm font-normal text-gray-500'>(🧠 Deep Think)</span>",
-                s2_b1_t: "3. Refactorización de Código",
-                s2_b1_c: "Este código Python tiene fugas de memoria.\n1. Analiza el flujo lógico\n2. Encuentra el cuello de botella\n3. Reescribe el código optimizado\n4. Explica la diferencia Big-O\n[Pegar código]",
-                s2_b2_t: "4. Análisis Profundo de Datos",
-                s2_b2_c: "Analiza los datos de ventas en la [Imagen Adjunta].\nDeduce hipótesis para la 'causa del declive' en 3 pasos.\nCalcula el impacto de los valores atípicos.",
-                s2_b3_t: "5. Análisis de Propuesta Estratégica",
-                s2_b3_c: "Analiza la sección 'Criterios de Evaluación' del RFP.\nDeriva lógicamente la 'Necesidad Oculta' en la que debemos enfocarnos,\ny sugiere 3 estrategias de nicho.",
-                s2_c_t: "✨ C. Creativo y General <span class='text-sm font-normal text-gray-500'>(✨ Automático)</span>",
-                s2_c1_t: "6. Generación de Imágenes",
-                s2_c1_c: "Genera una imagen para el lanzamiento de [Producto].\nEstilo: Minimalismo, fondo pastel.\nComposición: Producto en el centro, sombra suave.\nProporción: 16:9",
-                s2_c2_t: "7. Borrador de PPT",
-                s2_c2_c: "Crea una estructura de presentación de 10 diapositivas para [Tema].\nSugiere títulos, datos clave y prompts para generar imágenes.",
-                sec3_title: "<span class='text-indigo-600'>3.</span> Tubería de Cambio de Modo",
-                sec3_desc: "No te apegues a un solo modo. Cambia al modo óptimo según la fase.",
-                s3_scen: "Escenario: Análisis de defectos hasta correo",
-                s3_1_t: "Reconocimiento de Fotos",
-                s3_1_d: "El modo automático es excelente para imágenes.",
-                s3_1_c: "“Marca las áreas defectuosas en estas fotos con cajas e identifica las piezas.”",
-                s3_2_t: "Análisis de Causas",
-                s3_2_d: "Cambia de modo ya que se necesita lógica.",
-                s3_2_c: "“Analiza la causa de la grieta en 3 pasos. Propón una solución.”",
-                s3_3_t: "Redactar Correo",
-                s3_3_d: "Genera texto rápidamente basado en el análisis.",
-                s3_3_c: "“Escribe un correo para reportar esto al líder del equipo.”",
-                sec4_title: "<span class='text-indigo-600'>4.</span> Lista de Verificación",
-                s4_req_t: "✅ Debe Incluir",
-                s4_req_1: "□ <strong>Persona:</strong> \"Eres un desarrollador senior\"",
-                s4_req_2: "□ <strong>Objetivo:</strong> \"Encuentra y arregla el error\"",
-                s4_req_3: "□ <strong>Contexto:</strong> \"Este es un sistema heredado\"",
-                s4_req_4: "□ <strong>Formato:</strong> \"Organiza en tabla Markdown\"",
-                s4_warn_t: "🚫 Precauciones Comunes",
-                s4_warn_1: "□ <strong>Abuso de Deep Think:</strong> Usa Respuesta Rápida para saludos.",
-                s4_warn_2: "□ <strong>Seguridad:</strong> No subir PII ni contraseñas.",
-                s4_warn_3: "□ <strong>Alucinaciones:</strong> Deep Think no es perfecto. Valida siempre.",
-                sec5_title: "<span class='text-indigo-600'>5.</span> Consejos de Uso",
-                s5_1_t: "Resume chats largos",
-                s5_1_d: "Si el chat es largo, la IA olvida el contexto.<br>Di 'Resume el chat hasta ahora' → Copia → Inicia un chat nuevo.",
-                s5_2_t: "Sube archivos a la vez",
-                s5_2_d: "Arrastra todos los documentos relacionados a la vez y di 'Analiza estos archivos juntos' para mantener el contexto.",
-                btn_copy: "Copiar",
-                btn_copied: "¡Copiado!"
-            },
-            fr: {
-                page_title: "Guide Pratique Copilot GPT-5.2 · GPT-5.1",
-                page_subtitle: "GPT-5.2 Deep Think · GPT-5.1 · Réponse Rapide · Auto",
-                nav_toc: "📋 Sommaire",
-                nav_1: "1. 3 Modes Principaux",
-                nav_2: "2. Recettes par Mode",
-                nav_3: "3. Changement de Mode",
-                nav_4: "4. Checklist",
-                nav_5: "5. Guide d'Utilisation",
-                tag_deep: "🧠 GPT-5.2 Deep Think",
-                tag_fast: "⚡ GPT-5.1",
-                tag_auto: "✨ Auto",
-                update_title: "🚀 Support GPT-5.2 + GPT-5.1 (Fév 2026)",
-                update_desc: "<strong>GPT-5.1</strong> et <strong>GPT-5.2 (Deep Think)</strong> sont désormais disponibles.<br/><strong>Règle :</strong> Utilisez <strong>GPT-5.1 + ⚡ Réponse Rapide</strong> pour la vitesse, et <strong>GPT-5.2 + 🧠 Deep Think</strong> pour le raisonnement complexe.",
-                sec1_title: "<span class='text-indigo-600'>1.</span> Quel mode utiliser ?",
-                sec1_desc: "Commencez par vérifier les <strong>modèles cibles (les 4 modèles ci-dessous)</strong>, puis ajustez avec le <strong>Mode (Auto / Rapide / Deep Think)</strong>.",
-                s1_gpt52r_t: "GPT 5.2 Deep Think",
-                s1_gpt52r_d: "Modèle de la série Deep Think. Cas d'usage : [TBD].",
-                s1_gpt52r_e: "👍 Détails : [TBD]",
-                s1_gpt52i_t: "GPT 5.2 Instant",
-                s1_gpt52i_d: "Modèle de la série Instant. Cas d'usage : [TBD].",
-                s1_gpt52i_e: "👍 Détails : [TBD]",
-                s1_gpt53i_t: "GPT 5.3 Instant",
-                s1_gpt53i_d: "Modèle de la série Instant. Cas d'usage : [TBD].",
-                s1_gpt53i_e: "👍 Détails : [TBD]",
-                s1_gpt54r_t: "GPT 5.4 Deep Think",
-                s1_gpt54r_d: "Modèle de la série Deep Think. Cas d'usage : [TBD].",
-                s1_gpt54r_e: "👍 Détails : [TBD]",
-                s1_auto_t: "Automatique (Auto)",
-                s1_auto_d: "L'IA juge la complexité et sélectionne le mode approprié.",
-                s1_auto_e: "👍 Rec : Tâches générales, réponses équilibrées",
-                s1_fast_t: "Réponse Rapide",
-                s1_fast_d: "Répond instantanément. À utiliser quand la vitesse prime.",
-                s1_fast_e: "👍 Rec : Traduction, résumés de textes, emails simples",
-                s1_deep_t: "Deep Think",
-                s1_deep_d: "Effectue un raisonnement interne profond. Très précis mais plus lent.",
-                s1_deep_e: "👍 Rec : Code complexe, analyse de données",
-                sec2_title: "<span class='text-indigo-600'>2.</span> 12 Recettes Pratiques",
-                s2_a_t: "🚀 A. Vitesse <span class='text-sm font-normal text-gray-500'>(⚡ Réponse Rapide)</span>",
-                s2_a1_t: "1. Notes de Réunion en Direct",
-                s2_a1_c: "Rôle : Interprète simultané.\nLangue : Français↔Anglais, sans délai.\nInstruction : Résumez les points clés en temps réel. Excluez les émotions.\nFormat : [Heure] Orateur : Résumé",
-                s2_a2_t: "2. Réécriture de Ton",
-                s2_a2_c: "Convertissez mon ton dur en un ton [Poli/Empathique].\nEntrée : \"Pourquoi la livraison est si longue !\"\nSortie : Affichez exactement 3 options de messages affinés.",
-                s2_b_t: "🧠 B. Analyse & Logique <span class='text-sm font-normal text-gray-500'>(🧠 Deep Think)</span>",
-                s2_b1_t: "3. Refactorisation de Code",
-                s2_b1_c: "Ce code Python a une fuite de mémoire.\n1. Analysez le flux logique\n2. Trouvez le goulot d'étranglement\n3. Réécrivez le code\n4. Expliquez la différence Big-O\n[Coller le code]",
-                s2_b2_t: "4. Analyse Profonde de Données",
-                s2_b2_c: "Analysez les données de ventes dans l'[Image Jointe].\nDéduisez des hypothèses pour la baisse en 3 étapes.\nCalculez l'impact des valeurs aberrantes.",
-                s2_b3_t: "5. Analyse de Stratégie / RFP",
-                s2_b3_c: "Analysez attentivement les 'Critères d'évaluation' de la demande de propositions (RFP) ci-jointe.\nDérivez logiquement le 'Besoin Caché' sur lequel nous devons nous concentrer,\net suggérez 3 stratégies de niche.",
-                s2_c_t: "✨ C. Créatif & Général <span class='text-sm font-normal text-gray-500'>(✨ Automatique)</span>",
-                s2_c1_t: "6. Génération d'Images",
-                s2_c1_c: "Générez une image pour le lancement de [Produit].\nStyle : Minimalisme, fond pastel.\nComposition : Produit au centre, ombre douce.\nRatio : 16:9",
-                s2_c2_t: "7. Création de Brouillon PPT",
-                s2_c2_c: "Créez une structure de 10 diapositives pour [Sujet].\nSuggérez des titres, des données clés et des prompts d'images.",
-                sec3_title: "<span class='text-indigo-600'>3.</span> Pipeline de Changement",
-                sec3_desc: "Passez au mode optimal selon la phase de la tâche pour maximiser l'efficacité.",
-                s3_scen: "Scénario : Analyse de défauts à l'email",
-                s3_1_t: "Reconnaissance d'Image",
-                s3_1_d: "Le mode Auto est excellent pour les images.",
-                s3_1_c: "\"Marquez les zones défectueuses sur ces photos avec des boîtes.\"",
-                s3_2_t: "Analyse des Causes",
-                s3_2_d: "Changez de mode car la logique est requise.",
-                s3_2_c: "\"Analysez la cause de la fissure en 3 étapes. Proposez des solutions.\"",
-                s3_3_t: "Rédiger l'Email",
-                s3_3_d: "Générez du texte rapidement basé sur l'analyse.",
-                s3_3_c: "\"Écrivez un email pour signaler cela au chef d'équipe.\"",
-                sec4_title: "<span class='text-indigo-600'>4.</span> Liste de Vérification",
-                s4_req_t: "✅ À Inclure",
-                s4_req_1: "□ <strong>Persona :</strong> \"Tu es un développeur senior\"",
-                s4_req_2: "□ <strong>Objectif :</strong> \"Trouve et corrige le bug\"",
-                s4_req_3: "□ <strong>Contexte :</strong> \"C'est un ancien système\"",
-                s4_req_4: "□ <strong>Format :</strong> \"Organise en Markdown\"",
-                s4_warn_t: "🚫 Précautions Communes",
-                s4_warn_1: "□ <strong>Abus de Deep Think :</strong> Utilisez Réponse Rapide pour les salutations.",
-                s4_warn_2: "□ <strong>Sécurité :</strong> Ne téléchargez pas de PII ni de mots de passe.",
-                s4_warn_3: "□ <strong>Hallucinations :</strong> Vérifiez toujours les faits.",
-                sec5_title: "<span class='text-indigo-600'>5.</span> Conseils d'Utilisation",
-                s5_1_t: "Résumez les longs chats",
-                s5_1_d: "Si le chat est long, l'IA oublie le contexte.<br>Dites 'Résume le chat' → Copiez → Démarrez un nouveau chat.",
-                s5_2_t: "Téléchargez en une fois",
-                s5_2_d: "Glissez tous les documents liés en une fois et dites 'Analysez ces fichiers ensemble'.",
-                btn_copy: "Copier",
-                btn_copied: "Fait !"
-            }
-        };
+    let currentLang = 'ja';
+    let currentSection = 'intro';
 
-        let currentLang = 'ja'; // 기본 언어
-
-        window.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('lang-selector').value = 'ja';
-            setLanguage('ja');
+    function setLang(lang) {
+        currentLang = lang;
+        // Update Buttons
+        document.querySelectorAll('button[id^="btn-"]').forEach(btn => {
+            btn.classList.remove('lang-active');
+            if (btn.id === `btn-${lang}`) btn.classList.add('lang-active');
         });
+        updateUI();
+    }
 
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.documentElement.lang = lang;
-            const t = i18n[lang];
-
-            // 폰트 최적화
-            let font = "'Inter', sans-serif";
-            if (lang === 'ja') font = "'Noto Sans JP', 'Inter', sans-serif";
-            if (lang === 'zh') font = "'Noto Sans SC', 'Inter', sans-serif";
-            if (lang === 'ko') font = "'Noto Sans KR', 'Inter', sans-serif";
-            document.body.style.fontFamily = font;
-
-            // 페이드 아웃 효과
-            const elements = document.querySelectorAll('[data-i18n]');
-            elements.forEach(el => el.style.opacity = '0');
-
-            setTimeout(() => {
-                // 텍스트 교체
-                elements.forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (t[key]) {
-                        if (el.tagName === 'CODE') {
-                            el.textContent = t[key];
-                        } else {
-                            el.innerHTML = t[key];
-                        }
-                    }
-                    // 페이드 인
-                    el.style.opacity = '1';
-                });
-
-                // 복사 버튼 텍스트 변경
-                document.querySelectorAll('.copy-btn').forEach(btn => {
-                    if (!btn.classList.contains('copied')) {
-                        btn.innerText = t.btn_copy;
-                    }
-                });
-            }, 250); 
-        }
-
-        document.getElementById('lang-selector').addEventListener('change', (e) => {
-            setLanguage(e.target.value);
+    function setSection(section) {
+        currentSection = section;
+        // Update Tabs
+        document.querySelectorAll('nav button').forEach(tab => {
+            tab.classList.remove('tab-active');
+            if (tab.id === `tab-${section}`) tab.classList.add('tab-active');
         });
+        updateUI();
+    }
 
-        function copyCode(btn) {
-            const codeEl = btn.nextElementSibling.tagName === 'CODE' ? btn.nextElementSibling : btn.nextElementSibling.querySelector('code');
-            const codeText = codeEl.textContent;
-            
-            navigator.clipboard.writeText(codeText).then(() => {
-                showCopied(btn);
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = codeText;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                showCopied(btn);
-            });
-        }
+    function updateUI() {
+        const data = contentData[currentLang];
+        document.getElementById('main-title').innerText = data.title;
+        document.getElementById('main-subtitle').innerText = data.subtitle;
+        document.getElementById('footer-note').innerText = data.footer;
+        
+        // Navigation Labels
+        document.getElementById('tab-intro').innerText = data.nav.intro;
+        document.getElementById('tab-files').innerText = data.nav.files;
+        document.getElementById('tab-models').innerText = data.nav.models;
+        document.getElementById('tab-usecases').innerText = data.nav.usecases;
+        document.getElementById('tab-prompt').innerText = data.nav.prompt;
+        document.getElementById('tab-safety').innerText = data.nav.safety;
 
-        function showCopied(btn) {
-            const t = i18n[currentLang];
-            btn.innerText = t.btn_copied;
-            btn.classList.add('copied');
-            
-            setTimeout(() => {
-                btn.innerText = t.btn_copy;
-                btn.classList.remove('copied');
-            }, 2000);
-        }
-    </script>
+        // Content Area
+        document.getElementById('content-area').innerHTML = data[currentSection];
+    }
+
+    // Initialize
+    window.onload = updateUI;
+</script>
 </body>
 </html>
