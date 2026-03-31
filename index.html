@@ -663,6 +663,7 @@
 </head>
 <body>
 
+  <!-- HEADER -->
   <div class="header-wrap">
     <div class="top-bar">
       <div class="logo-area">
@@ -682,11 +683,13 @@
           <option value="th">🇹🇭 ไทย</option>
           <option value="fr">🇫🇷 Français</option>
         </select>
+        <!-- Easter Egg: Hirado secret button (compass = navigation/trade history) -->
         <button class="hirado-btn" id="hiradoBtn" title="🧭" aria-label="Secret">🧭</button>
       </div>
     </div>
   </div>
 
+  <!-- HERO -->
   <div class="hero">
     <h1 class="hero-tagline" id="heroTagline">
       <span class="sea">最適な</span>プロンプトを、<br><span class="accent">すぐに</span>使おう。
@@ -703,15 +706,19 @@
     </div>
   </div>
 
+  <!-- GRID -->
   <div class="content-wrap">
     <div id="grid" class="grid" aria-live="polite"></div>
   </div>
 
+  <!-- FOOTER -->
   <footer>
     <div id="footer">© 2026 Prompt Book — Works locally, no data sent.</div>
+    <!-- Easter Egg #4: Hirado coordinates hidden in footer -->
     <div class="footer-coords" title="平戸 (Hirado) — Where East met West">33.3636°N, 129.5533°E</div>
   </footer>
 
+  <!-- HIRADO MODAL (Easter Egg) -->
   <div class="hirado-overlay" id="hiradoOverlay">
     <div class="hirado-modal">
       <button class="hirado-close" id="hiradoClose">✕</button>
@@ -769,7 +776,7 @@
           { title: 'テンプレート生成器', desc: 'GHES/CRISPE/CAPE/5W1Hなどで多言語プロンプトテンプレート生成', tags: ['テンプレート', '多言語', 'フレームワーク'] },
           { title: 'プロンプトライブラリ', desc: 'カテゴリ・タスク整理、ドラッグ&ドロップ、エクスポート/インポート', tags: ['ライブラリ', 'ドラッグ', '保存'] },
           { title: 'Azure OpenAI ガイド', desc: 'Azure基盤モデル(GPT-4.1/4o)の特徴、運用ヒント、API使用法のまとめ', tags: ['ガイド', 'Azure', '運用'] },
-          { title: 'Copilot GPT モデルガイド', desc: 'GPT-5.2/5.3/5.4のQuick/Thinkモード比較、シナリオ別最適な使い分け', tags: ['Copilot', 'GPT-5.3/5.4', '使い分け'] },
+          { title: 'Copilot GPTモデル選択ガイド', desc: 'GPT 5.2〜5.4 × Quick/Think 4モデル比較・シナリオ別推奨・選択フローチャート', tags: ['Copilot', 'GPT-5.2/5.3/5.4', 'Quick/Think', 'モデル比較'] },
           { title: 'CoTプロンプト生成器', desc: '思考の連鎖(Chain of Thought)技術を活用して、論理的なプロンプトを生成', tags: ['CoT', '論理', '思考の連鎖'] },
           { title: '自動車工学プロンプト', desc: '技術文書の検索とレポート生成のためのプロンプトを体系的に構成', tags: ['自動車', 'エンジニアリング', 'RAG'] }
         ]
@@ -793,7 +800,7 @@
           { title: '템플릿 생성기', desc: 'GHES/CRISPE/CAPE/5W1H 등으로 다국어 프롬프트 템플릿 생성', tags: ['템플릿', '다국어', '프레임워크'] },
           { title: '프롬프트 라이브러리', desc: '카테고리·태스크 정리, 드래그&드롭, 내보내기/가져오기', tags: ['라이브러리', '드래그', '저장'] },
           { title: 'Azure OpenAI 가이드', desc: 'Azure 기반 모델(GPT-4.1/4o)의 특징, 운영 팁, API 사용법 정리', tags: ['가이드', 'Azure', '운영'] },
-          { title: 'Copilot GPT 모델 가이드', desc: 'GPT-5.2/5.3/5.4의 Quick/Think 모드 비교, 시나리오별 최적 활용 및 선택', tags: ['Copilot', 'GPT-5.3/5.4', '모델선택'] },
+          { title: 'Copilot GPT 모델 선택 가이드', desc: 'GPT 5.2~5.4 × Quick/Think 4모델 비교·시나리오별 추천·선택 플로차트', tags: ['Copilot', 'GPT-5.2/5.3/5.4', 'Quick/Think', '모델비교'] },
           { title: 'CoT 프롬프트 생성기', desc: '생각의 사슬(Chain of Thought) 기법으로 논리적인 프롬프트 생성', tags: ['CoT', '논리', '생각의 사슬'] },
           { title: '자동차공학 프롬프트', desc: '기술 문서 검색 및 보고서 생성을 위한 프롬프트를 체계적으로 구성', tags: ['자동차', '엔지니어링', 'RAG'] }
         ]
@@ -817,7 +824,7 @@
           { title: 'Template Generator', desc: 'Generate multilingual prompt templates with GHES/CRISPE/CAPE/5W1H frameworks', tags: ['template', 'multilingual', 'framework'] },
           { title: 'Prompt Library', desc: 'Category & task organization, drag & drop, export/import', tags: ['library', 'drag', 'save'] },
           { title: 'Azure OpenAI Guide', desc: 'Features, operational tips, and API usage for Azure-based models (GPT-4.1/4o)', tags: ['guide', 'Azure', 'operations'] },
-          { title: 'Copilot GPT Model Guide', desc: 'Quick/Think mode comparison for GPT-5.2/5.3/5.4, scenario recommendations and selection', tags: ['Copilot', 'GPT-5.3/5.4', 'selection'] },
+          { title: 'Copilot GPT Model Selection Guide', desc: 'GPT 5.2–5.4 × Quick/Think 4-model comparison, scenario recommendations, selection flowchart', tags: ['Copilot', 'GPT-5.2/5.3/5.4', 'Quick/Think', 'comparison'] },
           { title: 'CoT Prompt Generator', desc: 'Generate logical prompts using the Chain of Thought technique', tags: ['CoT', 'reasoning', 'chain of thought'] },
           { title: 'Auto Engineering Prompts', desc: 'Systematically construct prompts for technical document search and report generation', tags: ['automotive', 'engineering', 'RAG'] }
         ]
@@ -841,7 +848,7 @@
           { title: '模板生成器', desc: '使用GHES/CRISPE/CAPE/5W1H等框架生成多语言提示模板', tags: ['模板', '多语言', '框架'] },
           { title: '提示库', desc: '分类任务整理，拖拽功能，导出/导入', tags: ['库', '拖拽', '保存'] },
           { title: 'Azure OpenAI 指南', desc: '基于Azure的模型(GPT-4.1/4o)的功能、操作技巧和API用法', tags: ['指南', 'Azure', '操作'] },
-          { title: 'Copilot GPT 模型指南', desc: 'GPT-5.2/5.3/5.4 的 Quick/Think 模式对比、适用场景及选择指南', tags: ['Copilot', 'GPT-5.3/5.4', '模型选择'] },
+          { title: 'Copilot GPT 模型选择指南', desc: 'GPT 5.2~5.4 × Quick/Think 4模型对比·场景推荐·选择流程图', tags: ['Copilot', 'GPT-5.2/5.3/5.4', 'Quick/Think', '模型对比'] },
           { title: 'CoT提示生成器', desc: '使用思维链技术生成逻辑性强的提示', tags: ['CoT', '逻辑', '思维链'] },
           { title: '汽车工程提示', desc: '系统构建用于技术文档搜索和报告生成的提示', tags: ['汽车', '工程', 'RAG'] }
         ]
@@ -865,7 +872,7 @@
           { title: 'Generador de Plantillas', desc: 'Genera plantillas de prompts multiidioma con marcos GHES/CRISPE/CAPE/5W1H', tags: ['plantilla', 'multiidioma', 'marco'] },
           { title: 'Biblioteca de Prompts', desc: 'Organización de categorías y tareas, arrastrar y soltar, exportar/importar', tags: ['biblioteca', 'arrastrar', 'guardar'] },
           { title: 'Guía Azure OpenAI', desc: 'Características, consejos operativos y uso de API para modelos Azure (GPT-4.1/4o)', tags: ['guía', 'Azure', 'operaciones'] },
-          { title: 'Guía Modelos Copilot GPT', desc: 'Comparativa de modos Quick/Think para GPT-5.2/5.3/5.4 y guía de selección por escenarios', tags: ['Copilot', 'GPT-5.3/5.4', 'selección'] },
+          { title: 'Guía selección modelos Copilot GPT', desc: 'GPT 5.2–5.4 × Quick/Think: comparación 4 modelos, escenarios recomendados, diagrama de flujo', tags: ['Copilot', 'GPT-5.2/5.3/5.4', 'Quick/Think', 'comparación'] },
           { title: 'Generador de Prompts CoT', desc: 'Genera prompts lógicos utilizando la técnica de Cadena de Pensamiento', tags: ['CoT', 'razonamiento', 'cadena'] },
           { title: 'Prompts de Ingeniería Automotriz', desc: 'Construye prompts para búsqueda de documentos técnicos y generación de informes', tags: ['automotriz', 'ingeniería', 'RAG'] }
         ]
@@ -889,7 +896,7 @@
           { title: 'เครื่องมือสร้างเทมเพลต', desc: 'สร้างเทมเพลตพรอมต์หลายภาษาด้วยเฟรมเวิร์ก GHES/CRISPE/CAPE/5W1H', tags: ['เทมเพลต', 'หลายภาษา', 'เฟรมเวิร์ก'] },
           { title: 'ไลบรารีพรอมต์', desc: 'การจัดหมวดหมู่และงาน ลากและวาง ส่งออก/นำเข้า', tags: ['ไลบรารี', 'ลาก', 'บันทึก'] },
           { title: 'คู่มือ Azure OpenAI', desc: 'คุณสมบัติ เคล็ดลับการปฏิบัติงาน และการใช้ API สำหรับโมเดล Azure', tags: ['คู่มือ', 'Azure', 'การปฏิบัติงาน'] },
-          { title: 'คู่มือโมเดล Copilot GPT', desc: 'เปรียบเทียบโหมด Quick/Think สำหรับ GPT-5.2/5.3/5.4 และคู่มือการเลือกตามสถานการณ์', tags: ['Copilot', 'GPT-5.3/5.4', 'การเลือก'] },
+          { title: 'คู่มือเลือกโมเดล Copilot GPT', desc: 'GPT 5.2–5.4 × Quick/Think เปรียบเทียบ 4 โมเดล สถานการณ์แนะนำ แผนผังการเลือก', tags: ['Copilot', 'GPT-5.2/5.3/5.4', 'Quick/Think', 'เปรียบเทียบ'] },
           { title: 'เครื่องมือสร้างพรอมต์ CoT', desc: 'สร้างพรอมต์เชิงตรรกะโดยใช้เทคนิค Chain of Thought', tags: ['CoT', 'การให้เหตุผล', 'chain of thought'] },
           { title: 'พรอมต์วิศวกรรมยานยนต์', desc: 'สร้างพรอมต์สำหรับการค้นหาเอกสารทางเทคนิคและการสร้างรายงาน', tags: ['ยานยนต์', 'วิศวกรรม', 'RAG'] }
         ]
@@ -903,7 +910,7 @@
         hiradoTitle: 'Hirado — 平戸',
         hiradoSubtitle: 'Préfecture de Nagasaki · Où l\'Est rencontra l\'Ouest',
         hiradoFacts: [
-          { icon: '🏯', label: 'Histoire', text: 'En 1550, les navires portugueses arrivèrent pour la première fois. Hirado devint le premier port commercial occidental du Japon.' },
+          { icon: '🏯', label: 'Histoire', text: 'En 1550, les navires portugais arrivèrent pour la première fois. Hirado devint le premier port commercial occidental du Japon.' },
           { icon: '⛪', label: 'Foi', text: 'Une profonde histoire chrétienne — l\'église mémoriale Saint-François-Xavier est le symbole de Hirado.' },
           { icon: '🌊', label: 'Nature', text: 'De magnifiques côtes et les falaises dramatiques de l\'île Ikitsuki. Célèbre pour ses fruits de mer frais.' },
           { icon: '🌉', label: 'Clan Matsura', text: 'Les seigneurs Matsura ont gouverné Hirado pendant ~900 ans. Le musée Matsura préserve de rares artefacts culturels Nanban.' }
@@ -913,7 +920,7 @@
           { title: 'Générateur de Modèles', desc: 'Générez des modèles de prompts multilingues avec les frameworks GHES/CRISPE/CAPE/5W1H', tags: ['modèle', 'multilingue', 'framework'] },
           { title: 'Bibliothèque de Prompts', desc: 'Organisation par catégories et tâches, glisser-déposer, exporter/importer', tags: ['bibliothèque', 'glisser', 'sauvegarder'] },
           { title: 'Guide Azure OpenAI', desc: 'Fonctionnalités, conseils opérationnels et utilisation de l\'API pour modèles Azure', tags: ['guide', 'Azure', 'opérations'] },
-          { title: 'Guide Modèles Copilot GPT', desc: 'Comparaison des modes Quick/Think pour GPT-5.2/5.3/5.4 et guide de choix par scénario', tags: ['Copilot', 'GPT-5.3/5.4', 'sélection'] },
+          { title: 'Guide sélection modèles Copilot GPT', desc: 'GPT 5.2–5.4 × Quick/Think : comparaison 4 modèles, scénarios recommandés, organigramme de sélection', tags: ['Copilot', 'GPT-5.2/5.3/5.4', 'Quick/Think', 'comparaison'] },
           { title: 'Générateur de Prompts CoT', desc: 'Génère des prompts logiques en utilisant la technique de Chaîne de Pensée', tags: ['CoT', 'raisonnement', 'chaîne'] },
           { title: 'Prompts d\'Ingénierie Automobile', desc: 'Construit des prompts pour la recherche de documents techniques et la génération de rapports', tags: ['automobile', 'ingénierie', 'RAG'] }
         ]
