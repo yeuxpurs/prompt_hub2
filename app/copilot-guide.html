@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Microsoft Copilot GPT Model Guide</title>
+<style>
+:root {
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --border: #dde3ec;
+  --text: #1b2438;
+  --sub: #5c6b82;
+  --accent: #0055d4;
+  --accent2: #003ea1;
+  --accent-bg: #e8f1ff;
+  --quick: #0d8a47;
+  --quick-bg: #e7f7ee;
+  --quick-border: #a3dbb8;
+  --think: #7b3fbe;
+  --think-bg: #f1eaf9;
+  --think-border: #c9a8e8;
+  --star: #e6a200;
+  --warn: #c0392b;
+  --warn-bg: #fdecea;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,.06);
+  --shadow-hover: 0 6px 24px rgba(0,0,0,.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ===== Header ===== */
+.header{background:linear-gradient(135deg,#0055d4 0%,#002b6e 50%,#1a1040 100%);color:#fff;padding:1.8rem 1.5rem 1.4rem;position:relative;overflow:hidden}
+.header::after{content:'';position:absolute;top:-50%;right:-10%;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.04)}
+.header-inner{max-width:1140px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;position:relative;z-index:1}
+.header h1{font-size:1.3rem;font-weight:700;letter-spacing:-.01em}
+.header p{font-size:.82rem;opacity:.8;margin-top:.3rem}
+.lang-sw{display:flex;gap:4px;flex-wrap:wrap}
+.lang-sw button{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.2);padding:4px 10px;border-radius:6px;font-size:.76rem;cursor:pointer;transition:.2s;font-family:inherit}
+.lang-sw button:hover{background:rgba(255,255,255,.22)}
+.lang-sw button.active{background:#fff;color:var(--accent);font-weight:600;border-color:#fff}
+
+/* ===== Nav ===== */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:99;overflow-x:auto}
+.nav-inner{max-width:1140px;margin:0 auto;display:flex;padding:0 1rem}
+.nav a{padding:.7rem 1rem;font-size:.8rem;color:var(--sub);white-space:nowrap;border-bottom:2.5px solid transparent;transition:.2s}
+.nav a:hover{color:var(--accent);text-decoration:none}
+.nav a.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+
+/* ===== Main ===== */
+.main{max-width:1140px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.section{margin-bottom:3.5rem}
+.sec-head{display:flex;align-items:center;gap:.7rem;margin-bottom:1.2rem}
+.sec-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.sec-icon.blue{background:var(--accent-bg);color:var(--accent)}
+.sec-icon.green{background:var(--quick-bg);color:var(--quick)}
+.sec-icon.purple{background:var(--think-bg);color:var(--think)}
+.sec-title{font-size:1.3rem;font-weight:700}
+.sec-desc{color:var(--sub);font-size:.9rem;margin-bottom:1.5rem;max-width:720px}
+
+/* ===== Cards & Boxes ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;transition:.2s}
+.card:hover{box-shadow:var(--shadow-hover)}
+
+/* ===== Section 1: Overview Diagram ===== */
+.overview-visual{display:grid;grid-template-columns:1fr;gap:1.5rem;margin-bottom:1.5rem}
+.arch-diagram{padding:2rem;text-align:center}
+.arch-flow{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;margin:1.5rem 0}
+.arch-col{display:flex;flex-direction:column;gap:.5rem;min-width:160px}
+.arch-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--sub);margin-bottom:.3rem}
+.arch-pill{padding:.55rem 1rem;border-radius:8px;font-size:.85rem;font-weight:600;text-align:center}
+.arch-pill.ver{background:var(--accent-bg);color:var(--accent);border:1px solid #b8d4f5}
+.arch-pill.q{background:var(--quick-bg);color:var(--quick);border:1px solid var(--quick-border)}
+.arch-pill.t{background:var(--think-bg);color:var(--think);border:1px solid var(--think-border)}
+.arch-arrow{font-size:1.6rem;color:var(--sub);font-weight:300}
+.arch-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.6rem;margin-top:1rem}
+.arch-result{padding:.6rem .8rem;border-radius:8px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
+.arch-result .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* Mapping table */
+.mapping-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.info-card{padding:1.5rem}
+.info-card h3{font-size:.95rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.m-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.m-table th,.m-table td{padding:.55rem .7rem;text-align:left;border-bottom:1px solid var(--border)}
+.m-table th{background:var(--bg);font-weight:600;font-size:.75rem;color:var(--sub);text-transform:uppercase;letter-spacing:.04em}
+.m-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.75rem;font-weight:600}
+.badge.q{background:var(--quick-bg);color:var(--quick)}
+.badge.t{background:var(--think-bg);color:var(--think)}
+.points-list{font-size:.87rem;color:var(--sub)}
+.points-list .pt{display:flex;gap:.6rem;margin-bottom:.7rem;align-items:flex-start}
+.points-list .pt-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;flex-shrink:0;margin-top:2px}
+.pt-icon.qi{background:var(--quick-bg);color:var(--quick)}
+.pt-icon.ti{background:var(--think-bg);color:var(--think)}
+.pt-icon.ai{background:var(--accent-bg);color:var(--accent)}
+.pt-icon.wi{background:var(--warn-bg);color:var(--warn)}
+
+/* ===== Section 2: Model Detail Cards ===== */
+.model-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem}
+.m-card{display:flex;flex-direction:column}
+.m-card-top{padding:1.2rem 1.3rem;display:flex;align-items:flex-start;gap:1rem}
+.m-card-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0}
+.m-card-icon.q{background:var(--quick-bg);color:var(--quick)}
+.m-card-icon.t{background:var(--think-bg);color:var(--think)}
+.m-card-meta h3{font-size:1rem;font-weight:700;line-height:1.3}
+.m-card-meta .tagline{font-size:.82rem;color:var(--sub);margin-top:.15rem}
+.m-card-meta .openai{font-size:.74rem;color:var(--sub);margin-top:.3rem;font-style:italic;opacity:.7}
+.m-card-body{padding:0 1.3rem 1.3rem;flex:1;display:flex;flex-direction:column;gap:.5rem}
+.m-card-body details{border-top:1px solid var(--border)}
+.m-card-body summary{font-weight:600;font-size:.84rem;cursor:pointer;padding:.6rem 0;color:var(--text);list-style:none;display:flex;align-items:center;gap:.4rem}
+.m-card-body summary::-webkit-details-marker{display:none}
+.m-card-body summary .arrow{transition:.2s;font-size:.6rem;color:var(--sub)}
+.m-card-body details[open] summary .arrow{transform:rotate(90deg)}
+.detail-body{padding:0 0 .6rem .2rem;font-size:.83rem;color:var(--sub);line-height:1.8}
+.detail-body li{margin-bottom:.15rem;list-style:none;padding-left:1rem;position:relative}
+.detail-body li::before{content:'•';position:absolute;left:0;color:var(--accent)}
+.detail-body .weak-tag{display:inline-block;background:var(--warn-bg);color:var(--warn);font-size:.76rem;padding:2px 8px;border-radius:4px;margin:.15rem .3rem .15rem 0}
+.m-card.quick-card{border-top:3px solid var(--quick)}
+.m-card.think-card{border-top:3px solid var(--think)}
+
+/* ===== Section 2.5: Prompt Comparison (NEW) ===== */
+.prompt-demo{margin-top:1.5rem}
+.prompt-box{padding:1.5rem;margin-bottom:1.5rem}
+.prompt-input{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:.8rem}
+.prompt-input .p-icon{width:32px;height:32px;border-radius:8px;background:var(--accent-bg);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.prompt-input .p-text{font-size:.9rem;font-weight:600;color:var(--text)}
+.prompt-input .p-label{font-size:.72rem;color:var(--sub);font-weight:400;display:block;margin-top:.1rem}
+.response-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.response-card{border-radius:10px;padding:1rem;font-size:.82rem;line-height:1.7;position:relative}
+.response-card.rq{background:var(--quick-bg);border:1px solid var(--quick-border)}
+.response-card.rt{background:var(--think-bg);border:1px solid var(--think-border)}
+.response-card .r-head{display:flex;align-items:center;gap:.4rem;font-weight:700;font-size:.78rem;margin-bottom:.5rem}
+.response-card .r-head .r-dot{width:8px;height:8px;border-radius:50%}
+.r-dot.dq{background:var(--quick)}
+.r-dot.dt{background:var(--think)}
+.response-card .r-body{color:var(--sub)}
+.response-card .r-tag{display:inline-block;margin-top:.5rem;font-size:.72rem;padding:2px 8px;border-radius:4px;font-weight:600}
+.r-tag.speed{background:rgba(13,138,71,.12);color:var(--quick)}
+.r-tag.depth{background:rgba(123,63,190,.12);color:var(--think)}
+
+/* ===== Section 3: Comparison Table ===== */
+.cmp-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cmp-table{width:100%;min-width:720px;border-collapse:collapse;background:var(--surface);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);font-size:.83rem}
+.cmp-table th,.cmp-table td{padding:.7rem .9rem;text-align:center;border-bottom:1px solid var(--border);vertical-align:middle}
+.cmp-table thead th{background:var(--bg);font-weight:700;font-size:.78rem}
+.cmp-table thead th:first-child,.cmp-table td:first-child{text-align:left;font-weight:600;background:var(--bg);position:sticky;left:0;z-index:1}
+.cmp-table td:first-child{color:var(--sub)}
+.cmp-table tr:last-child td{border-bottom:none}
+.bar{height:8px;border-radius:4px;display:inline-block;vertical-align:middle}
+.bar.fast{width:72px;background:var(--quick)}
+.bar.med{width:48px;background:var(--star)}
+.bar.slow{width:28px;background:var(--think)}
+.stars{color:var(--star);letter-spacing:1px}
+
+/* ===== Section 3.5: Scenario Cards (NEW) ===== */
+.scenario-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem;margin-top:1rem}
+.sc-card{padding:1.3rem;cursor:default}
+.sc-card .sc-head{display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem}
+.sc-card .sc-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.sc-card .sc-icon.sqi{background:var(--quick-bg)}
+.sc-card .sc-icon.sti{background:var(--think-bg)}
+.sc-card .sc-title{font-size:.95rem;font-weight:700}
+.sc-card .sc-sub{font-size:.78rem;color:var(--sub)}
+.sc-card .sc-rec{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .8rem;border-radius:6px;font-size:.8rem;font-weight:600;margin-bottom:.6rem}
+.sc-card .sc-rec.sq{background:var(--quick-bg);color:var(--quick)}
+.sc-card .sc-rec.st{background:var(--think-bg);color:var(--think)}
+.sc-card .sc-reason{font-size:.82rem;color:var(--sub);line-height:1.7}
+.sc-card .sc-example{margin-top:.6rem;padding:.6rem .8rem;background:var(--bg);border-radius:8px;font-size:.78rem;color:var(--sub);border-left:3px solid var(--border)}
+.sc-card .sc-example strong{color:var(--text);font-size:.78rem}
+
+/* ===== Section 4: Interactive Guide ===== */
+.guide-box{padding:2rem;text-align:center}
+.guide-q{font-size:1.1rem;font-weight:700;margin-bottom:1.3rem}
+.guide-opts{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;margin-bottom:1rem}
+.guide-btn{background:var(--bg);border:2px solid var(--border);border-radius:10px;padding:.75rem 1.3rem;font-size:.88rem;cursor:pointer;transition:.2s;font-family:inherit;color:var(--text);min-width:150px;display:flex;align-items:center;gap:.5rem;justify-content:center}
+.guide-btn:hover{border-color:var(--accent);background:var(--accent-bg);color:var(--accent)}
+.guide-result{display:none;margin-top:1.2rem;padding:1.3rem;border-radius:var(--radius);text-align:left;animation:fadeIn .3s}
+.guide-result.show{display:block}
+.guide-result h4{font-size:1.05rem;margin-bottom:.4rem}
+.guide-result p{font-size:.88rem;color:var(--sub)}
+.guide-result.rq{background:var(--quick-bg);border:1px solid var(--quick-border)}
+.guide-result.rq h4{color:var(--quick)}
+.guide-result.rt{background:var(--think-bg);border:1px solid var(--think-border)}
+.guide-result.rt h4{color:var(--think)}
+.guide-back{display:inline-block;margin-top:.8rem;background:none;border:none;color:var(--accent);cursor:pointer;font-size:.85rem;font-family:inherit;text-decoration:underline}
+
+/* ===== Section 5: References ===== */
+.ref-list{list-style:none}
+.ref-list li{margin-bottom:.5rem;padding:.65rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;font-size:.82rem;transition:.2s}
+.ref-list li:hover{box-shadow:var(--shadow)}
+.ref-list li a{word-break:break-all}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  .header h1{font-size:1.1rem}
+  .header-inner{flex-direction:column}
+  .mapping-grid,.model-grid{grid-template-columns:1fr}
+  .main{padding:1.2rem 1rem 3rem}
+  .arch-flow{flex-direction:column;gap:.6rem}
+  .arch-arrow{transform:rotate(90deg)}
+  .response-grid{grid-template-columns:1fr}
+  .scenario-grid{grid-template-columns:1fr}
+  .guide-box{padding:1.3rem}
+  .prompt-box{padding:1rem}
+}
+@media(max-width:480px){
+  .lang-sw button{padding:3px 7px;font-size:.7rem}
+  .guide-btn{min-width:130px;font-size:.82rem;padding:.6rem .9rem}
+}
+</style>
+</head>
+<body>
+
+<header class="header"><div class="header-inner">
+  <div><h1 id="h-title"></h1><p id="h-sub"></p></div>
+  <div class="lang-sw" id="langSw"></div>
+</div></header>
+
+<nav class="nav"><div class="nav-inner" id="navInner"></div></nav>
+
+<main class="main">
+  <!-- S1: Overview -->
+  <section class="section" id="sec-overview">
+    <div class="sec-head"><div class="sec-icon blue">📐</div><h2 class="sec-title" id="s1t"></h2></div>
+    <p class="sec-desc" id="s1d"></p>
+    <div class="overview-visual">
+      <div class="card arch-diagram" id="archDiagram"></div>
+    </div>
+    <div class="mapping-grid">
+      <div class="card info-card"><h3 id="s1mt"></h3><table class="m-table"><thead><tr><th>Copilot</th><th>OpenAI</th><th id="s1rth"></th></tr></thead><tbody>
+        <tr><td><span class="badge q">5.2 Quick response</span></td><td>GPT-5.2 Instant</td><td>2025-12</td></tr>
+        <tr><td><span class="badge t">5.2 Think deeper</span></td><td>GPT-5.2 Thinking</td><td>2025-12</td></tr>
+        <tr><td><span class="badge q">5.3 Quick response</span></td><td>GPT-5.3 Instant</td><td>2026-03-03</td></tr>
+        <tr><td><span class="badge t">5.4 Think deeper</span></td><td>GPT-5.4 Thinking</td><td>2026-03-05</td></tr>
+      </tbody></table></div>
+      <div class="card info-card"><h3 id="s1pt"></h3><div class="points-list" id="s1points"></div></div>
+    </div>
+  </section>
+
+  <!-- S2: Model Details -->
+  <section class="section" id="sec-models">
+    <div class="sec-head"><div class="sec-icon purple">🔍</div><h2 class="sec-title" id="s2t"></h2></div>
+    <p class="sec-desc" id="s2d"></p>
+    <div class="model-grid" id="modelGrid"></div>
+  </section>
+
+  <!-- S2.5: Prompt Comparison Examples -->
+  <section class="section" id="sec-examples">
+    <div class="sec-head"><div class="sec-icon green">💬</div><h2 class="sec-title" id="s25t"></h2></div>
+    <p class="sec-desc" id="s25d"></p>
+    <div id="promptDemos"></div>
+  </section>
+
+  <!-- S3: Comparison Table -->
+  <section class="section" id="sec-compare">
+    <div class="sec-head"><div class="sec-icon blue">📊</div><h2 class="sec-title" id="s3t"></h2></div>
+    <p class="sec-desc" id="s3d"></p>
+    <div class="cmp-wrap" id="cmpWrap"></div>
+  </section>
+
+  <!-- S3.5: Scenario Cards -->
+  <section class="section" id="sec-scenario">
+    <div class="sec-head"><div class="sec-icon green">🎯</div><h2 class="sec-title" id="s35t"></h2></div>
+    <p class="sec-desc" id="s35d"></p>
+    <div class="scenario-grid" id="scenarioGrid"></div>
+  </section>
+
+  <!-- S4: Interactive Guide -->
+  <section class="section" id="sec-guide">
+    <div class="sec-head"><div class="sec-icon purple">🧭</div><h2 class="sec-title" id="s4t"></h2></div>
+    <p class="sec-desc" id="s4d"></p>
+    <div class="card guide-box" id="guideBox"></div>
+  </section>
+
+  <!-- S5: References -->
+  <section class="section" id="sec-ref">
+    <div class="sec-head"><div class="sec-icon blue">📚</div><h2 class="sec-title" id="s5t"></h2></div>
+    <ul class="ref-list">
+      <li><a href="https://support.microsoft.com/en-us/topic/conversation-modes-in-microsoft-copilot-575efe12-eb34-4437-885a-440f7623cffb" target="_blank" rel="noopener">Microsoft Support – Conversation modes in Microsoft Copilot</a></li>
+      <li><a href="https://techcommunity.microsoft.com/blog/microsoft365copilotblog/available-today-gpt-5-3-instant-in-microsoft-365-copilot/4496567" target="_blank" rel="noopener">Tech Community – GPT-5.3 Instant in Microsoft 365 Copilot</a></li>
+      <li><a href="https://techcommunity.microsoft.com/blog/microsoft365copilotblog/available-today-gpt-5-4-thinking-in-microsoft-365-copilot/4499746" target="_blank" rel="noopener">Tech Community – GPT-5.4 Thinking in Microsoft 365 Copilot</a></li>
+      <li><a href="https://openai.com/ja-JP/index/introducing-gpt-5-2/" target="_blank" rel="noopener">OpenAI – Introducing GPT-5.2</a></li>
+      <li><a href="https://openai.com/index/introducing-gpt-5-4/" target="_blank" rel="noopener">OpenAI – Introducing GPT-5.4</a></li>
+      <li><a href="https://openai.com/index/gpt-5-3-instant-system-card/" target="_blank" rel="noopener">OpenAI – GPT-5.3 Instant System Card</a></li>
+      <li><a href="https://techcommunity.microsoft.com/blog/healthcareandlifesciencesblog/how-to-access-chatgpt-5-2-in-microsoft-365-copilot-chat/4477566" target="_blank" rel="noopener">Tech Community – How to access GPT-5.2 in Microsoft 365 Copilot Chat</a></li>
+    </ul>
+  </section>
+</main>
+
+<script>
+const LANGS=["ja","zh-CN","en","es","fr","ko"];
+const LANG_LABELS={ja:"日本語","zh-CN":"中文",en:"English",es:"Español",fr:"Français",ko:"한국어"};
+const SEC_IDS=["sec-overview","sec-models","sec-examples","sec-compare","sec-scenario","sec-guide","sec-ref"];
+let curLang="ja";
+
+/* ========== TRANSLATION DATA ========== */
+const T={
+ja:{
+  title:"Microsoft Copilot GPT モデル使い分けガイド",
+  subtitle:"4つのモデルの違い・具体例・最適な使い方がわかるビジュアルガイド",
+  nav:["概要","各モデル詳細","応答比較例","比較表","シナリオ別推奨","使い分けガイド","出典"],
+  s1t:"概要：モデルの二層構造",
+  s1d:"Microsoft Copilot のGPTモデルは「世代（バージョン）」×「応答モード」の組み合わせで選びます。",
+  archVer:"世代（バージョン）",archMode:"応答モード",archResult:"選択できる4つの組み合わせ",
+  archQuick:"Quick response（即応型）",archThink:"Think deeper（熟考型）",
+  s1mt:"📋 名称対応表",s1rth:"リリース",
+  s1pt:"💡 覚えておきたいポイント",
+  s1points:[
+    {icon:"qi",text:"Quick response ＝ 速さ重視。メール・翻訳・ちょっとした調べもの向き"},
+    {icon:"ti",text:"Think deeper ＝ 深さ重視。分析・コーディング・複雑な資料作成向き"},
+    {icon:"ai",text:"数字が大きい＝新しい世代。5.4 Think deeper が現時点の最高性能"},
+    {icon:"wi",text:"どのモデルにも向き不向きがあります。場面で切り替えるのがコツ"}
+  ],
+  s2t:"各モデルの詳細",
+  s2d:"4つのモデルそれぞれの特徴・おすすめの使い方・不向きな用途です。",
+  labels:{feat:"主な特徴",scene:"おすすめの利用シーン",weak:"不向きな用途"},
+  models:[
+    {name:"GPT 5.2 Quick response",tag:"日常業務の万能アシスタント",oai:"OpenAI名称：GPT-5.2 Instant",type:"q",
+     feat:["素早い応答で待ち時間が少ない","情報検索・要約・翻訳が得意","手順説明や技術文書の作成に対応","FAQ的な定型質問に強い"],
+     scene:["メールの下書き作成","会議メモの短い要約","社内用語の翻訳・言い換え","手順書やマニュアルの草案"],
+     weak:["深い分析や多段階の考察","5.3 Quick と比べて会話の自然さがやや劣る"]},
+    {name:"GPT 5.2 Think deeper",tag:"専門業務に強い熟考型モデル",oai:"OpenAI名称：GPT-5.2 Thinking",type:"t",
+     feat:["最大約10秒かけてじっくり考える","複雑なスプレッドシート・財務モデル処理","長文コンテキストを正確に理解","コード生成・数学的推論に対応","多段階プロジェクト計画をサポート"],
+     scene:["財務モデリングや予算分析","プレゼン資料の構成作成","プログラムコードの生成・レビュー","長文レポートの要約と整理"],
+     weak:["単純な質問には応答が遅く感じる","5.4 Think deeper と比べると性能面で劣る"]},
+    {name:"GPT 5.3 Quick response",tag:"日常使いに最適化された最新即応モデル",oai:"OpenAI名称：GPT-5.3 Instant",type:"q",
+     feat:["5.2 Quick を基盤に日常会話の品質を大幅改善","回答の正確性と表現力が向上","不要な注意書きや冗長な前置きが減少","Web検索結果との連携が改善"],
+     scene:["日常的なメール作成・返信","簡単なリサーチや調べもの","文章の言い換え・トーン調整","Web検索を使った最新情報の確認"],
+     weak:["日本語・韓国語など一部言語で不自然な表現が残る場合あり","深い推論が必要なタスクには不向き"]},
+    {name:"GPT 5.4 Think deeper",tag:"最も高性能な最新フロンティアモデル",oai:"OpenAI名称：GPT-5.4 Thinking",type:"t",
+     feat:["現時点で最も高度な推論能力","少ないトークンで問題を解決（効率的）","コーディング・数学・画像理解に優れる","エージェント的な多段階作業が可能","長時間思考でもタイムアウトしにくい"],
+     scene:["複雑なデータ分析・レポート作成","高度なコーディング作業","深いWebリサーチと情報統合","意思決定のための多角的比較・検討","提案書や企画書の作成"],
+     weak:["簡単な質問には応答速度が過剰に遅い","日常チャットには向いていない"]}
+  ],
+  s25t:"同じプロンプトでの応答比較",
+  s25d:"同じ質問を各モデルに投げたとき、どのような違いが出るかの具体例です。",
+  demos:[
+    {prompt:"来週の全体会議のリマインドメールを書いて",plabel:"プロンプト例",
+     responses:[
+      {model:"5.3 Quick response",type:"q",body:"件名・宛先・本文をすぐに生成。丁寧な定型表現で即座に使えるメールが完成します。所要時間は数秒です。",tag:"⚡ 2〜3秒で完成",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"メールだけでなく「前回会議の未消化アジェンダの有無」「添付資料の要否」まで考慮した上で、複数パターンを提案します。",tag:"🧠 10秒以上かかるが網羅的",tagClass:"depth"}
+     ]},
+    {prompt:"この売上データ（Excel）のトレンドを分析して、次のアクションを提案して",plabel:"プロンプト例",
+     responses:[
+      {model:"5.2 Quick response",type:"q",body:"基本的な前年比・増減率をすばやく表示。ただし、深い要因分析や具体的なアクション提案は限定的です。",tag:"⚡ 速いが浅い",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"セグメント別分解、季節性補正、外れ値検出を行い、根拠付きのアクションプラン（優先順位付き）を提示します。",tag:"🧠 深く多角的な分析",tagClass:"depth"}
+     ]},
+    {prompt:"Python でCSVを読み込み、重複行を削除して集計するスクリプトを書いて",plabel:"プロンプト例",
+     responses:[
+      {model:"5.2 Think deeper",type:"t",body:"動作するコードを生成し、エラーハンドリングやコメントも付与。ただし最適化の余地が残る場合があります。",tag:"🧠 実用的なコード生成",tagClass:"depth"},
+      {model:"5.4 Think deeper",type:"t",body:"より効率的なアルゴリズムを選択し、型安全性・エッジケース・パフォーマンスまで考慮した洗練されたコードを生成します。",tag:"🧠 最適化された高品質コード",tagClass:"depth"}
+     ]}
+  ],
+  s3t:"比較表",s3d:"4モデルの違いを一覧で確認できます。",
+  cmpH:["比較項目","5.2 Quick","5.2 Think","5.3 Quick","5.4 Think"],
+  cmpR:[
+    {l:"応答速度",v:["⚡ 速い","🐢 やや遅い","⚡ 速い","🐢 遅い"]},
+    {l:"思考の深さ",v:["★★☆☆☆","★★★★☆","★★★☆☆","★★★★★"]},
+    {l:"得意な用途",v:["翻訳・要約\nメール・FAQ","財務分析\nコード生成\nスライド作成","日常会話\nWeb検索\nメール作成","高度な分析\nコーディング\n提案書作成"]},
+    {l:"不向きな用途",v:["深い分析","簡単な質問","深い推論","日常チャット"]},
+    {l:"おすすめ度",v:["★★★☆☆","★★★★☆","★★★★☆","★★★★★"]}
+  ],
+  s35t:"シナリオ別おすすめモデル",s35d:"よくある業務シーンごとに、最適なモデルと理由を示します。",
+  scenarios:[
+    {icon:"✉️",title:"メール作成・返信",sub:"日常コミュニケーション",rec:"5.3 Quick response",recType:"q",
+     reason:"速さと自然な文章力のバランスが最良。定型メールなら数秒で完成します。",
+     example:"例：「取引先への納期変更のお詫びメールを書いて」→ 丁寧なビジネスメールが即座に完成"},
+    {icon:"📊",title:"データ分析・レポート",sub:"Excel / スプレッドシート活用",rec:"5.4 Think deeper",recType:"t",
+     reason:"セグメント分解・トレンド分析・異常値検出まで多角的に処理。根拠付きの提案も可能。",
+     example:"例：「Q3売上データから地域別の成長率を算出し、改善策を提案して」→ 図表案付きの詳細レポート"},
+    {icon:"💻",title:"コード生成・レビュー",sub:"プログラミング支援",rec:"5.4 Think deeper",recType:"t",
+     reason:"効率的なアルゴリズム選択、エッジケース対応、コメント付きの高品質コードを生成。",
+     example:"例：「REST API のエンドポイントを Express.js で実装して」→ バリデーション・エラーハンドリング込みのコード"},
+    {icon:"🔍",title:"簡単な調べもの",sub:"用語検索・事実確認",rec:"5.3 Quick response",recType:"q",
+     reason:"Web検索連携が改善されており、最新情報を素早く正確に取得できます。",
+     example:"例：「ISO 27001 の最新改訂のポイントを教えて」→ 要点を簡潔に回答"},
+    {icon:"📑",title:"提案書・企画書",sub:"複雑な文書作成",rec:"5.4 Think deeper",recType:"t",
+     reason:"構成設計から論理展開、データ引用まで一貫して処理。多段階の作業を一度にこなせます。",
+     example:"例：「DX推進の社内提案書の骨子を作って」→ 課題分析・施策・ROI試算の構成案を提示"},
+    {icon:"🌐",title:"翻訳・言い換え",sub:"多言語対応・トーン調整",rec:"5.3 Quick response",recType:"q",
+     reason:"即座に翻訳・言い換えが可能。ただし日本語↔非英語は5.4の方が自然な場合も。",
+     example:"例：「このメールをビジネス英語に翻訳して」→ 適切なトーンの英文に即変換"}
+  ],
+  s4t:"使い分けフローチャート",s4d:"質問に答えていくと、最適なモデルが見つかります。",
+  gQ1:"どのような作業をしますか？",
+  gOpts:[
+    {label:"✉️ メール・チャット",r:"quick53"},{label:"📊 データ分析",r:"think54"},
+    {label:"💻 コーディング",r:"think54"},{label:"🔍 調べもの",r:"q2"},
+    {label:"📝 資料作成",r:"q2"},{label:"🌐 翻訳・言い換え",r:"quick53"}
+  ],
+  gQ2:"どの程度の深さが必要ですか？",
+  gQ2Opts:[{label:"📌 要点だけでOK",r:"quick53"},{label:"📖 じっくり深く",r:"think54"}],
+  gRes:{
+    quick53:{t:"✅ おすすめ：GPT 5.3 Quick response",d:"最新の即応型モデル。速さと正確さのバランスが最良で、日常業務に最適です。",alt:"代替：GPT 5.2 Quick response（5.3が使えない場合）"},
+    think54:{t:"✅ おすすめ：GPT 5.4 Think deeper",d:"最高性能の熟考型モデル。複雑な分析・コーディング・多段階作業に最適です。",alt:"代替：GPT 5.2 Think deeper（5.4が使えない場合）"}
+  },
+  gBack:"← 最初からやり直す",
+  s5t:"出典・参考リンク"
+},
+
+"zh-CN":{
+  title:"Microsoft Copilot GPT 模型选择指南",subtitle:"通过可视化示例了解4个模型的区别与最佳用法",
+  nav:["概述","模型详情","响应对比","对比表","场景推荐","选择指南","参考"],
+  s1t:"概述：双层结构",s1d:"Microsoft Copilot 的 GPT 模型由「版本」×「响应模式」组合而成。",
+  archVer:"版本（世代）",archMode:"响应模式",archResult:"4种可选组合",
+  archQuick:"Quick response（快速响应）",archThink:"Think deeper（深度思考）",
+  s1mt:"📋 名称对照表",s1rth:"发布",
+  s1pt:"💡 要点",
+  s1points:[
+    {icon:"qi",text:"Quick response = 速度优先，适合邮件、翻译、简单查询"},
+    {icon:"ti",text:"Think deeper = 深度优先，擅长分析、编程、复杂文档"},
+    {icon:"ai",text:"版本号越大越新，5.4 Think deeper 是目前最强模型"},
+    {icon:"wi",text:"每个模型各有所长，根据场景灵活切换是关键"}
+  ],
+  s2t:"各模型详情",s2d:"4个模型的特点、推荐用途和局限性。",
+  labels:{feat:"主要特点",scene:"推荐场景",weak:"不适合的用途"},
+  models:[
+    {name:"GPT 5.2 Quick response",tag:"日常工作全能助手",oai:"OpenAI: GPT-5.2 Instant",type:"q",feat:["响应迅速","擅长检索、摘要、翻译","生成操作步骤和技术文档","处理常见问题"],scene:["撰写邮件","会议摘要","术语翻译","操作手册初稿"],weak:["深入分析","对话自然度不如5.3"]},
+    {name:"GPT 5.2 Think deeper",tag:"专业任务深度思考",oai:"OpenAI: GPT-5.2 Thinking",type:"t",feat:["最长思考约10秒","处理复杂表格和财务模型","准确理解长文本","代码生成和数学推理","多步骤项目规划"],scene:["财务建模","演示文稿设计","代码生成审查","长篇报告整理"],weak:["简单问题响应慢","性能不如5.4"]},
+    {name:"GPT 5.3 Quick response",tag:"日常优化最新快速模型",oai:"OpenAI: GPT-5.3 Instant",type:"q",feat:["日常对话质量大幅提升","更准确更有表现力","减少冗余注意事项","改进网页搜索整合"],scene:["日常邮件","快速调研","改写和语气调整","确认最新信息"],weak:["部分语言表达不自然","不适合深度推理"]},
+    {name:"GPT 5.4 Think deeper",tag:"当前最强前沿模型",oai:"OpenAI: GPT-5.4 Thinking",type:"t",feat:["最先进推理能力","更少token解决问题","编程、数学、图像理解突出","智能体式多步骤任务","不易超时"],scene:["复杂数据分析","高级编程","深度调研","决策支持","撰写提案"],weak:["简单问题过慢","不适合闲聊"]}
+  ],
+  s25t:"同一提示词的响应对比",s25d:"向不同模型发送相同请求时，响应有何不同。",
+  demos:[
+    {prompt:"帮我写一封下周全体会议的提醒邮件",plabel:"提示词",
+     responses:[
+      {model:"5.3 Quick response",type:"q",body:"立即生成标准格式邮件：主题行、正文、结语一应俱全，几秒内可用。",tag:"⚡ 2-3秒完成",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"除邮件外，还会考虑是否需要附上议程、是否有上次遗留事项，并提供多个版本供选择。",tag:"🧠 10秒+但更全面",tagClass:"depth"}
+     ]},
+    {prompt:"分析这份Excel销售数据的趋势，并提出下一步建议",plabel:"提示词",
+     responses:[
+      {model:"5.2 Quick response",type:"q",body:"快速呈现同比增减率等基础指标，但深层因素分析和具体行动建议有限。",tag:"⚡ 快但浅",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"按细分市场拆解、季节性修正、异常值检测，给出带优先级的行动方案。",tag:"🧠 深入多角度分析",tagClass:"depth"}
+     ]},
+    {prompt:"用Python写一个读取CSV、去重并汇总的脚本",plabel:"提示词",
+     responses:[
+      {model:"5.2 Think deeper",type:"t",body:"生成可运行代码，包含错误处理和注释，但优化空间可能有限。",tag:"🧠 实用代码",tagClass:"depth"},
+      {model:"5.4 Think deeper",type:"t",body:"选择更高效算法，考虑类型安全、边界情况和性能，生成精炼代码。",tag:"🧠 优化高质量代码",tagClass:"depth"}
+     ]}
+  ],
+  s3t:"对比表",s3d:"一表看清差异。",
+  cmpH:["对比项","5.2 Quick","5.2 Think","5.3 Quick","5.4 Think"],
+  cmpR:[
+    {l:"响应速度",v:["⚡ 快","🐢 较慢","⚡ 快","🐢 慢"]},
+    {l:"思考深度",v:["★★☆☆☆","★★★★☆","★★★☆☆","★★★★★"]},
+    {l:"擅长",v:["翻译·摘要\n邮件·FAQ","财务分析\n代码\n幻灯片","日常对话\n搜索\n邮件","高级分析\n编程\n提案"]},
+    {l:"不擅长",v:["深入分析","简单问题","深度推理","闲聊"]},
+    {l:"推荐度",v:["★★★☆☆","★★★★☆","★★★★☆","★★★★★"]}
+  ],
+  s35t:"场景推荐",s35d:"常见业务场景对应的最佳模型与理由。",
+  scenarios:[
+    {icon:"✉️",title:"邮件撰写",sub:"日常沟通",rec:"5.3 Quick",recType:"q",reason:"速度与自然表达平衡最佳，定型邮件几秒完成。",example:"例：「写一封致客户的交期变更致歉邮件」→ 即刻生成商务邮件"},
+    {icon:"📊",title:"数据分析",sub:"Excel / 表格",rec:"5.4 Think deeper",recType:"t",reason:"细分拆解、趋势分析、异常检测一站式处理。",example:"例：「分析Q3各地区增长率并提出改进方案」→ 详细报告含图表建议"},
+    {icon:"💻",title:"编程",sub:"代码生成与审查",rec:"5.4 Think deeper",recType:"t",reason:"高效算法、边界处理、完善注释的高质量代码。",example:"例：「用Express.js实现REST API端点」→ 含验证和错误处理的完整代码"},
+    {icon:"🔍",title:"快速查询",sub:"术语·事实确认",rec:"5.3 Quick",recType:"q",reason:"网页搜索整合优化，快速获取准确信息。",example:"例：「ISO 27001最新修订要点」→ 简明扼要的回答"},
+    {icon:"📑",title:"提案·策划书",sub:"复杂文档",rec:"5.4 Think deeper",recType:"t",reason:"从结构设计到论证再到数据引用一气呵成。",example:"例：「制作数字化转型内部提案框架」→ 含问题分析、方案、ROI估算"},
+    {icon:"🌐",title:"翻译·改写",sub:"多语言",rec:"5.3 Quick",recType:"q",reason:"即时翻译改写，非英语↔非英语可考虑5.4。",example:"例：「将这封邮件翻译成商务英语」→ 即时转换"}
+  ],
+  s4t:"选择流程图",s4d:"回答几个问题，找到最适合的模型。",
+  gQ1:"您要做什么？",
+  gOpts:[{label:"✉️ 邮件",r:"quick53"},{label:"📊 数据分析",r:"think54"},{label:"💻 编程",r:"think54"},{label:"🔍 调研",r:"q2"},{label:"📝 文档",r:"q2"},{label:"🌐 翻译",r:"quick53"}],
+  gQ2:"需要多深入？",gQ2Opts:[{label:"📌 简单即可",r:"quick53"},{label:"📖 深入分析",r:"think54"}],
+  gRes:{quick53:{t:"✅ 推荐：GPT 5.3 Quick response",d:"最新快速模型，日常首选。",alt:"备选：GPT 5.2 Quick response"},think54:{t:"✅ 推荐：GPT 5.4 Think deeper",d:"最强深度模型，适合复杂任务。",alt:"备选：GPT 5.2 Think deeper"}},
+  gBack:"← 重新开始",s5t:"参考来源"
+},
+
+en:{
+  title:"Microsoft Copilot GPT Model Guide",subtitle:"Visual guide with examples to understand the 4 models and when to use each",
+  nav:["Overview","Model Details","Response Examples","Comparison","Scenarios","Selection Guide","References"],
+  s1t:"Overview: Two-Layer Structure",s1d:"Copilot's GPT models combine a generation (version) with a response mode.",
+  archVer:"Generation",archMode:"Response Mode",archResult:"4 Available Combinations",
+  archQuick:"Quick response (Fast)",archThink:"Think deeper (Thorough)",
+  s1mt:"📋 Name Mapping",s1rth:"Release",
+  s1pt:"💡 Key Takeaways",
+  s1points:[
+    {icon:"qi",text:"Quick response = Speed-first. Best for emails, translation, quick lookups"},
+    {icon:"ti",text:"Think deeper = Depth-first. Best for analysis, coding, complex documents"},
+    {icon:"ai",text:"Higher number = newer generation. 5.4 Think deeper is the most capable"},
+    {icon:"wi",text:"Every model has trade-offs — switching based on your task is key"}
+  ],
+  s2t:"Model Details",s2d:"Features, recommended uses, and limitations for each model.",
+  labels:{feat:"Key Features",scene:"Recommended Uses",weak:"Not Recommended For"},
+  models:[
+    {name:"GPT 5.2 Quick response",tag:"Versatile everyday assistant",oai:"OpenAI: GPT-5.2 Instant",type:"q",feat:["Fast responses, minimal wait","Strong at retrieval, summary, translation","Generates step-by-step guides and docs","Handles FAQ-type questions well"],scene:["Email drafts","Meeting note summaries","Text translation and rephrasing","Manual and guide drafts"],weak:["Deep analysis or multi-step reasoning","Less natural than 5.3 Quick"]},
+    {name:"GPT 5.2 Think deeper",tag:"Powerful model for specialized tasks",oai:"OpenAI: GPT-5.2 Thinking",type:"t",feat:["Takes up to ~10s to reason","Complex spreadsheets and financial models","Accurate long-context understanding","Code generation and math reasoning","Multi-step project planning"],scene:["Financial modeling","Presentation structure design","Code generation and review","Long report organization"],weak:["Slow for simple questions","Outperformed by 5.4 Think deeper"]},
+    {name:"GPT 5.3 Quick response",tag:"Latest fast model for daily use",oai:"OpenAI: GPT-5.3 Instant",type:"q",feat:["Major conversation quality improvement over 5.2","More accurate and expressive","Fewer unnecessary disclaimers","Better web search integration"],scene:["Everyday emails","Quick research","Text rephrasing and tone adjustment","Latest info via web search"],weak:["Some unnatural phrasing in non-English languages","Not suited for deep reasoning"]},
+    {name:"GPT 5.4 Think deeper",tag:"Most capable frontier model",oai:"OpenAI: GPT-5.4 Thinking",type:"t",feat:["Most advanced reasoning available","Fewer tokens to solve problems","Excels at coding, math, image understanding","Agentic multi-step workflows","Less likely to time out"],scene:["Complex data analysis","Advanced coding","Deep web research","Multi-perspective decision support","Proposal writing"],weak:["Overkill for simple questions","Not suited for casual chat"]}
+  ],
+  s25t:"Same Prompt, Different Responses",s25d:"See how each model responds differently to the same request.",
+  demos:[
+    {prompt:"Write a reminder email for next week's all-hands meeting",plabel:"Prompt",
+     responses:[
+      {model:"5.3 Quick response",type:"q",body:"Instantly generates a ready-to-send email with subject, body, and sign-off in a few seconds.",tag:"⚡ Done in 2-3s",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"Considers whether to include a previous meeting recap, agenda items, and attachments — then offers multiple draft options.",tag:"🧠 10s+ but comprehensive",tagClass:"depth"}
+     ]},
+    {prompt:"Analyze this Excel sales data for trends and suggest next actions",plabel:"Prompt",
+     responses:[
+      {model:"5.2 Quick response",type:"q",body:"Quickly shows basic year-over-year changes and percentages, but limited deep-dive analysis or actionable recommendations.",tag:"⚡ Fast but shallow",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"Performs segment breakdown, seasonality adjustment, outlier detection, and presents a prioritized action plan with reasoning.",tag:"🧠 Deep multi-angle analysis",tagClass:"depth"}
+     ]},
+    {prompt:"Write a Python script to read a CSV, remove duplicates, and aggregate",plabel:"Prompt",
+     responses:[
+      {model:"5.2 Think deeper",type:"t",body:"Generates working code with error handling and comments, though optimization room may remain.",tag:"🧠 Practical code",tagClass:"depth"},
+      {model:"5.4 Think deeper",type:"t",body:"Selects efficient algorithms, handles edge cases and type safety, produces polished, production-ready code.",tag:"🧠 Optimized high-quality code",tagClass:"depth"}
+     ]}
+  ],
+  s3t:"Comparison Table",s3d:"All four models at a glance.",
+  cmpH:["Criteria","5.2 Quick","5.2 Think","5.3 Quick","5.4 Think"],
+  cmpR:[
+    {l:"Speed",v:["⚡ Fast","🐢 Moderate","⚡ Fast","🐢 Slow"]},
+    {l:"Depth",v:["★★☆☆☆","★★★★☆","★★★☆☆","★★★★★"]},
+    {l:"Best For",v:["Translation · Summary\nEmail · FAQ","Financial analysis\nCode · Slides","Daily chat\nWeb search\nEmail","Advanced analysis\nCoding · Proposals"]},
+    {l:"Not Ideal",v:["Deep analysis","Simple Qs","Deep reasoning","Casual chat"]},
+    {l:"Rating",v:["★★★☆☆","★★★★☆","★★★★☆","★★★★★"]}
+  ],
+  s35t:"Scenario Recommendations",s35d:"Best model for common business tasks, with reasoning and examples.",
+  scenarios:[
+    {icon:"✉️",title:"Email Writing",sub:"Daily communication",rec:"5.3 Quick",recType:"q",reason:"Best balance of speed and natural writing. Template emails done in seconds.",example:"Ex: 'Write an apology email to a vendor about a delayed delivery' → polished email instantly"},
+    {icon:"📊",title:"Data Analysis",sub:"Excel / Spreadsheets",rec:"5.4 Think deeper",recType:"t",reason:"Segment decomposition, trend analysis, outlier detection — all in one pass.",example:"Ex: 'Calculate Q3 regional growth rates and suggest improvements' → detailed report with chart suggestions"},
+    {icon:"💻",title:"Coding",sub:"Code generation & review",rec:"5.4 Think deeper",recType:"t",reason:"Efficient algorithms, edge case handling, well-commented production code.",example:"Ex: 'Build REST API endpoints in Express.js' → complete code with validation and error handling"},
+    {icon:"🔍",title:"Quick Lookup",sub:"Terms & fact-checking",rec:"5.3 Quick",recType:"q",reason:"Improved web search integration delivers accurate info fast.",example:"Ex: 'Key changes in the latest ISO 27001 revision' → concise answer"},
+    {icon:"📑",title:"Proposals & Plans",sub:"Complex documents",rec:"5.4 Think deeper",recType:"t",reason:"Handles structure, argumentation, and data references in one pass.",example:"Ex: 'Draft a DX transformation proposal framework' → problem analysis, solutions, ROI estimates"},
+    {icon:"🌐",title:"Translation",sub:"Multilingual",rec:"5.3 Quick",recType:"q",reason:"Instant translation and rephrasing. Consider 5.4 for non-English ↔ non-English pairs.",example:"Ex: 'Translate this email to business English' → instant conversion"}
+  ],
+  s4t:"Selection Flowchart",s4d:"Answer a few questions to find your ideal model.",
+  gQ1:"What are you working on?",
+  gOpts:[{label:"✉️ Email / Chat",r:"quick53"},{label:"📊 Data Analysis",r:"think54"},{label:"💻 Coding",r:"think54"},{label:"🔍 Research",r:"q2"},{label:"📝 Documents",r:"q2"},{label:"🌐 Translation",r:"quick53"}],
+  gQ2:"How deep do you need to go?",gQ2Opts:[{label:"📌 Quick is fine",r:"quick53"},{label:"📖 Thorough analysis",r:"think54"}],
+  gRes:{quick53:{t:"✅ Recommended: GPT 5.3 Quick response",d:"Latest fast model. Best speed-accuracy balance for daily work.",alt:"Alt: GPT 5.2 Quick response (if 5.3 unavailable)"},think54:{t:"✅ Recommended: GPT 5.4 Think deeper",d:"Most powerful deep model. Ideal for complex analysis, coding, multi-step tasks.",alt:"Alt: GPT 5.2 Think deeper (if 5.4 unavailable)"}},
+  gBack:"← Start over",s5t:"References"
+},
+
+es:{
+  title:"Guía de modelos GPT en Microsoft Copilot",subtitle:"Guía visual con ejemplos para elegir el modelo adecuado",
+  nav:["Resumen","Detalles","Ejemplos","Comparativa","Escenarios","Guía","Referencias"],
+  s1t:"Resumen: estructura de dos capas",s1d:"Los modelos GPT de Copilot combinan una generación (versión) con un modo de respuesta.",
+  archVer:"Generación",archMode:"Modo de respuesta",archResult:"4 combinaciones",
+  archQuick:"Quick response (Rápido)",archThink:"Think deeper (Profundo)",
+  s1mt:"📋 Correspondencia",s1rth:"Lanzamiento",
+  s1pt:"💡 Puntos clave",
+  s1points:[
+    {icon:"qi",text:"Quick response = Rapidez. Ideal para correos, traducciones, consultas rápidas"},
+    {icon:"ti",text:"Think deeper = Profundidad. Ideal para análisis, código, documentos complejos"},
+    {icon:"ai",text:"Mayor número = más reciente. 5.4 Think deeper es el más potente"},
+    {icon:"wi",text:"Cada modelo tiene fortalezas y limitaciones; elige según la tarea"}
+  ],
+  s2t:"Detalles de cada modelo",s2d:"Características, usos recomendados y limitaciones.",
+  labels:{feat:"Características",scene:"Usos recomendados",weak:"No recomendado"},
+  models:[
+    {name:"GPT 5.2 Quick response",tag:"Asistente versátil",oai:"OpenAI: GPT-5.2 Instant",type:"q",feat:["Respuestas rápidas","Búsqueda, resúmenes, traducción","Instrucciones y documentación","Preguntas frecuentes"],scene:["Borradores de correo","Resúmenes de reuniones","Traducción","Manuales"],weak:["Análisis profundo","Menos natural que 5.3"]},
+    {name:"GPT 5.2 Think deeper",tag:"Reflexión especializada",oai:"OpenAI: GPT-5.2 Thinking",type:"t",feat:["Hasta ~10s de razonamiento","Hojas de cálculo y modelos financieros","Contextos largos","Código y matemáticas","Planificación multi-paso"],scene:["Modelado financiero","Presentaciones","Código","Informes largos"],weak:["Lento para preguntas simples","Inferior al 5.4"]},
+    {name:"GPT 5.3 Quick response",tag:"Modelo rápido optimizado",oai:"OpenAI: GPT-5.3 Instant",type:"q",feat:["Mejora notable en conversación","Más preciso y expresivo","Menos avisos innecesarios","Mejor búsqueda web"],scene:["Correos diarios","Investigación rápida","Reformulación","Info actualizada"],weak:["Expresiones poco naturales en algunos idiomas","No para razonamiento profundo"]},
+    {name:"GPT 5.4 Think deeper",tag:"El más potente",oai:"OpenAI: GPT-5.4 Thinking",type:"t",feat:["Razonamiento más avanzado","Menos tokens","Código, matemáticas, imágenes","Flujos multi-paso","Menos timeouts"],scene:["Análisis complejos","Programación avanzada","Investigación profunda","Decisiones","Propuestas"],weak:["Lento para preguntas simples","No para chat casual"]}
+  ],
+  s25t:"Mismo prompt, distintas respuestas",s25d:"Cómo responde cada modelo ante la misma solicitud.",
+  demos:[
+    {prompt:"Escribe un correo recordatorio para la reunión general de la próxima semana",plabel:"Prompt",
+     responses:[
+      {model:"5.3 Quick response",type:"q",body:"Genera al instante un correo listo para enviar con asunto, cuerpo y despedida.",tag:"⚡ 2-3s",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"Además del correo, considera si incluir resumen de la reunión anterior, agenda y archivos adjuntos.",tag:"🧠 10s+ pero completo",tagClass:"depth"}
+     ]},
+    {prompt:"Analiza estos datos de ventas en Excel y sugiere próximos pasos",plabel:"Prompt",
+     responses:[
+      {model:"5.2 Quick response",type:"q",body:"Muestra rápidamente cambios interanuales básicos, con análisis y recomendaciones limitados.",tag:"⚡ Rápido pero superficial",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"Desglosa por segmento, ajusta estacionalidad, detecta anomalías y presenta un plan priorizado.",tag:"🧠 Análisis profundo",tagClass:"depth"}
+     ]},
+    {prompt:"Escribe un script en Python para leer un CSV, eliminar duplicados y agregar",plabel:"Prompt",
+     responses:[
+      {model:"5.2 Think deeper",type:"t",body:"Genera código funcional con manejo de errores y comentarios.",tag:"🧠 Código práctico",tagClass:"depth"},
+      {model:"5.4 Think deeper",type:"t",body:"Algoritmos eficientes, casos borde, seguridad de tipos — código listo para producción.",tag:"🧠 Código optimizado",tagClass:"depth"}
+     ]}
+  ],
+  s3t:"Tabla comparativa",s3d:"Los cuatro modelos de un vistazo.",
+  cmpH:["Criterio","5.2 Quick","5.2 Think","5.3 Quick","5.4 Think"],
+  cmpR:[
+    {l:"Velocidad",v:["⚡ Rápido","🐢 Moderado","⚡ Rápido","🐢 Lento"]},
+    {l:"Profundidad",v:["★★☆☆☆","★★★★☆","★★★☆☆","★★★★★"]},
+    {l:"Ideal para",v:["Traducción\nCorreo · FAQ","Finanzas\nCódigo\nSlides","Chat diario\nBúsqueda\nCorreo","Análisis\nCódigo\nPropuestas"]},
+    {l:"No ideal",v:["Análisis profundo","Preguntas simples","Razonamiento","Chat casual"]},
+    {l:"Valoración",v:["★★★☆☆","★★★★☆","★★★★☆","★★★★★"]}
+  ],
+  s35t:"Recomendaciones por escenario",s35d:"El mejor modelo para cada situación laboral.",
+  scenarios:[
+    {icon:"✉️",title:"Correo electrónico",sub:"Comunicación diaria",rec:"5.3 Quick",recType:"q",reason:"Velocidad y naturalidad equilibradas.",example:"Ej: 'Escribe un correo de disculpa al proveedor' → correo profesional al instante"},
+    {icon:"📊",title:"Análisis de datos",sub:"Excel",rec:"5.4 Think deeper",recType:"t",reason:"Desglose, tendencias, anomalías de una sola vez.",example:"Ej: 'Calcula crecimiento Q3 por región' → informe detallado"},
+    {icon:"💻",title:"Programación",sub:"Código",rec:"5.4 Think deeper",recType:"t",reason:"Algoritmos eficientes y código de producción.",example:"Ej: 'API REST en Express.js' → código completo con validación"},
+    {icon:"🔍",title:"Consulta rápida",sub:"Términos",rec:"5.3 Quick",recType:"q",reason:"Búsqueda web mejorada para info rápida.",example:"Ej: 'Cambios en ISO 27001' → respuesta concisa"},
+    {icon:"📑",title:"Propuestas",sub:"Documentos complejos",rec:"5.4 Think deeper",recType:"t",reason:"Estructura, argumentación y datos integrados.",example:"Ej: 'Marco de propuesta de transformación digital' → análisis + ROI"},
+    {icon:"🌐",title:"Traducción",sub:"Multilingüe",rec:"5.3 Quick",recType:"q",reason:"Traducción instantánea. Para pares no ingleses, considerar 5.4.",example:"Ej: 'Traduce al inglés de negocios' → conversión inmediata"}
+  ],
+  s4t:"Guía de selección",s4d:"Responde algunas preguntas para encontrar tu modelo ideal.",
+  gQ1:"¿Qué vas a hacer?",
+  gOpts:[{label:"✉️ Correo",r:"quick53"},{label:"📊 Datos",r:"think54"},{label:"💻 Código",r:"think54"},{label:"🔍 Investigar",r:"q2"},{label:"📝 Documentos",r:"q2"},{label:"🌐 Traducir",r:"quick53"}],
+  gQ2:"¿Qué profundidad?",gQ2Opts:[{label:"📌 Rápido",r:"quick53"},{label:"📖 Profundo",r:"think54"}],
+  gRes:{quick53:{t:"✅ Recomendado: GPT 5.3 Quick response",d:"Modelo rápido más reciente. Ideal para el día a día.",alt:"Alt: GPT 5.2 Quick response"},think54:{t:"✅ Recomendado: GPT 5.4 Think deeper",d:"Modelo más potente para tareas complejas.",alt:"Alt: GPT 5.2 Think deeper"}},
+  gBack:"← Empezar de nuevo",s5t:"Referencias"
+},
+
+fr:{
+  title:"Guide des modèles GPT dans Microsoft Copilot",subtitle:"Guide visuel avec exemples pour choisir le bon modèle",
+  nav:["Aperçu","Détails","Exemples","Comparaison","Scénarios","Guide","Références"],
+  s1t:"Aperçu : structure à deux niveaux",s1d:"Les modèles GPT de Copilot combinent une génération (version) et un mode de réponse.",
+  archVer:"Génération",archMode:"Mode de réponse",archResult:"4 combinaisons",
+  archQuick:"Quick response (Rapide)",archThink:"Think deeper (Approfondi)",
+  s1mt:"📋 Correspondance",s1rth:"Sortie",
+  s1pt:"💡 Points essentiels",
+  s1points:[
+    {icon:"qi",text:"Quick response = Rapidité. Idéal pour e-mails, traductions, recherches rapides"},
+    {icon:"ti",text:"Think deeper = Profondeur. Idéal pour analyses, code, documents complexes"},
+    {icon:"ai",text:"Numéro plus élevé = plus récent. 5.4 Think deeper est le plus puissant"},
+    {icon:"wi",text:"Chaque modèle a ses forces et limites ; choisissez selon la tâche"}
+  ],
+  s2t:"Détails des modèles",s2d:"Caractéristiques, usages recommandés et limites.",
+  labels:{feat:"Caractéristiques",scene:"Usages recommandés",weak:"Non recommandé"},
+  models:[
+    {name:"GPT 5.2 Quick response",tag:"Assistant polyvalent",oai:"OpenAI: GPT-5.2 Instant",type:"q",feat:["Réponses rapides","Recherche, résumés, traduction","Instructions et documentation","Questions fréquentes"],scene:["Brouillons d'e-mails","Résumés de réunion","Traduction","Manuels"],weak:["Analyse approfondie","Moins naturel que 5.3"]},
+    {name:"GPT 5.2 Think deeper",tag:"Réflexion spécialisée",oai:"OpenAI: GPT-5.2 Thinking",type:"t",feat:["Jusqu'à ~10s de réflexion","Tableurs et modèles financiers","Contextes longs","Code et maths","Planification multi-étapes"],scene:["Modélisation financière","Présentations","Code","Rapports longs"],weak:["Lent pour questions simples","Inférieur au 5.4"]},
+    {name:"GPT 5.3 Quick response",tag:"Modèle rapide optimisé",oai:"OpenAI: GPT-5.3 Instant",type:"q",feat:["Amélioration notable de la conversation","Plus précis et expressif","Moins d'avertissements","Meilleure recherche web"],scene:["E-mails quotidiens","Recherche rapide","Reformulation","Info à jour"],weak:["Expressions parfois peu naturelles","Pas pour le raisonnement profond"]},
+    {name:"GPT 5.4 Think deeper",tag:"Le plus puissant",oai:"OpenAI: GPT-5.4 Thinking",type:"t",feat:["Raisonnement le plus avancé","Moins de tokens","Code, maths, images","Workflows multi-étapes","Moins de timeouts"],scene:["Analyses complexes","Programmation avancée","Recherche approfondie","Aide à la décision","Propositions"],weak:["Lent pour questions simples","Pas pour le chat informel"]}
+  ],
+  s25t:"Même prompt, réponses différentes",s25d:"Comment chaque modèle répond à la même demande.",
+  demos:[
+    {prompt:"Rédige un e-mail de rappel pour la réunion générale de la semaine prochaine",plabel:"Prompt",
+     responses:[
+      {model:"5.3 Quick response",type:"q",body:"Génère instantanément un e-mail prêt à envoyer avec objet, corps et signature.",tag:"⚡ 2-3s",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"Considère aussi le récap de la réunion précédente, l'ordre du jour et les pièces jointes — propose plusieurs versions.",tag:"🧠 10s+ mais complet",tagClass:"depth"}
+     ]},
+    {prompt:"Analyse ces données de ventes Excel et propose des actions",plabel:"Prompt",
+     responses:[
+      {model:"5.2 Quick response",type:"q",body:"Affiche rapidement les variations de base, mais analyse et recommandations limitées.",tag:"⚡ Rapide mais superficiel",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"Décompose par segment, ajuste la saisonnalité, détecte les anomalies, présente un plan d'action priorisé.",tag:"🧠 Analyse multi-angle",tagClass:"depth"}
+     ]},
+    {prompt:"Écris un script Python pour lire un CSV, supprimer les doublons et agréger",plabel:"Prompt",
+     responses:[
+      {model:"5.2 Think deeper",type:"t",body:"Code fonctionnel avec gestion d'erreurs et commentaires.",tag:"🧠 Code pratique",tagClass:"depth"},
+      {model:"5.4 Think deeper",type:"t",body:"Algorithmes efficaces, cas limites, sécurité de types — code prêt pour la production.",tag:"🧠 Code optimisé",tagClass:"depth"}
+     ]}
+  ],
+  s3t:"Tableau comparatif",s3d:"Les quatre modèles en un coup d'œil.",
+  cmpH:["Critère","5.2 Quick","5.2 Think","5.3 Quick","5.4 Think"],
+  cmpR:[
+    {l:"Rapidité",v:["⚡ Rapide","🐢 Modéré","⚡ Rapide","🐢 Lent"]},
+    {l:"Profondeur",v:["★★☆☆☆","★★★★☆","★★★☆☆","★★★★★"]},
+    {l:"Idéal pour",v:["Traduction\nE-mail · FAQ","Finances\nCode\nPrésentations","Chat quotidien\nRecherche\nE-mail","Analyse avancée\nCode\nPropositions"]},
+    {l:"Pas idéal",v:["Analyse profonde","Questions simples","Raisonnement","Chat décontracté"]},
+    {l:"Note",v:["★★★☆☆","★★★★☆","★★★★☆","★★★★★"]}
+  ],
+  s35t:"Recommandations par scénario",s35d:"Le meilleur modèle pour chaque situation professionnelle.",
+  scenarios:[
+    {icon:"✉️",title:"E-mails",sub:"Communication quotidienne",rec:"5.3 Quick",recType:"q",reason:"Équilibre vitesse/naturel optimal.",example:"Ex : 'E-mail d'excuses au fournisseur' → e-mail professionnel instantané"},
+    {icon:"📊",title:"Analyse de données",sub:"Excel",rec:"5.4 Think deeper",recType:"t",reason:"Décomposition, tendances, anomalies en une passe.",example:"Ex : 'Croissance Q3 par région' → rapport détaillé"},
+    {icon:"💻",title:"Programmation",sub:"Code",rec:"5.4 Think deeper",recType:"t",reason:"Algorithmes efficaces et code production.",example:"Ex : 'API REST Express.js' → code complet avec validation"},
+    {icon:"🔍",title:"Recherche rapide",sub:"Termes",rec:"5.3 Quick",recType:"q",reason:"Recherche web améliorée pour info rapide.",example:"Ex : 'Changements ISO 27001' → réponse concise"},
+    {icon:"📑",title:"Propositions",sub:"Documents complexes",rec:"5.4 Think deeper",recType:"t",reason:"Structure, argumentation et données intégrées.",example:"Ex : 'Cadre de proposition DX' → analyse + ROI"},
+    {icon:"🌐",title:"Traduction",sub:"Multilingue",rec:"5.3 Quick",recType:"q",reason:"Traduction instantanée. Pour des paires non anglaises, considérer 5.4.",example:"Ex : 'Traduire en anglais d'affaires' → conversion immédiate"}
+  ],
+  s4t:"Guide de choix",s4d:"Quelques questions pour trouver votre modèle idéal.",
+  gQ1:"Que souhaitez-vous faire ?",
+  gOpts:[{label:"✉️ E-mail",r:"quick53"},{label:"📊 Données",r:"think54"},{label:"💻 Code",r:"think54"},{label:"🔍 Recherche",r:"q2"},{label:"📝 Documents",r:"q2"},{label:"🌐 Traduction",r:"quick53"}],
+  gQ2:"Quelle profondeur ?",gQ2Opts:[{label:"📌 Rapide",r:"quick53"},{label:"📖 Approfondi",r:"think54"}],
+  gRes:{quick53:{t:"✅ Recommandé : GPT 5.3 Quick response",d:"Dernier modèle rapide. Idéal au quotidien.",alt:"Alt : GPT 5.2 Quick response"},think54:{t:"✅ Recommandé : GPT 5.4 Think deeper",d:"Le plus puissant pour les tâches complexes.",alt:"Alt : GPT 5.2 Think deeper"}},
+  gBack:"← Recommencer",s5t:"Références"
+},
+
+ko:{
+  title:"Microsoft Copilot GPT 모델 선택 가이드",subtitle:"4가지 모델의 차이·구체적 예시·최적 활용법을 담은 비주얼 가이드",
+  nav:["개요","모델 상세","응답 비교","비교표","시나리오별 추천","선택 가이드","출처"],
+  s1t:"개요: 2계층 구조",s1d:"Copilot의 GPT 모델은 '세대(버전)' × '응답 모드'의 조합으로 선택합니다.",
+  archVer:"세대(버전)",archMode:"응답 모드",archResult:"선택 가능한 4가지 조합",
+  archQuick:"Quick response(즉시 응답형)",archThink:"Think deeper(심층 사고형)",
+  s1mt:"📋 이름 대응표",s1rth:"출시",
+  s1pt:"💡 핵심 포인트",
+  s1points:[
+    {icon:"qi",text:"Quick response = 속도 우선. 이메일·번역·간단한 검색에 적합"},
+    {icon:"ti",text:"Think deeper = 깊이 우선. 분석·코딩·복잡한 문서 작성에 강함"},
+    {icon:"ai",text:"숫자가 클수록 최신 세대. 5.4 Think deeper가 현재 최고 성능"},
+    {icon:"wi",text:"모든 모델에 장단점이 있으므로, 상황에 맞게 전환하는 것이 핵심"}
+  ],
+  s2t:"각 모델 상세",s2d:"4가지 모델의 특징·추천 용도·부적합한 용도입니다.",
+  labels:{feat:"주요 특징",scene:"추천 활용 시나리오",weak:"부적합한 용도"},
+  models:[
+    {name:"GPT 5.2 Quick response",tag:"일상 업무의 만능 어시스턴트",oai:"OpenAI: GPT-5.2 Instant",type:"q",feat:["빠른 응답, 짧은 대기 시간","정보 검색·요약·번역에 강함","절차 설명 및 기술 문서 작성","FAQ형 정형 질문에 적합"],scene:["이메일 초안 작성","회의 메모 간단 요약","사내 용어 번역·표현 전환","절차서·매뉴얼 초안"],weak:["깊은 분석이나 다단계 사고","5.3 Quick보다 대화 자연스러움 떨어짐"]},
+    {name:"GPT 5.2 Think deeper",tag:"전문 업무에 강한 심층 사고 모델",oai:"OpenAI: GPT-5.2 Thinking",type:"t",feat:["최대 약 10초간 깊이 사고","복잡한 스프레드시트·재무 모델 처리","긴 문맥 정확하게 이해","코드 생성·수학적 추론 지원","다단계 프로젝트 계획 지원"],scene:["재무 모델링·예산 분석","프레젠테이션 구성 작성","코드 생성·리뷰","장문 보고서 요약·정리"],weak:["단순 질문에는 느리게 느껴짐","5.4 Think deeper보다 성능 떨어짐"]},
+    {name:"GPT 5.3 Quick response",tag:"일상 사용에 최적화된 최신 즉시 응답 모델",oai:"OpenAI: GPT-5.3 Instant",type:"q",feat:["5.2 Quick 기반 일상 대화 품질 대폭 개선","답변 정확성·표현력 향상","불필요한 주의사항·장황한 서두 감소","웹 검색 결과 연동 개선"],scene:["일상적인 이메일 작성·답장","간단한 리서치·정보 확인","문장 바꿔쓰기·톤 조정","웹 검색으로 최신 정보 확인"],weak:["일본어·한국어 등 일부 언어에서 부자연스러운 표현","깊은 추론 필요한 작업에 부적합"]},
+    {name:"GPT 5.4 Think deeper",tag:"현존 최고 성능의 프런티어 모델",oai:"OpenAI: GPT-5.4 Thinking",type:"t",feat:["현시점 가장 고도의 추론 능력","적은 토큰으로 문제 해결(효율적)","코딩·수학·이미지 이해에 뛰어남","에이전트형 다단계 작업 가능","장시간 사고에도 타임아웃 적음"],scene:["복잡한 데이터 분석·보고서","고급 코딩 작업","심층 웹 리서치·정보 통합","의사결정을 위한 다각적 비교","제안서·기획서 작성"],weak:["단순 질문에 지나치게 느림","일상 채팅에 부적합"]}
+  ],
+  s25t:"동일 프롬프트 응답 비교",s25d:"같은 질문을 각 모델에 보냈을 때 어떤 차이가 나는지 구체적으로 보여드립니다.",
+  demos:[
+    {prompt:"다음 주 전체 회의 리마인드 이메일을 작성해 줘",plabel:"프롬프트",
+     responses:[
+      {model:"5.3 Quick response",type:"q",body:"제목·본문·마무리를 즉시 생성합니다. 정중한 정형 표현으로 바로 사용 가능한 이메일이 몇 초 만에 완성됩니다.",tag:"⚡ 2~3초 완성",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"이메일 외에도 '이전 회의 미처리 안건 유무', '첨부 자료 필요 여부'까지 고려하여 여러 버전을 제안합니다.",tag:"🧠 10초 이상이지만 포괄적",tagClass:"depth"}
+     ]},
+    {prompt:"이 매출 데이터(Excel)의 트렌드를 분석하고 다음 액션을 제안해 줘",plabel:"프롬프트",
+     responses:[
+      {model:"5.2 Quick response",type:"q",body:"전년 대비 증감률 등 기본 지표를 빠르게 제시합니다. 단, 심층 요인 분석이나 구체적 액션 제안은 제한적입니다.",tag:"⚡ 빠르지만 얕음",tagClass:"speed"},
+      {model:"5.4 Think deeper",type:"t",body:"세그먼트별 분해, 계절성 보정, 이상치 탐지를 수행하고 근거 있는 액션 플랜(우선순위 포함)을 제시합니다.",tag:"🧠 깊고 다각적 분석",tagClass:"depth"}
+     ]},
+    {prompt:"Python으로 CSV를 읽어서 중복 행 제거 후 집계하는 스크립트를 작성해 줘",plabel:"프롬프트",
+     responses:[
+      {model:"5.2 Think deeper",type:"t",body:"동작하는 코드를 생성하며 에러 핸들링과 주석도 포함합니다. 다만 최적화 여지가 남을 수 있습니다.",tag:"🧠 실용적 코드 생성",tagClass:"depth"},
+      {model:"5.4 Think deeper",type:"t",body:"더 효율적인 알고리즘을 선택하고, 타입 안전성·엣지 케이스·성능까지 고려한 정제된 코드를 생성합니다.",tag:"🧠 최적화된 고품질 코드",tagClass:"depth"}
+     ]}
+  ],
+  s3t:"비교표",s3d:"4가지 모델의 차이를 한눈에 확인하세요.",
+  cmpH:["비교 항목","5.2 Quick","5.2 Think","5.3 Quick","5.4 Think"],
+  cmpR:[
+    {l:"응답 속도",v:["⚡ 빠름","🐢 다소 느림","⚡ 빠름","🐢 느림"]},
+    {l:"사고 깊이",v:["★★☆☆☆","★★★★☆","★★★☆☆","★★★★★"]},
+    {l:"적합한 용도",v:["번역·요약\n이메일·FAQ","재무 분석\n코드 생성\n슬라이드","일상 대화\n웹 검색\n이메일","고급 분석\n코딩\n제안서"]},
+    {l:"부적합",v:["깊은 분석","단순 질문","깊은 추론","일상 채팅"]},
+    {l:"추천도",v:["★★★☆☆","★★★★☆","★★★★☆","★★★★★"]}
+  ],
+  s35t:"시나리오별 추천 모델",s35d:"자주 있는 업무 상황별로 최적의 모델과 이유를 보여드립니다.",
+  scenarios:[
+    {icon:"✉️",title:"이메일 작성·답장",sub:"일상 커뮤니케이션",rec:"5.3 Quick",recType:"q",reason:"속도와 자연스러운 문장력의 밸런스가 가장 좋습니다. 정형 이메일은 몇 초면 완성됩니다.",example:"예: '거래처에 납기 변경 사과 이메일 작성' → 정중한 비즈니스 이메일 즉시 완성"},
+    {icon:"📊",title:"데이터 분석·보고서",sub:"Excel / 스프레드시트",rec:"5.4 Think deeper",recType:"t",reason:"세그먼트 분해·트렌드 분석·이상치 탐지까지 다각적으로 처리합니다.",example:"예: 'Q3 매출 데이터에서 지역별 성장률 산출 후 개선책 제안' → 차트 제안 포함 상세 보고서"},
+    {icon:"💻",title:"코딩",sub:"코드 생성·리뷰",rec:"5.4 Think deeper",recType:"t",reason:"효율적 알고리즘, 엣지 케이스 대응, 주석 포함 고품질 코드를 생성합니다.",example:"예: 'Express.js로 REST API 엔드포인트 구현' → 밸리데이션·에러 핸들링 포함 코드"},
+    {icon:"🔍",title:"간단한 조사",sub:"용어 검색·사실 확인",rec:"5.3 Quick",recType:"q",reason:"웹 검색 연동이 개선되어 최신 정보를 빠르고 정확하게 가져옵니다.",example:"예: 'ISO 27001 최신 개정 포인트' → 핵심을 간결하게 답변"},
+    {icon:"📑",title:"제안서·기획서",sub:"복잡한 문서 작성",rec:"5.4 Think deeper",recType:"t",reason:"구성 설계부터 논리 전개, 데이터 인용까지 일관되게 처리합니다.",example:"예: 'DX 추진 사내 제안서 골자 작성' → 과제 분석·시책·ROI 시산 구성안 제시"},
+    {icon:"🌐",title:"번역·바꿔쓰기",sub:"다국어 대응",rec:"5.3 Quick",recType:"q",reason:"즉시 번역·바꿔쓰기가 가능합니다. 비영어↔비영어는 5.4가 더 자연스러울 수 있습니다.",example:"예: '이 이메일을 비즈니스 영어로 번역' → 적절한 톤의 영문으로 즉시 변환"}
+  ],
+  s4t:"선택 플로차트",s4d:"질문에 답하면 최적의 모델을 찾을 수 있습니다.",
+  gQ1:"어떤 작업을 하시나요?",
+  gOpts:[{label:"✉️ 이메일·채팅",r:"quick53"},{label:"📊 데이터 분석",r:"think54"},{label:"💻 코딩",r:"think54"},{label:"🔍 조사·리서치",r:"q2"},{label:"📝 문서 작성",r:"q2"},{label:"🌐 번역·바꿔쓰기",r:"quick53"}],
+  gQ2:"어느 정도의 깊이가 필요하나요?",gQ2Opts:[{label:"📌 간단하면 OK",r:"quick53"},{label:"📖 깊이 있게",r:"think54"}],
+  gRes:{quick53:{t:"✅ 추천: GPT 5.3 Quick response",d:"최신 즉시 응답 모델. 속도와 정확성의 밸런스가 가장 좋아 일상 업무에 최적입니다.",alt:"대안: GPT 5.2 Quick response (5.3 사용 불가 시)"},think54:{t:"✅ 추천: GPT 5.4 Think deeper",d:"최고 성능 심층 사고 모델. 복잡한 분석·코딩·다단계 작업에 최적입니다.",alt:"대안: GPT 5.2 Think deeper (5.4 사용 불가 시)"}},
+  gBack:"← 처음부터 다시",s5t:"출처·참고 링크"
+}
+};
+
+/* ========== RENDERING ========== */
+function setLang(lang){
+  curLang=lang;const t=T[lang];
+  document.documentElement.lang=lang;
+  document.getElementById("h-title").textContent=t.title;
+  document.getElementById("h-sub").textContent=t.subtitle;
+  document.querySelectorAll(".lang-sw button").forEach(b=>b.classList.toggle("active",b.dataset.lang===lang));
+
+  // Nav
+  const ni=document.getElementById("navInner");ni.innerHTML="";
+  t.nav.forEach((l,i)=>{const a=document.createElement("a");a.href="#"+SEC_IDS[i];a.textContent=l;a.onclick=e=>{e.preventDefault();document.getElementById(SEC_IDS[i]).scrollIntoView({behavior:"smooth"})};ni.appendChild(a)});
+
+  // S1
+  document.getElementById("s1t").textContent=t.s1t;
+  document.getElementById("s1d").textContent=t.s1d;
+  // Arch diagram
+  document.getElementById("archDiagram").innerHTML=`
+    <div class="arch-flow">
+      <div class="arch-col"><div class="arch-label">${t.archVer}</div>
+        <div class="arch-pill ver">5.2 <small style="font-weight:400;opacity:.7">(2025-12)</small></div>
+        <div class="arch-pill ver">5.3 <small style="font-weight:400;opacity:.7">(2026-03)</small></div>
+        <div class="arch-pill ver">5.4 <small style="font-weight:400;opacity:.7">(2026-03)</small></div>
+      </div>
+      <div class="arch-arrow">×</div>
+      <div class="arch-col"><div class="arch-label">${t.archMode}</div>
+        <div class="arch-pill q">${t.archQuick}</div>
+        <div class="arch-pill t">${t.archThink}</div>
+      </div>
+      <div class="arch-arrow">＝</div>
+      <div class="arch-col"><div class="arch-label">${t.archResult}</div>
+        <div class="arch-result" style="background:var(--quick-bg);border:1px solid var(--quick-border)"><span class="dot" style="background:var(--quick)"></span> GPT 5.2 Quick response</div>
+        <div class="arch-result" style="background:var(--think-bg);border:1px solid var(--think-border)"><span class="dot" style="background:var(--think)"></span> GPT 5.2 Think deeper</div>
+        <div class="arch-result" style="background:var(--quick-bg);border:1px solid var(--quick-border)"><span class="dot" style="background:var(--quick)"></span> GPT 5.3 Quick response</div>
+        <div class="arch-result" style="background:var(--think-bg);border:1px solid var(--think-border)"><span class="dot" style="background:var(--think)"></span> GPT 5.4 Think deeper</div>
+      </div>
+    </div>`;
+  document.getElementById("s1mt").textContent=t.s1mt;
+  document.getElementById("s1rth").textContent=t.s1rth;
+  document.getElementById("s1pt").textContent=t.s1pt;
+  document.getElementById("s1points").innerHTML=t.s1points.map(p=>`<div class="pt"><div class="pt-icon ${p.icon}">●</div><div>${p.text}</div></div>`).join("");
+
+  // S2: Model Cards
+  document.getElementById("s2t").textContent=t.s2t;
+  document.getElementById("s2d").textContent=t.s2d;
+  const mg=document.getElementById("modelGrid");mg.innerHTML="";
+  t.models.forEach(m=>{
+    const cls=m.type==="q"?"quick-card":"think-card";
+    const iconEmoji=m.type==="q"?"⚡":"🧠";
+    mg.innerHTML+=`<div class="card m-card ${cls}">
+      <div class="m-card-top">
+        <div class="m-card-icon ${m.type}">${iconEmoji}</div>
+        <div class="m-card-meta"><h3>${m.name}</h3><div class="tagline">${m.tag}</div><div class="openai">${m.oai}</div></div>
+      </div>
+      <div class="m-card-body">
+        <details open><summary><span class="arrow">▶</span> ${t.labels.feat}</summary><div class="detail-body"><ul>${m.feat.map(f=>"<li>"+f+"</li>").join("")}</ul></div></details>
+        <details><summary><span class="arrow">▶</span> ${t.labels.scene}</summary><div class="detail-body"><ul>${m.scene.map(s=>"<li>"+s+"</li>").join("")}</ul></div></details>
+        <details><summary><span class="arrow">▶</span> ${t.labels.weak}</summary><div class="detail-body">${m.weak.map(w=>'<span class="weak-tag">⚠ '+w+'</span>').join(" ")}</div></details>
+      </div>
+    </div>`;
+  });
+
+  // S2.5: Prompt Demos
+  document.getElementById("s25t").textContent=t.s25t;
+  document.getElementById("s25d").textContent=t.s25d;
+  const pd=document.getElementById("promptDemos");pd.innerHTML="";
+  t.demos.forEach(d=>{
+    pd.innerHTML+=`<div class="card prompt-box">
+      <div class="prompt-input"><div class="p-icon">👤</div><div><div class="p-text">${d.prompt}</div><div class="p-label">${d.plabel}</div></div></div>
+      <div class="response-grid">${d.responses.map(r=>`
+        <div class="response-card r${r.type}">
+          <div class="r-head"><span class="r-dot d${r.type}"></span>${r.model}</div>
+          <div class="r-body">${r.body}</div>
+          <span class="r-tag ${r.tagClass}">${r.tag}</span>
+        </div>`).join("")}
+      </div>
+    </div>`;
+  });
+
+  // S3: Comparison Table
+  document.getElementById("s3t").textContent=t.s3t;
+  document.getElementById("s3d").textContent=t.s3d;
+  let th='<table class="cmp-table"><thead><tr>';
+  t.cmpH.forEach(h=>{th+="<th>"+h+"</th>"});
+  th+="</tr></thead><tbody>";
+  t.cmpR.forEach(r=>{th+="<tr><td>"+r.l+"</td>";r.v.forEach(v=>{th+="<td>"+v.replace(/\n/g,"<br>")+"</td>"});th+="</tr>"});
+  th+="</tbody></table>";
+  document.getElementById("cmpWrap").innerHTML=th;
+
+  // S3.5: Scenarios
+  document.getElementById("s35t").textContent=t.s35t;
+  document.getElementById("s35d").textContent=t.s35d;
+  const sg=document.getElementById("scenarioGrid");sg.innerHTML="";
+  t.scenarios.forEach(s=>{
+    sg.innerHTML+=`<div class="card sc-card">
+      <div class="sc-head"><div class="sc-icon ${s.recType==='q'?'sqi':'sti'}">${s.icon}</div><div><div class="sc-title">${s.title}</div><div class="sc-sub">${s.sub}</div></div></div>
+      <div class="sc-rec ${s.recType==='q'?'sq':'st'}">✅ ${s.rec}</div>
+      <div class="sc-reason">${s.reason}</div>
+      <div class="sc-example"><strong>${s.example.split('→')[0]}→</strong>${s.example.split('→')[1]||''}</div>
+    </div>`;
+  });
+
+  // S4: Guide
+  document.getElementById("s4t").textContent=t.s4t;
+  document.getElementById("s4d").textContent=t.s4d;
+  renderG1();
+
+  // S5
+  document.getElementById("s5t").textContent=t.s5t;
+}
+
+function renderG1(){
+  const t=T[curLang],gb=document.getElementById("guideBox");
+  gb.innerHTML=`<div class="guide-q">${t.gQ1}</div><div class="guide-opts" id="gOpts"></div><div class="guide-result" id="gRes"></div>`;
+  const go=document.getElementById("gOpts");
+  t.gOpts.forEach(o=>{const b=document.createElement("button");b.className="guide-btn";b.textContent=o.label;b.onclick=()=>o.r==="q2"?renderG2():showGR(o.r);go.appendChild(b)});
+}
+function renderG2(){
+  const t=T[curLang],gb=document.getElementById("guideBox");
+  gb.innerHTML=`<div class="guide-q">${t.gQ2}</div><div class="guide-opts" id="gOpts2"></div><div class="guide-result" id="gRes"></div>`;
+  const go=document.getElementById("gOpts2");
+  t.gQ2Opts.forEach(o=>{const b=document.createElement("button");b.className="guide-btn";b.textContent=o.label;b.onclick=()=>showGR(o.r);go.appendChild(b)});
+  const bk=document.createElement("button");bk.className="guide-back";bk.textContent=t.gBack;bk.onclick=renderG1;gb.appendChild(bk);
+}
+function showGR(key){
+  const t=T[curLang],r=t.gRes[key],el=document.getElementById("gRes"),c=key==="quick53"?"rq":"rt";
+  el.className="guide-result show "+c;
+  el.innerHTML=`<h4>${r.t}</h4><p>${r.d}</p><p style="font-size:.8rem;margin-top:.4rem;opacity:.7">${r.alt}</p>`;
+  const bk=document.createElement("button");bk.className="guide-back";bk.textContent=t.gBack;bk.onclick=renderG1;el.appendChild(bk);
+}
+
+/* ========== INIT ========== */
+(function(){
+  const ls=document.getElementById("langSw");
+  LANGS.forEach(l=>{const b=document.createElement("button");b.textContent=LANG_LABELS[l];b.dataset.lang=l;b.onclick=()=>setLang(l);ls.appendChild(b)});
+  setLang("ja");
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){document.querySelectorAll(".nav a").forEach(a=>{a.classList.toggle("active",a.getAttribute("href")==="#"+e.target.id)})}})},{rootMargin:"-20% 0px -70% 0px"});
+  SEC_IDS.forEach(id=>{const el=document.getElementById(id);if(el)obs.observe(el)});
+})();
+</script>
+</body>
+</html>
