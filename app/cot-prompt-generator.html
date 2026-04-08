@@ -1,769 +1,1153 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COT 프롬프트 생성기</title>
+    <title>COT Prompt Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* 기본 스타일 초기화 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            /* 기본 다크 테마 변수 */
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #111113;
+            --bg-card: #18181b;
+            --bg-input: #1e1e22;
+            --bg-hover: #27272b;
+            --border: #2a2a2e;
+            --border-focus: #4f8ff7;
+            --text-primary: #f0f0f2;
+            --text-secondary: #9898a0;
+            --text-muted: #5c5c66;
+            
+            --accent: #4f8ff7;
+            --accent-dim: rgba(79,143,247,0.12);
+            --accent-glow: rgba(79,143,247,0.25);
+            
+            --warning: #f7c948;
+            --warning-dim: rgba(247,201,72,0.08);
+            --warning-border: rgba(247,201,72,0.25);
+            
+            --success: #34d399;
+            --success-dim: rgba(52,211,153,0.15);
+            --success-border: rgba(52,211,153,0.3);
+            
+            --danger: #f87171;
+            --danger-dim: rgba(248,113,113,0.15);
+            --danger-border: rgba(248,113,113,0.3);
+            --danger-hover: rgba(248,113,113,0.06);
+
+            --radius: 10px;
+            --radius-sm: 6px;
+            --font-body: 'Outfit', 'Noto Sans JP', 'Noto Sans KR', 'Noto Sans SC', system-ui, sans-serif;
+            --font-mono: 'DM Mono', 'Menlo', monospace;
+
+            /* 테마 토글을 위한 추가 변수 (다크 기본값) */
+            --bg-topbar: rgba(10,10,11,0.85);
+            --shadow-pill: rgba(0,0,0,0.3);
+            --bg-scratchpad-input: rgba(0,0,0,0.25);
         }
 
-        /* 전체 페이지 스타일 */
+        /* 라이트 테마 설정 */
+        [data-theme="light"] {
+            --bg-primary: #f4f4f5;
+            --bg-secondary: #e4e4e7;
+            --bg-card: #ffffff;
+            --bg-input: #fafafa;
+            --bg-hover: #f4f4f5;
+            --border: #e4e4e7;
+            --border-focus: #4f8ff7;
+            --text-primary: #18181b;
+            --text-secondary: #52525b;
+            --text-muted: #71717a;
+            
+            --accent: #3b82f6;
+            --accent-dim: rgba(59,130,246,0.12);
+            --accent-glow: rgba(59,130,246,0.25);
+            
+            --warning: #b45309; 
+            --warning-dim: rgba(245,158,11,0.15);
+            --warning-border: rgba(245,158,11,0.3);
+            
+            --success: #059669;
+            --success-dim: rgba(5,150,105,0.15);
+            --success-border: rgba(5,150,105,0.3);
+            
+            --danger: #dc2626;
+            --danger-dim: rgba(220,38,38,0.15);
+            --danger-border: rgba(220,38,38,0.3);
+            --danger-hover: rgba(220,38,38,0.06);
+
+            --bg-topbar: rgba(244,244,245,0.85);
+            --shadow-pill: rgba(0,0,0,0.08);
+            --bg-scratchpad-input: rgba(255,255,255,0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Noise overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Top bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg-topbar);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+
+        .topbar-brand .icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            background: linear-gradient(135deg, var(--accent), #7c5cf7);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 14px;
+            color: #ffffff;
         }
 
-        /* 메인 컨테이너 */
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        /* 헤더 */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        /* 언어 선택기 */
-        .language-selector-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
+        .topbar-controls {
             display: flex;
             align-items: center;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 5px 10px;
-            border-radius: 10px;
+            gap: 12px;
         }
 
-        .language-selector-container label {
-            margin-right: 8px;
-            font-weight: 600;
-            font-size: 0.9em;
-        }
-
-        #language-selector {
-            background: transparent;
-            border: none;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        #language-selector option {
-            background: #333;
-            color: white;
-        }
-
-        /* COT 설명 섹션 */
-        .framework-description {
-            background: #f8f9fa;
-            padding: 20px;
-            margin: 25px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .framework-description h4 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.3em;
-        }
-
-        .framework-description p {
-            color: #6c757d;
-            line-height: 1.6;
-        }
-
-        .framework-description ul {
-            margin-top: 10px;
-            margin-left: 20px;
-            color: #6c757d;
-        }
-
-        .framework-description li {
-            margin: 5px 0;
-        }
-
-        /* 컨텐츠 영역 */
-        .content {
-            padding: 30px;
-        }
-
-        /* 입력 그룹 */
-        .input-group {
-            margin-bottom: 25px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #495057;
-            font-size: 1.1em;
-        }
-
-        .input-group input,
-        .input-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .input-group input:focus,
-        .input-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .input-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .input-group small {
-            display: block;
-            margin-top: 5px;
-            color: #6c757d;
-            font-size: 0.9em;
-        }
-
-        /* Scratchpad 섹션 */
-        .scratchpad-section {
-            background: #fff3cd;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 25px;
-            border: 2px solid #ffc107;
-        }
-
-        .scratchpad-section h5 {
-            color: #856404;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-
-        .scratchpad-item {
-            margin-bottom: 15px;
-        }
-
-        .scratchpad-item label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #856404;
-            font-size: 0.95em;
-        }
-
-        .scratchpad-item textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ffc107;
-            border-radius: 5px;
-            min-height: 60px;
-            resize: vertical;
-            background: rgba(255, 255, 255, 0.8);
-        }
-
-        /* 출력 섹션 */
-        .output-section {
-            margin-top: 30px;
-            padding: 25px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
-            border-radius: 15px;
-            border: 2px solid rgba(102, 126, 234, 0.2);
-        }
-
-        .output-section h3 {
-            margin-bottom: 15px;
-            color: #495057;
-            font-size: 1.3em;
-        }
-
-        .output-text {
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            min-height: 250px;
-            font-family: 'Courier New', monospace;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            border: 1px solid #e9ecef;
-        }
-
-        /* 버튼 그룹 */
-        .button-group {
-            margin-top: 20px;
+        .lang-pills {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            gap: 2px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 3px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .lang-pill {
+            padding: 5px 12px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .lang-pill:hover {
+            color: var(--text-secondary);
+            background: var(--bg-hover);
+        }
+
+        .lang-pill.active {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px var(--shadow-pill);
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+        }
+
+        .theme-toggle:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .icon-sun { display: none; }
+        .icon-moon { display: block; }
+        [data-theme="light"] .icon-sun { display: block; color: #f59e0b; }
+        [data-theme="light"] .icon-moon { display: none; }
+
+        /* Main layout */
+        .main {
+            position: relative;
+            z-index: 1;
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            margin-bottom: 48px;
+            animation: fadeUp 0.6s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            background: var(--accent-dim);
+            border: 1px solid rgba(79,143,247,0.2);
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            letter-spacing: 0.03em;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 700;
+            letter-spacing: -0.035em;
+            line-height: 1.15;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+
+        /* COT Info collapsible */
+        .info-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            margin-bottom: 32px;
+            transition: all 0.2s;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+
+        .info-toggle:hover {
+            border-color: var(--text-muted);
+        }
+
+        .info-toggle-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .info-toggle-left .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .info-chevron {
+            color: var(--text-muted);
+            transition: transform 0.3s;
+            font-size: 0.85rem;
+        }
+
+        .info-chevron.open { transform: rotate(180deg); }
+
+        .info-panel {
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.4s ease, margin 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        .info-panel.open {
+            max-height: 500px;
+            opacity: 1;
+            margin-bottom: 32px;
+        }
+
+        .info-content {
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .info-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 14px;
+            line-height: 1.7;
+        }
+
+        .info-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            list-style: none;
+        }
+
+        .info-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            background: var(--bg-input);
+            border-radius: var(--radius-sm);
+        }
+
+        .info-features li::before {
+            content: '→';
+            color: var(--accent);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* Section numbering */
+        .section {
+            animation: fadeUp 0.5s ease both;
+            margin-bottom: 20px;
+        }
+
+        .section:nth-child(1) { animation-delay: 0.15s; }
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.25s; }
+        .section:nth-child(4) { animation-delay: 0.3s; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .section-tag {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            letter-spacing: 0.02em;
+        }
+
+        .section-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .section-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-left: 1px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: vertical;
+            min-height: 88px;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+            background: var(--bg-secondary);
+        }
+
+        /* Scratchpad */
+        .scratchpad {
+            margin: 28px 0;
+            padding: 20px;
+            background: var(--warning-dim);
+            border: 1px solid var(--warning-border);
+            border-radius: var(--radius);
+            animation: fadeUp 0.5s ease 0.35s both;
+            transition: all 0.3s ease;
+        }
+
+        .scratchpad-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .scratchpad-header h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--warning);
+        }
+
+        .scratchpad-note {
+            font-size: 0.78rem;
+            color: var(--warning);
+            opacity: 0.7;
+            margin-bottom: 16px;
+        }
+
+        .scratchpad .section {
+            margin-bottom: 14px;
+        }
+
+        .scratchpad .section:last-child { margin-bottom: 0; }
+
+        .scratchpad .section-tag {
+            background: var(--warning-dim);
+            color: var(--warning);
+        }
+
+        .scratchpad textarea {
+            min-height: 64px;
+            background: var(--bg-scratchpad-input);
+            border-color: var(--warning-border);
+        }
+
+        .scratchpad textarea:focus {
+            border-color: var(--warning);
+            box-shadow: 0 0 0 3px var(--warning-dim);
+        }
+
+        /* Output */
+        .output-area {
+            margin-top: 32px;
+            animation: fadeUp 0.5s ease 0.4s both;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .output-header h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .output-actions {
+            display: flex;
+            gap: 6px;
         }
 
         .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
         }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+        .btn:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+            background: var(--bg-hover);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .btn-accent {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
         }
 
-        .btn-success {
-            background: #28a745;
-            color: white;
+        .btn-accent:hover {
+            background: #3d7ce6;
+            border-color: #3d7ce6;
+            color: #fff;
+            box-shadow: 0 4px 16px var(--accent-glow);
         }
 
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-2px);
+        .btn-danger {
+            color: var(--text-muted);
         }
 
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
+        .btn-danger:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: var(--danger-hover);
         }
 
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-        /* 복사 알림 */
-        .copy-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #28a745;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transform: translateY(-20px);
+        .output-box {
+            position: relative;
+            padding: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            min-height: 200px;
+            font-family: var(--font-mono);
+            font-size: 0.83rem;
+            line-height: 1.75;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: var(--text-secondary);
+            overflow-x: auto;
             transition: all 0.3s ease;
-            z-index: 1000;
         }
 
-        .copy-notification.show {
+        .output-box.has-content {
+            color: var(--text-primary);
+        }
+
+        .output-box .tag {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            pointer-events: none;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 200;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.show {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateX(-50%) translateY(0);
         }
 
-        /* 반응형 디자인 */
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 1.8em;
-            }
-
-            .container {
-                border-radius: 15px;
-            }
-
-            .button-group {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .language-selector-container {
-                position: static;
-                margin-top: 15px;
-                justify-content: center;
-                background: none;
-            }
+        .toast-success {
+            background: var(--success-dim);
+            border: 1px solid var(--success-border);
+            color: var(--success);
         }
+
+        .toast-warn {
+            background: var(--danger-dim);
+            border: 1px solid var(--danger-border);
+            color: var(--danger);
+        }
+
+        /* Line numbers in output */
+        .line-num {
+            color: var(--text-muted);
+            user-select: none;
+            opacity: 0.4;
+            font-size: 0.75rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .topbar { padding: 0 16px; }
+            .main { padding: 24px 16px 60px; }
+            .topbar-controls { gap: 8px; }
+            .lang-pills { gap: 1px; padding: 2px; }
+            .lang-pill { padding: 4px 8px; font-size: 0.72rem; }
+            .info-features { grid-template-columns: 1fr; }
+            .output-actions { flex-wrap: wrap; }
+            .hero h1 { font-size: 1.8rem; }
+            .topbar-brand span { display: none; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 data-translate-key="header_title">🧠 COT 프롬프트 생성기</h1>
-            <p data-translate-key="header_desc">Chain of Thought를 활용한 체계적인 프롬프트 작성</p>
-            <div class="language-selector-container">
-                <label for="language-selector" data-translate-key="language_label">언어:</label>
-                <select id="language-selector" onchange="changeLanguage()">
-                    <option value="ko">한국어</option>
-                    <option value="en">English</option>
-                    <option value="ja">日本語</option>
-                    <option value="zh">中文</option>
-                </select>
-            </div>
-        </div>
 
-        <div class="framework-description">
-            <h4 data-translate-key="cot_framework">Chain of Thought (COT) 프레임워크</h4>
-            <p data-translate-key="cot_desc">체계적인 사고 과정을 통해 복잡한 문제를 단계별로 해결하는 프롬프트 기법</p>
-            <ul data-translate-key="cot_features">
-                <li>문제를 작은 단위로 분해하여 접근</li>
-                <li>각 단계별 가설과 근거를 명확히 제시</li>
-                <li>내부 사고 과정과 최종 결과를 분리</li>
-                <li>논리적이고 체계적인 답변 도출</li>
+<div class="topbar">
+    <div class="topbar-brand">
+        <div class="icon">⚡</div>
+        <span>COT Prompt Generator</span>
+    </div>
+    
+    <div class="topbar-controls">
+        <div class="lang-pills" id="langPills">
+            <button class="lang-pill active" data-lang="ja">日本語</button>
+            <button class="lang-pill" data-lang="zh">中文</button>
+            <button class="lang-pill" data-lang="en">English</button>
+            <button class="lang-pill" data-lang="es">Español</button>
+            <button class="lang-pill" data-lang="fr">Français</button>
+            <button class="lang-pill" data-lang="ko">한국어</button>
+        </div>
+        
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle Theme">
+            <span class="icon-sun">☀️</span>
+            <span class="icon-moon">🌙</span>
+        </button>
+    </div>
+</div>
+
+<main class="main">
+    <div class="hero">
+        <div class="hero-badge" data-t="hero_badge">Chain of Thought Framework</div>
+        <h1 data-t="hero_title">COTプロンプト生成器</h1>
+        <p data-t="hero_desc">体系的な思考プロセスで、より精密なプロンプトを構築する</p>
+    </div>
+
+    <div class="info-toggle" id="infoToggle" onclick="toggleInfo()">
+        <div class="info-toggle-left">
+            <span class="dot"></span>
+            <span data-t="info_toggle">COTフレームワークとは？</span>
+        </div>
+        <span class="info-chevron" id="infoChevron">▼</span>
+    </div>
+    <div class="info-panel" id="infoPanel">
+        <div class="info-content">
+            <p data-t="info_desc">体系的な思考過程を通じて複雑な問題を段階的に解決するプロンプト技法です。</p>
+            <ul class="info-features" id="infoFeatures">
+                <li data-t="info_f1">問題を小さな単位に分解してアプローチ</li>
+                <li data-t="info_f2">各段階の仮説と根拠を明確に提示</li>
+                <li data-t="info_f3">内部思考過程と最終結果を分離</li>
+                <li data-t="info_f4">論理的で体系的な回答を導出</li>
             </ul>
         </div>
+    </div>
 
-        <div class="content">
-            <!-- 기본 정보 입력 -->
-            <div class="input-group">
-                <label for="role" data-translate-key="role_label">[ROLE] 역할 정의</label>
-                <textarea id="role" data-translate-placeholder-key="role_placeholder" 
-                    placeholder="AI가 수행할 전문가 역할을 정의하세요. 예: 데이터 분석 전문가, 마케팅 컨설턴트 등"></textarea>
-                <small data-translate-key="role_desc">AI가 어떤 전문가로서 답변해야 하는지 명확히 정의합니다</small>
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag">ROLE</span>
+            <span class="section-label" data-t="role_label">役割定義</span>
+        </div>
+        <div class="section-desc" data-t="role_desc">AIがどの専門家として回答すべきか明確に定義します</div>
+        <textarea id="role" data-tp="role_ph" placeholder="例：データ分析専門家、マーケティングコンサルタント等"></textarea>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag">GOAL</span>
+            <span class="section-label" data-t="goal_label">目標</span>
+        </div>
+        <div class="section-desc" data-t="goal_desc">達成したい具体的な目標を作成します</div>
+        <textarea id="goal" data-tp="goal_ph" placeholder="解決したい課題や目標を明確に入力してください"></textarea>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag">CONTEXT</span>
+            <span class="section-label" data-t="ctx_label">文脈 / 背景</span>
+        </div>
+        <div class="section-desc" data-t="ctx_desc">문제 해결에 필요한 배경 정보와 관련 자료를 제공합니다</div>
+        <textarea id="context" data-tp="ctx_ph" placeholder="관련 자료, 배경 정보, 참고사항 등을 입력하세요"></textarea>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <span class="section-tag">CONSTRAINTS</span>
+            <span class="section-label" data-t="con_label">제약사항</span>
+        </div>
+        <div class="section-desc" data-t="con_desc">답변 형식, 톤, 길이 등의 제약사항을 명시합니다</div>
+        <textarea id="constraints" data-tp="con_ph" placeholder="형식, 톤, 길이, 특별한 요구사항 등을 입력하세요"></textarea>
+    </div>
+
+    <div class="scratchpad">
+        <div class="scratchpad-header">
+            <span>🔧</span>
+            <h3 data-t="sp_title">PROCESS_PRIVATE — 내부 사고 과정</h3>
+        </div>
+        <div class="scratchpad-note" data-t="sp_note">※ 이 섹션은 AI의 내부 사고 과정으로, 최종 출력에는 포함되지 않습니다</div>
+
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">01</span>
+                <span class="section-label" data-t="sp1_label">문제 분해</span>
             </div>
+            <textarea id="decompose" data-tp="sp1_ph" placeholder="문제를 어떻게 하위 과제로 분해할지 입력 (선택사항)"></textarea>
+        </div>
 
-            <div class="input-group">
-                <label for="goal" data-translate-key="goal_label">[GOAL] 목표</label>
-                <textarea id="goal" data-translate-placeholder-key="goal_placeholder" 
-                    placeholder="해결하고자 하는 과제나 목표를 명확히 입력하세요"></textarea>
-                <small data-translate-key="goal_desc">달성하고자 하는 구체적인 목표를 작성합니다</small>
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">02</span>
+                <span class="section-label" data-t="sp2_label">가설·근거·대안</span>
             </div>
+            <textarea id="hypothesis" data-tp="sp2_ph" placeholder="각 과제별 가설, 근거, 대안 비교 방법 입력 (선택사항)"></textarea>
+        </div>
 
-            <div class="input-group">
-                <label for="context" data-translate-key="context_label">[CONTEXT] 맥락/배경</label>
-                <textarea id="context" data-translate-placeholder-key="context_placeholder" 
-                    placeholder="관련 자료, 배경 정보, 참고사항 등을 입력하세요"></textarea>
-                <small data-translate-key="context_desc">문제 해결에 필요한 배경 정보와 관련 자료를 제공합니다</small>
+        <div class="section">
+            <div class="section-header">
+                <span class="section-tag">03</span>
+                <span class="section-label" data-t="sp3_label">의사결정 과정</span>
             </div>
-
-            <div class="input-group">
-                <label for="constraints" data-translate-key="constraints_label">[CONSTRAINTS] 제약사항</label>
-                <textarea id="constraints" data-translate-placeholder-key="constraints_placeholder" 
-                    placeholder="형식, 톤, 길이, 특별한 요구사항 등을 입력하세요"></textarea>
-                <small data-translate-key="constraints_desc">답변 형식, 톤, 길이 등의 제약사항을 명시합니다</small>
-            </div>
-
-            <!-- Scratchpad 섹션 -->
-            <div class="scratchpad-section">
-                <h5 data-translate-key="scratchpad_title">🔧 PROCESS_PRIVATE - 내부 사고 과정 (Scratchpad)</h5>
-                <p style="color: #856404; font-size: 0.9em; margin-bottom: 15px;" data-translate-key="scratchpad_info">
-                    ※ 이 섹션은 AI의 내부 사고 과정으로, 최종 출력에는 포함되지 않습니다
-                </p>
-                
-                <div class="scratchpad-item">
-                    <label for="decompose" data-translate-key="decompose_label">1) 문제 분해</label>
-                    <textarea id="decompose" data-translate-placeholder-key="decompose_placeholder" 
-                        placeholder="문제를 어떻게 하위 과제로 분해할지 입력 (선택사항)"></textarea>
-                </div>
-
-                <div class="scratchpad-item">
-                    <label for="hypothesis" data-translate-key="hypothesis_label">2) 가설·근거·대안</label>
-                    <textarea id="hypothesis" data-translate-placeholder-key="hypothesis_placeholder" 
-                        placeholder="각 과제별 가설, 근거, 대안 비교 방법 입력 (선택사항)"></textarea>
-                </div>
-
-                <div class="scratchpad-item">
-                    <label for="decision" data-translate-key="decision_label">3) 의사결정 과정</label>
-                    <textarea id="decision" data-translate-placeholder-key="decision_placeholder" 
-                        placeholder="최종 의사결정 과정과 이유 입력 (선택사항)"></textarea>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label for="final_output" data-translate-key="final_label">[FINAL] 최종 출력 지시사항</label>
-                <textarea id="final_output" data-translate-placeholder-key="final_placeholder" 
-                    placeholder="최종 답변에 포함되어야 할 특별한 지시사항이 있다면 입력하세요 (선택사항)"></textarea>
-                <small data-translate-key="final_desc">최종 답변 형식이나 특별한 요구사항을 추가로 명시할 수 있습니다</small>
-            </div>
-
-            <!-- 출력 섹션 -->
-            <div class="output-section">
-                <h3 data-translate-key="output_title">생성된 COT 프롬프트</h3>
-                <div id="output" class="output-text" data-translate-key="output_placeholder">생성된 프롬프트가 여기에 표시됩니다...</div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="generatePrompt()">
-                    <span>⚡</span> <span data-translate-key="button_generate">프롬프트 생성</span>
-                </button>
-                <button class="btn btn-success" onclick="copyToClipboard()">
-                    <span>📋</span> <span data-translate-key="button_copy">복사</span>
-                </button>
-                <button class="btn btn-secondary" onclick="clearFields()">
-                    <span>🔄</span> <span data-translate-key="button_clear">초기화</span>
-                </button>
-            </div>
+            <textarea id="decision" data-tp="sp3_ph" placeholder="최종 의사결정 과정과 이유 입력 (선택사항)"></textarea>
         </div>
     </div>
 
-    <div class="copy-notification" id="copyNotification" data-translate-key="copy_notification">
-        ✅ 클립보드에 복사되었습니다!
+    <div class="section" style="animation-delay:0.45s">
+        <div class="section-header">
+            <span class="section-tag">FINAL</span>
+            <span class="section-label" data-t="fin_label">최종 출력 지시사항</span>
+        </div>
+        <div class="section-desc" data-t="fin_desc">최종 답변 형식이나 특별한 요구사항을 추가로 명시할 수 있습니다</div>
+        <textarea id="final_output" data-tp="fin_ph" placeholder="최종 답변에 포함되어야 할 특별한 지시사항 (선택사항)"></textarea>
     </div>
 
-    <script>
-        // 다국어 번역 데이터
-        const translations = {
-            ko: {
-                header_title: "🧠 COT 프롬프트 생성기",
-                header_desc: "Chain of Thought를 활용한 체계적인 프롬프트 작성",
-                language_label: "언어:",
-                cot_framework: "Chain of Thought (COT) 프레임워크",
-                cot_desc: "체계적인 사고 과정을 통해 복잡한 문제를 단계별로 해결하는 프롬프트 기법",
-                cot_features: `<li>문제를 작은 단위로 분해하여 접근</li>
-                              <li>각 단계별 가설과 근거를 명확히 제시</li>
-                              <li>내부 사고 과정과 최종 결과를 분리</li>
-                              <li>논리적이고 체계적인 답변 도출</li>`,
-                role_label: "[ROLE] 역할 정의",
-                role_placeholder: "AI가 수행할 전문가 역할을 정의하세요. 예: 데이터 분석 전문가, 마케팅 컨설턴트 등",
-                role_desc: "AI가 어떤 전문가로서 답변해야 하는지 명확히 정의합니다",
-                goal_label: "[GOAL] 목표",
-                goal_placeholder: "해결하고자 하는 과제나 목표를 명확히 입력하세요",
-                goal_desc: "달성하고자 하는 구체적인 목표를 작성합니다",
-                context_label: "[CONTEXT] 맥락/배경",
-                context_placeholder: "관련 자료, 배경 정보, 참고사항 등을 입력하세요",
-                context_desc: "문제 해결에 필요한 배경 정보와 관련 자료를 제공합니다",
-                constraints_label: "[CONSTRAINTS] 제약사항",
-                constraints_placeholder: "형식, 톤, 길이, 특별한 요구사항 등을 입력하세요",
-                constraints_desc: "답변 형식, 톤, 길이 등의 제약사항을 명시합니다",
-                scratchpad_title: "🔧 PROCESS_PRIVATE - 내부 사고 과정 (Scratchpad)",
-                scratchpad_info: "※ 이 섹션은 AI의 내부 사고 과정으로, 최종 출력에는 포함되지 않습니다",
-                decompose_label: "1) 문제 분해",
-                decompose_placeholder: "문제를 어떻게 하위 과제로 분해할지 입력 (선택사항)",
-                hypothesis_label: "2) 가설·근거·대안",
-                hypothesis_placeholder: "각 과제별 가설, 근거, 대안 비교 방법 입력 (선택사항)",
-                decision_label: "3) 의사결정 과정",
-                decision_placeholder: "최종 의사결정 과정과 이유 입력 (선택사항)",
-                final_label: "[FINAL] 최종 출력 지시사항",
-                final_placeholder: "최종 답변에 포함되어야 할 특별한 지시사항이 있다면 입력하세요 (선택사항)",
-                final_desc: "최종 답변 형식이나 특별한 요구사항을 추가로 명시할 수 있습니다",
-                output_title: "생성된 COT 프롬프트",
-                output_placeholder: "생성된 프롬프트가 여기에 표시됩니다...",
-                output_placeholder_empty: "입력된 내용이 없습니다. 위 필드를 채워주세요.",
-                button_generate: "프롬프트 생성",
-                button_copy: "복사",
-                button_clear: "초기화",
-                copy_notification: "✅ 클립보드에 복사되었습니다!",
-                copy_alert: "복사할 프롬프트가 없습니다. 먼저 내용을 입력하고 생성해주세요."
-            },
-            en: {
-                header_title: "🧠 COT Prompt Generator",
-                header_desc: "Systematic prompt creation using Chain of Thought",
-                language_label: "Language:",
-                cot_framework: "Chain of Thought (COT) Framework",
-                cot_desc: "A prompting technique that solves complex problems step by step through systematic thinking",
-                cot_features: `<li>Break down problems into smaller units</li>
-                              <li>Present clear hypotheses and evidence for each step</li>
-                              <li>Separate internal thinking process from final output</li>
-                              <li>Derive logical and systematic answers</li>`,
-                role_label: "[ROLE] Role Definition",
-                role_placeholder: "Define the expert role AI should perform. e.g., Data analyst, Marketing consultant",
-                role_desc: "Clearly define what expert role the AI should answer as",
-                goal_label: "[GOAL] Objective",
-                goal_placeholder: "Clearly enter the task or goal to be solved",
-                goal_desc: "Write the specific goal to be achieved",
-                context_label: "[CONTEXT] Context/Background",
-                context_placeholder: "Enter relevant materials, background information, references, etc.",
-                context_desc: "Provide background information and relevant materials needed for problem solving",
-                constraints_label: "[CONSTRAINTS] Constraints",
-                constraints_placeholder: "Enter format, tone, length, special requirements, etc.",
-                constraints_desc: "Specify constraints such as answer format, tone, length",
-                scratchpad_title: "🔧 PROCESS_PRIVATE - Internal Thinking Process (Scratchpad)",
-                scratchpad_info: "※ This section is AI's internal thinking process and will not be included in the final output",
-                decompose_label: "1) Problem Decomposition",
-                decompose_placeholder: "Enter how to break down the problem into subtasks (optional)",
-                hypothesis_label: "2) Hypotheses·Evidence·Alternatives",
-                hypothesis_placeholder: "Enter hypotheses, evidence, and alternative comparison methods for each task (optional)",
-                decision_label: "3) Decision-Making Process",
-                decision_placeholder: "Enter final decision-making process and reasons (optional)",
-                final_label: "[FINAL] Final Output Instructions",
-                final_placeholder: "Enter any special instructions to be included in the final answer (optional)",
-                final_desc: "You can additionally specify final answer format or special requirements",
-                output_title: "Generated COT Prompt",
-                output_placeholder: "The generated prompt will be displayed here...",
-                output_placeholder_empty: "No content entered. Please fill in the fields above.",
-                button_generate: "Generate Prompt",
-                button_copy: "Copy",
-                button_clear: "Clear",
-                copy_notification: "✅ Copied to clipboard!",
-                copy_alert: "No prompt to copy. Please enter content and generate first."
-            },
-            ja: {
-                header_title: "🧠 COTプロンプト生成器",
-                header_desc: "Chain of Thoughtを活用した体系的なプロンプト作成",
-                language_label: "言語:",
-                cot_framework: "Chain of Thought (COT) フレームワーク",
-                cot_desc: "体系的な思考過程を通じて複雑な問題を段階的に解決するプロンプト技法",
-                cot_features: `<li>問題を小さな単位に分解してアプローチ</li>
-                              <li>各段階の仮説と根拠を明確に提示</li>
-                              <li>内部思考過程と最終結果を分離</li>
-                              <li>論理的で体系的な回答を導出</li>`,
-                role_label: "[ROLE] 役割定義",
-                role_placeholder: "AIが実行する専門家の役割を定義してください。例：データ分析専門家、マーケティングコンサルタント等",
-                role_desc: "AIがどの専門家として回答すべきか明確に定義します",
-                goal_label: "[GOAL] 目標",
-                goal_placeholder: "解決したい課題や目標を明確に入力してください",
-                goal_desc: "達成したい具体的な目標を作成します",
-                context_label: "[CONTEXT] 文脈/背景",
-                context_placeholder: "関連資料、背景情報、参考事項等を入力してください",
-                context_desc: "問題解決に必要な背景情報と関連資料を提供します",
-                constraints_label: "[CONSTRAINTS] 制約事項",
-                constraints_placeholder: "形式、トーン、長さ、特別な要求事項等を入力してください",
-                constraints_desc: "回答形式、トーン、長さ等の制約事項を明記します",
-                scratchpad_title: "🔧 PROCESS_PRIVATE - 内部思考過程（Scratchpad）",
-                scratchpad_info: "※ このセクションはAIの内部思考過程で、最終出力には含まれません",
-                decompose_label: "1) 問題分解",
-                decompose_placeholder: "問題をどのようにサブタスクに分解するか入力（オプション）",
-                hypothesis_label: "2) 仮説・根拠・代案",
-                hypothesis_placeholder: "各課題の仮説、根拠、代案比較方法を入力（オプション）",
-                decision_label: "3) 意思決定過程",
-                decision_placeholder: "最終意思決定過程と理由を入力（オプション）",
-                final_label: "[FINAL] 最終出力指示事項",
-                final_placeholder: "最終回答に含めるべき特別な指示事項があれば入力してください（オプション）",
-                final_desc: "最終回答形式や特別な要求事項を追加で明記できます",
-                output_title: "生成されたCOTプロンプト",
-                output_placeholder: "生成されたプロンプトがここに表示されます...",
-                output_placeholder_empty: "入力された内容がありません。上のフィールドを埋めてください。",
-                button_generate: "プロンプト生成",
-                button_copy: "コピー",
-                button_clear: "クリア",
-                copy_notification: "✅ クリップボードにコピーされました！",
-                copy_alert: "コピーするプロンプトがありません。まず内容を入力して生成してください。"
-            },
-            zh: {
-                header_title: "🧠 COT提示词生成器",
-                header_desc: "使用思维链创建系统化的提示词",
-                language_label: "语言:",
-                cot_framework: "思维链（COT）框架",
-                cot_desc: "通过系统化的思考过程逐步解决复杂问题的提示技术",
-                cot_features: `<li>将问题分解为更小的单元</li>
-                              <li>为每个步骤提供明确的假设和证据</li>
-                              <li>分离内部思考过程和最终输出</li>
-                              <li>得出逻辑性和系统性的答案</li>`,
-                role_label: "[ROLE] 角色定义",
-                role_placeholder: "定义AI应执行的专家角色。例如：数据分析专家、营销顾问等",
-                role_desc: "明确定义AI应该以什么专家身份回答",
-                goal_label: "[GOAL] 目标",
-                goal_placeholder: "清楚地输入要解决的任务或目标",
-                goal_desc: "编写要实现的具体目标",
-                context_label: "[CONTEXT] 背景/上下文",
-                context_placeholder: "输入相关材料、背景信息、参考资料等",
-                context_desc: "提供解决问题所需的背景信息和相关材料",
-                constraints_label: "[CONSTRAINTS] 约束条件",
-                constraints_placeholder: "输入格式、语气、长度、特殊要求等",
-                constraints_desc: "指定答案格式、语气、长度等约束条件",
-                scratchpad_title: "🔧 PROCESS_PRIVATE - 内部思考过程（Scratchpad）",
-                scratchpad_info: "※ 本部分是AI的内部思考过程，不会包含在最终输出中",
-                decompose_label: "1) 问题分解",
-                decompose_placeholder: "输入如何将问题分解为子任务（可选）",
-                hypothesis_label: "2) 假设·证据·替代方案",
-                hypothesis_placeholder: "输入每个任务的假设、证据和替代方案比较方法（可选）",
-                decision_label: "3) 决策过程",
-                decision_placeholder: "输入最终决策过程和理由（可选）",
-                final_label: "[FINAL] 最终输出指示",
-                final_placeholder: "输入最终答案中应包含的任何特殊指示（可选）",
-                final_desc: "可以额外指定最终答案格式或特殊要求",
-                output_title: "生成的COT提示词",
-                output_placeholder: "生成的提示词将显示在这里...",
-                output_placeholder_empty: "未输入任何内容。请填写上面的字段。",
-                button_generate: "生成提示词",
-                button_copy: "复制",
-                button_clear: "清除",
-                copy_notification: "✅ 已复制到剪贴板！",
-                copy_alert: "没有可复制的提示词。请先输入内容并生成。"
-            }
-        };
+    <div class="output-area">
+        <div class="output-header">
+            <h2 data-t="out_title">📋 생성된 프롬프트</h2>
+            <div class="output-actions">
+                <button class="btn btn-accent" onclick="copyToClipboard()">
+                    <span id="copyIcon">⧉</span>
+                    <span data-t="btn_copy">복사</span>
+                </button>
+                <button class="btn btn-danger" onclick="clearFields()">
+                    <span>✕</span>
+                    <span data-t="btn_clear">초기화</span>
+                </button>
+            </div>
+        </div>
+        <div class="output-box" id="output" data-t="out_empty">위 필드를 채우면 프롬프트가 자동 생성됩니다…</div>
+    </div>
+</main>
 
-        // 언어 변경 함수
-        function changeLanguage() {
-            const lang = document.getElementById('language-selector').value;
-            document.documentElement.lang = lang;
+<div class="toast toast-success" id="toastSuccess">✓ 클립보드에 복사되었습니다</div>
+<div class="toast toast-warn" id="toastWarn">복사할 내용이 없습니다</div>
 
-            // 텍스트 콘텐츠 번역
-            document.querySelectorAll('[data-translate-key]').forEach(el => {
-                const key = el.dataset.translateKey;
-                if (translations[lang] && translations[lang][key]) {
-                    if (key === 'cot_features') {
-                        el.innerHTML = translations[lang][key];
-                    } else {
-                        el.textContent = translations[lang][key];
-                    }
-                }
-            });
+<script>
+// 테마 토글 로직
+const themeToggle = document.getElementById('themeToggle');
 
-            // 플레이스홀더 번역
-            document.querySelectorAll('[data-translate-placeholder-key]').forEach(el => {
-                const key = el.dataset.translatePlaceholderKey;
-                if (translations[lang] && translations[lang][key]) {
-                    el.placeholder = translations[lang][key];
-                }
-            });
+// 저장된 테마 또는 시스템 선호도 확인
+const savedTheme = localStorage.getItem('theme');
+const systemPrefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
 
-            // 언어 변경시 프롬프트 자동 갱신
-            generatePrompt();
-        }
+if (savedTheme === 'light' || (!savedTheme && systemPrefersLight)) {
+    document.documentElement.setAttribute('data-theme', 'light');
+}
 
-        // 프롬프트 생성 함수
-        function generatePrompt() {
-            const lang = document.getElementById('language-selector').value;
-            
-            // 입력값 가져오기
-            const role = document.getElementById('role').value;
-            const goal = document.getElementById('goal').value;
-            const context = document.getElementById('context').value;
-            const constraints = document.getElementById('constraints').value;
-            const decompose = document.getElementById('decompose').value;
-            const hypothesis = document.getElementById('hypothesis').value;
-            const decision = document.getElementById('decision').value;
-            const finalOutput = document.getElementById('final_output').value;
+// 토글 버튼 클릭 이벤트
+themeToggle.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (currentTheme === 'light') {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+    } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+    }
+});
 
-            // 프롬프트 구성
-            let prompt = '';
-            const parts = [];
+// 기존 로직 유지
+const T = {
+    ja: {
+        hero_badge: "Chain of Thought Framework",
+        hero_title: "COTプロンプト生成器",
+        hero_desc: "体系的な思考プロセスで、より精密なプロンプトを構築する",
+        info_toggle: "COTフレームワークとは？",
+        info_desc: "体系的な思考過程を通じて複雑な問題を段階的に解決するプロンプト技法です。",
+        info_f1: "問題を小さな単位に分解してアプローチ",
+        info_f2: "各段階の仮説と根拠を明確に提示",
+        info_f3: "内部思考過程と最終結果を分離",
+        info_f4: "論理的で体系的な回答を導出",
+        role_label: "役割定義", role_desc: "AIがどの専門家として回答すべきか明確に定義します",
+        role_ph: "例：データ分析専門家、マーケティングコンサルタント等",
+        goal_label: "目標", goal_desc: "達成したい具体的な目標を作成します",
+        goal_ph: "解決したい課題や目標を明確に入力してください",
+        ctx_label: "文脈 / 背景", ctx_desc: "問題解決に必要な背景情報と関連資料を提供します",
+        ctx_ph: "関連資料、背景情報、参考事項等を入力してください",
+        con_label: "制約事項", con_desc: "回答形式、トーン、長さ等の制約事項を明記します",
+        con_ph: "形式、トーン、長さ、特別な要求事項等を入力してください",
+        sp_title: "PROCESS_PRIVATE — 内部思考過程",
+        sp_note: "※ このセクションはAIの内部思考過程で、最終出力には含まれません",
+        sp1_label: "問題分解", sp1_ph: "問題をどのようにサブタスクに分解するか（オプション）",
+        sp2_label: "仮説・根拠・代案", sp2_ph: "各課題の仮説、根拠、代案比較方法（オプション）",
+        sp3_label: "意思決定過程", sp3_ph: "最終意思決定過程と理由（オプション）",
+        fin_label: "最終出力指示事項", fin_desc: "最終回答形式や特別な要求事項を追加で明記できます",
+        fin_ph: "最終回答に含めるべき特別な指示事項（オプション）",
+        out_title: "📋 生成されたプロンプト",
+        out_empty: "入力されたフィールドに基づいてプロンプトが生成されます…",
+        btn_copy: "コピー", btn_clear: "クリア",
+        toast_ok: "✓ クリップボードにコピーしました", toast_no: "コピーする内容がありません",
+        sp_default: ["問題を下位課題に分解", "各課題別 仮説・根拠・代案比較", "最終意思決定及び理由"],
+        final_inst: ["上記scratchpadの内容は出力しないこと", "下記[FINAL]にのみユーザーに見せる答えを記述"]
+    },
+    zh: {
+        hero_badge: "Chain of Thought Framework",
+        hero_title: "COT提示词生成器",
+        hero_desc: "通过系统化思维流程，构建更精准的提示词",
+        info_toggle: "什么是COT框架？",
+        info_desc: "通过系统化的思考过程逐步解决复杂问题的提示技术。",
+        info_f1: "将问题分解为更小的单元",
+        info_f2: "为每个步骤提供明确的假设和证据",
+        info_f3: "分离内部思考过程和最终输出",
+        info_f4: "得出逻辑性和系统性的答案",
+        role_label: "角色定义", role_desc: "明确定义AI应该以什么专家身份回答",
+        role_ph: "例如：数据分析专家、营销顾问等",
+        goal_label: "目标", goal_desc: "编写要实现的具体目标",
+        goal_ph: "清楚地输入要解决的任务或目标",
+        ctx_label: "背景 / 上下文", ctx_desc: "提供解决问题所需的背景信息和相关材料",
+        ctx_ph: "输入相关材料、背景信息、参考资料等",
+        con_label: "约束条件", con_desc: "指定答案格式、语气、长度等约束条件",
+        con_ph: "输入格式、语气、长度、特殊要求等",
+        sp_title: "PROCESS_PRIVATE — 内部思考过程",
+        sp_note: "※ 本部分是AI的内部思考过程，不会包含在最终输出中",
+        sp1_label: "问题分解", sp1_ph: "输入如何将问题分解为子任务（可选）",
+        sp2_label: "假设·证据·替代方案", sp2_ph: "输入每个任务的假设、证据和替代方案比较（可选）",
+        sp3_label: "决策过程", sp3_ph: "输入最终决策过程和理由（可选）",
+        fin_label: "最终输出指示", fin_desc: "可以额外指定最终答案格式或特殊要求",
+        fin_ph: "输入最终答案中应包含的任何特殊指示（可选）",
+        out_title: "📋 生成的提示词",
+        out_empty: "提示词将根据您填写的内容自动生成…",
+        btn_copy: "复制", btn_clear: "清除",
+        toast_ok: "✓ 已复制到剪贴板", toast_no: "没有可复制的内容",
+        sp_default: ["将问题分解为子任务", "各任务假设·证据·替代方案比较", "最终决策及理由"],
+        final_inst: ["不要输出上述scratchpad内容", "仅在下方[FINAL]中写出给用户的答案"]
+    },
+    en: {
+        hero_badge: "Chain of Thought Framework",
+        hero_title: "COT Prompt Generator",
+        hero_desc: "Build more precise prompts through structured reasoning",
+        info_toggle: "What is the COT Framework?",
+        info_desc: "A prompting technique that solves complex problems step-by-step through systematic thinking.",
+        info_f1: "Decompose problems into smaller units",
+        info_f2: "Present clear hypotheses and evidence at each step",
+        info_f3: "Separate internal reasoning from final output",
+        info_f4: "Derive logical and systematic answers",
+        role_label: "Role Definition", role_desc: "Clearly define which expert role the AI should assume",
+        role_ph: "e.g., Data analysis expert, Marketing consultant, etc.",
+        goal_label: "Objective", goal_desc: "State the specific goal to achieve",
+        goal_ph: "Clearly describe the task or goal to be solved",
+        ctx_label: "Context / Background", ctx_desc: "Provide background information and relevant materials",
+        ctx_ph: "Enter relevant materials, background info, references, etc.",
+        con_label: "Constraints", con_desc: "Specify format, tone, length and other constraints",
+        con_ph: "Enter format, tone, length, special requirements, etc.",
+        sp_title: "PROCESS_PRIVATE — Internal Reasoning",
+        sp_note: "※ This section is the AI's internal thinking process and won't appear in the final output",
+        sp1_label: "Problem Decomposition", sp1_ph: "How to break the problem into subtasks (optional)",
+        sp2_label: "Hypotheses · Evidence · Alternatives", sp2_ph: "Hypotheses, evidence, and alternatives for each task (optional)",
+        sp3_label: "Decision Process", sp3_ph: "Final decision process and reasoning (optional)",
+        fin_label: "Final Output Instructions", fin_desc: "Optionally specify the final answer format or special requirements",
+        fin_ph: "Any special instructions for the final answer (optional)",
+        out_title: "📋 Generated Prompt",
+        out_empty: "Your prompt will be generated based on the fields above…",
+        btn_copy: "Copy", btn_clear: "Clear",
+        toast_ok: "✓ Copied to clipboard", toast_no: "Nothing to copy",
+        sp_default: ["Decompose problem into subtasks", "Hypotheses, evidence, alternatives for each subtask", "Final decision and reasoning"],
+        final_inst: ["Do not output the scratchpad contents above", "Write the user-facing answer only in [FINAL] below"]
+    },
+    es: {
+        hero_badge: "Chain of Thought Framework",
+        hero_title: "Generador de Prompts COT",
+        hero_desc: "Construye prompts más precisos mediante razonamiento estructurado",
+        info_toggle: "¿Qué es el Framework COT?",
+        info_desc: "Una técnica de prompting que resuelve problemas complejos paso a paso mediante pensamiento sistemático.",
+        info_f1: "Descomponer problemas en unidades más pequeñas",
+        info_f2: "Presentar hipótesis y evidencias claras en cada paso",
+        info_f3: "Separar el razonamiento interno de la salida final",
+        info_f4: "Obtener respuestas lógicas y sistemáticas",
+        role_label: "Definición de Rol", role_desc: "Define claramente qué rol de experto debe asumir la IA",
+        role_ph: "Ej: Experto en análisis de datos, Consultor de marketing, etc.",
+        goal_label: "Objetivo", goal_desc: "Describe el objetivo específico a alcanzar",
+        goal_ph: "Describe claramente la tarea u objetivo a resolver",
+        ctx_label: "Contexto / Antecedentes", ctx_desc: "Proporciona información de contexto y materiales relevantes",
+        ctx_ph: "Ingresa materiales relevantes, información de fondo, referencias, etc.",
+        con_label: "Restricciones", con_desc: "Especifica formato, tono, longitud y otras restricciones",
+        con_ph: "Ingresa formato, tono, longitud, requisitos especiales, etc.",
+        sp_title: "PROCESS_PRIVATE — Razonamiento Interno",
+        sp_note: "※ Esta sección es el proceso de pensamiento interno de la IA y no aparecerá en la salida final",
+        sp1_label: "Descomposición del Problema", sp1_ph: "Cómo dividir el problema en subtareas (opcional)",
+        sp2_label: "Hipótesis · Evidencia · Alternativas", sp2_ph: "Hipótesis, evidencia y alternativas para cada tarea (opcional)",
+        sp3_label: "Proceso de Decisión", sp3_ph: "Proceso de decisión final y razonamiento (opcional)",
+        fin_label: "Instrucciones de Salida Final", fin_desc: "Opcionalmente especifica el formato de respuesta final o requisitos especiales",
+        fin_ph: "Instrucciones especiales para la respuesta final (opcional)",
+        out_title: "📋 Prompt Generado",
+        out_empty: "El prompt se generará basándose en los campos anteriores…",
+        btn_copy: "Copiar", btn_clear: "Limpiar",
+        toast_ok: "✓ Copiado al portapapeles", toast_no: "No hay nada para copiar",
+        sp_default: ["Descomponer el problema en subtareas", "Hipótesis, evidencia, alternativas por subtarea", "Decisión final y razonamiento"],
+        final_inst: ["No mostrar el contenido del scratchpad anterior", "Escribir la respuesta para el usuario solo en [FINAL] abajo"]
+    },
+    fr: {
+        hero_badge: "Chain of Thought Framework",
+        hero_title: "Générateur de Prompts COT",
+        hero_desc: "Construisez des prompts plus précis grâce au raisonnement structuré",
+        info_toggle: "Qu'est-ce que le Framework COT ?",
+        info_desc: "Une technique de prompting qui résout des problèmes complexes étape par étape grâce à une pensée systématique.",
+        info_f1: "Décomposer les problèmes en unités plus petites",
+        info_f2: "Présenter des hypothèses et preuves claires à chaque étape",
+        info_f3: "Séparer le raisonnement interne de la sortie finale",
+        info_f4: "Obtenir des réponses logiques et systématiques",
+        role_label: "Définition du Rôle", role_desc: "Définissez clairement quel rôle d'expert l'IA doit assumer",
+        role_ph: "Ex : Expert en analyse de données, Consultant marketing, etc.",
+        goal_label: "Objectif", goal_desc: "Décrivez l'objectif spécifique à atteindre",
+        goal_ph: "Décrivez clairement la tâche ou l'objectif à résoudre",
+        ctx_label: "Contexte / Arrière-plan", ctx_desc: "Fournissez les informations contextuelles et documents pertinents",
+        ctx_ph: "Entrez documents pertinents, informations de fond, références, etc.",
+        con_label: "Contraintes", con_desc: "Spécifiez format, ton, longueur et autres contraintes",
+        con_ph: "Entrez format, ton, longueur, exigences spéciales, etc.",
+        sp_title: "PROCESS_PRIVATE — Raisonnement Interne",
+        sp_note: "※ Cette section est le processus de réflexion interne de l'IA et n'apparaîtra pas dans la sortie finale",
+        sp1_label: "Décomposition du Problème", sp1_ph: "Comment décomposer le problème en sous-tâches (optionnel)",
+        sp2_label: "Hypothèses · Preuves · Alternatives", sp2_ph: "Hypothèses, preuves et alternatives pour chaque tâche (optionnel)",
+        sp3_label: "Processus de Décision", sp3_ph: "Processus de décision finale et raisonnement (optionnel)",
+        fin_label: "Instructions de Sortie Finale", fin_desc: "Spécifiez optionnellement le format de réponse finale ou exigences spéciales",
+        fin_ph: "Instructions spéciales pour la réponse finale (optionnel)",
+        out_title: "📋 Prompt Généré",
+        out_empty: "Le prompt sera généré en fonction des champs ci-dessus…",
+        btn_copy: "Copier", btn_clear: "Effacer",
+        toast_ok: "✓ Copié dans le presse-papiers", toast_no: "Rien à copier",
+        sp_default: ["Décomposer le problème en sous-tâches", "Hypothèses, preuves, alternatives par sous-tâche", "Décision finale et raisonnement"],
+        final_inst: ["Ne pas afficher le contenu du scratchpad ci-dessus", "Écrire la réponse destinée à l'utilisateur uniquement dans [FINAL] ci-dessous"]
+    },
+    ko: {
+        hero_badge: "Chain of Thought Framework",
+        hero_title: "COT 프롬프트 생성기",
+        hero_desc: "체계적 사고 프로세스로 더 정밀한 프롬프트를 구축하기",
+        info_toggle: "COT 프레임워크란?",
+        info_desc: "체계적인 사고 과정을 통해 복잡한 문제를 단계별로 해결하는 프롬프트 기법입니다.",
+        info_f1: "문제를 작은 단위로 분해하여 접근",
+        info_f2: "각 단계별 가설과 근거를 명확히 제시",
+        info_f3: "내부 사고 과정과 최종 결과를 분리",
+        info_f4: "논리적이고 체계적인 답변 도출",
+        role_label: "역할 정의", role_desc: "AI가 어떤 전문가로서 답변해야 하는지 명확히 정의합니다",
+        role_ph: "예: 데이터 분석 전문가, 마케팅 컨설턴트 등",
+        goal_label: "목표", goal_desc: "달성하고자 하는 구체적인 목표를 작성합니다",
+        goal_ph: "해결하고자 하는 과제나 목표를 명확히 입력하세요",
+        ctx_label: "맥락 / 배경", ctx_desc: "문제 해결에 필요한 배경 정보와 관련 자료를 제공합니다",
+        ctx_ph: "관련 자료, 배경 정보, 참고사항 등을 입력하세요",
+        con_label: "제약사항", con_desc: "답변 형식, 톤, 길이 등의 제약사항을 명시합니다",
+        con_ph: "형식, 톤, 길이, 특별한 요구사항 등을 입력하세요",
+        sp_title: "PROCESS_PRIVATE — 내부 사고 과정",
+        sp_note: "※ 이 섹션은 AI의 내부 사고 과정으로, 최종 출력에는 포함되지 않습니다",
+        sp1_label: "문제 분해", sp1_ph: "문제를 어떻게 하위 과제로 분해할지 입력 (선택사항)",
+        sp2_label: "가설·근거·대안", sp2_ph: "각 과제별 가설, 근거, 대안 비교 방법 입력 (선택사항)",
+        sp3_label: "의사결정 과정", sp3_ph: "최종 의사결정 과정과 이유 입력 (선택사항)",
+        fin_label: "최종 출력 지시사항", fin_desc: "최종 답변 형식이나 특별한 요구사항을 추가로 명시할 수 있습니다",
+        fin_ph: "최종 답변에 포함되어야 할 특별한 지시사항 (선택사항)",
+        out_title: "📋 생성된 프롬프트",
+        out_empty: "위 필드를 채우면 프롬프트가 자동 생성됩니다…",
+        btn_copy: "복사", btn_clear: "초기화",
+        toast_ok: "✓ 클립보드에 복사되었습니다", toast_no: "복사할 내용이 없습니다",
+        sp_default: ["문제를 하위 과제로 분해", "각 과제별 가설·근거·대안 비교", "최종 의사결정 및 이유"],
+        final_inst: ["위 scratchpad 내용은 출력하지 말 것", "아래 [FINAL]에만 사용자에게 보여줄 답을 쓰기"]
+    }
+};
 
-            if (role) parts.push(`[ROLE] ${role}`);
-            if (goal) parts.push(`[GOAL] ${goal}`);
-            if (context) parts.push(`[CONTEXT] ${context}`);
-            if (constraints) parts.push(`[CONSTRAINTS] ${constraints}`);
+let currentLang = 'ja';
+let isEmpty = true;
 
-            // Scratchpad 섹션 구성
-            const scratchpadParts = [];
-            if (decompose || hypothesis || decision) {
-                scratchpadParts.push('[PROCESS_PRIVATE]');
-                scratchpadParts.push('  <scratchpad>');
-                if (decompose) scratchpadParts.push(`  1) 문제를 하위 과제로 분해\n     ${decompose}`);
-                if (hypothesis) scratchpadParts.push(`  2) 각 과제별 가설·근거·대안 비교\n     ${hypothesis}`);
-                if (decision) scratchpadParts.push(`  3) 최종 의사결정 및 이유\n     ${decision}`);
-                scratchpadParts.push('  </scratchpad>');
-            } else {
-                // 기본 Scratchpad 템플릿
-                scratchpadParts.push('[PROCESS_PRIVATE]');
-                scratchpadParts.push('  <scratchpad>');
-                scratchpadParts.push('  1) 문제를 하위 과제로 분해');
-                scratchpadParts.push('  2) 각 과제별 가설·근거·대안 비교');
-                scratchpadParts.push('  3) 최종 의사결정 및 이유');
-                scratchpadParts.push('  </scratchpad>');
-            }
+// Language switch
+document.querySelectorAll('.lang-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.lang-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentLang = btn.dataset.lang;
+        document.documentElement.lang = currentLang;
+        applyTranslations();
+        generatePrompt();
+    });
+});
 
-            if (scratchpadParts.length > 0) {
-                parts.push(scratchpadParts.join('\n'));
-            }
+function applyTranslations() {
+    const t = T[currentLang];
+    document.querySelectorAll('[data-t]').forEach(el => {
+        const key = el.dataset.t;
+        if (t[key]) el.textContent = t[key];
+    });
+    document.querySelectorAll('[data-tp]').forEach(el => {
+        const key = el.dataset.tp;
+        if (t[key]) el.placeholder = t[key];
+    });
+    // Toast text
+    document.getElementById('toastSuccess').textContent = t.toast_ok;
+    document.getElementById('toastWarn').textContent = t.toast_no;
+    // Update output placeholder if empty
+    if (isEmpty) {
+        document.getElementById('output').textContent = t.out_empty;
+    }
+}
 
-            // Final Instructions 추가
-            parts.push('[FINAL_INSTRUCTIONS]');
-            parts.push('  - 위 scratchpad 내용은 출력하지 말 것');
-            parts.push('  - 아래 [FINAL]에만 사용자에게 보여줄 답을 쓰기');
-            
-            if (finalOutput) {
-                parts.push(`  - ${finalOutput}`);
-            }
+// Info panel toggle
+function toggleInfo() {
+    const panel = document.getElementById('infoPanel');
+    const chevron = document.getElementById('infoChevron');
+    panel.classList.toggle('open');
+    chevron.classList.toggle('open');
+}
 
-            parts.push('[FINAL]');
+// Generate prompt (real-time)
+function generatePrompt() {
+    const t = T[currentLang];
+    const role = document.getElementById('role').value.trim();
+    const goal = document.getElementById('goal').value.trim();
+    const context = document.getElementById('context').value.trim();
+    const constraints = document.getElementById('constraints').value.trim();
+    const decompose = document.getElementById('decompose').value.trim();
+    const hypothesis = document.getElementById('hypothesis').value.trim();
+    const decision = document.getElementById('decision').value.trim();
+    const finalOut = document.getElementById('final_output').value.trim();
 
-            prompt = parts.join('\n');
+    const hasContent = role || goal || context || constraints;
+    const output = document.getElementById('output');
 
-            // 출력
-            const outputElement = document.getElementById('output');
-            if (prompt.trim() === '[FINAL_INSTRUCTIONS]\n  - 위 scratchpad 내용은 출력하지 말 것\n  - 아래 [FINAL]에만 사용자에게 보여줄 답을 쓰기\n[FINAL]') {
-                outputElement.textContent = translations[lang].output_placeholder_empty;
-            } else {
-                outputElement.textContent = prompt;
-            }
-        }
+    if (!hasContent) {
+        isEmpty = true;
+        output.textContent = t.out_empty;
+        output.classList.remove('has-content');
+        return;
+    }
 
-        // 클립보드에 복사
-        function copyToClipboard() {
-            const lang = document.getElementById('language-selector').value;
-            const outputText = document.getElementById('output').textContent;
-            
-            if (!outputText || outputText === translations[lang].output_placeholder_empty || outputText === translations[lang].output_placeholder) {
-                const copyButton = document.querySelector('.btn-success');
-                const originalText = copyButton.innerHTML;
-                copyButton.innerHTML = `<span>⚠️</span> ${translations[lang].copy_alert.substring(0, 10)}...`;
-                copyButton.style.background = '#dc3545';
-                setTimeout(() => {
-                    copyButton.innerHTML = originalText;
-                    copyButton.style.background = '#28a745';
-                }, 2000);
-                return;
-            }
-            
-            navigator.clipboard.writeText(outputText).then(() => {
-                const notification = document.getElementById('copyNotification');
-                notification.classList.add('show');
-                setTimeout(() => notification.classList.remove('show'), 2000);
-            }).catch(err => {
-                console.error('복사 실패:', err);
-            });
-        }
+    isEmpty = false;
+    const parts = [];
 
-        // 필드 초기화
-        function clearFields() {
-            const lang = document.getElementById('language-selector').value;
-            
-            document.querySelectorAll('textarea').forEach(textarea => {
-                textarea.value = '';
-            });
-            
-            document.getElementById('output').textContent = translations[lang].output_placeholder;
-        }
+    if (role) parts.push(`[ROLE] ${role}`);
+    if (goal) parts.push(`[GOAL] ${goal}`);
+    if (context) parts.push(`[CONTEXT] ${context}`);
+    if (constraints) parts.push(`[CONSTRAINTS] ${constraints}`);
 
-        // 페이지 로드시 초기화
-        document.addEventListener('DOMContentLoaded', () => {
-            // 모든 textarea에 이벤트 리스너 추가
-            document.querySelectorAll('textarea').forEach(textarea => {
-                textarea.addEventListener('input', generatePrompt);
-            });
-            
-            // 초기 언어 설정
-            changeLanguage();
-        });
-    </script>
+    // Scratchpad
+    parts.push('');
+    parts.push('[PROCESS_PRIVATE]');
+    parts.push('  <scratchpad>');
+    if (decompose || hypothesis || decision) {
+        if (decompose) parts.push(`  1) ${decompose}`);
+        if (hypothesis) parts.push(`  2) ${hypothesis}`);
+        if (decision) parts.push(`  3) ${decision}`);
+    } else {
+        t.sp_default.forEach((s, i) => parts.push(`  ${i+1}) ${s}`));
+    }
+    parts.push('  </scratchpad>');
+
+    parts.push('');
+    parts.push('[FINAL_INSTRUCTIONS]');
+    t.final_inst.forEach(inst => parts.push(`  - ${inst}`));
+    if (finalOut) parts.push(`  - ${finalOut}`);
+
+    parts.push('');
+    parts.push('[FINAL]');
+
+    output.textContent = parts.join('\n');
+    output.classList.add('has-content');
+}
+
+// Real-time generation
+document.querySelectorAll('textarea').forEach(ta => {
+    ta.addEventListener('input', generatePrompt);
+});
+
+// Copy
+function copyToClipboard() {
+    const output = document.getElementById('output');
+    if (isEmpty) {
+        showToast('toastWarn');
+        return;
+    }
+    navigator.clipboard.writeText(output.textContent).then(() => {
+        showToast('toastSuccess');
+    }).catch(() => {
+        showToast('toastWarn');
+    });
+}
+
+function showToast(id) {
+    const el = document.getElementById(id);
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// Clear
+function clearFields() {
+    document.querySelectorAll('textarea').forEach(ta => ta.value = '');
+    isEmpty = true;
+    const output = document.getElementById('output');
+    output.textContent = T[currentLang].out_empty;
+    output.classList.remove('has-content');
+}
+
+// Init
+applyTranslations();
+</script>
 </body>
 </html>
