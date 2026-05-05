@@ -574,6 +574,19 @@
       text-align: center;
       padding: 8px;
     }
+    .var-syntax-hint {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 1px 8px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.78em;
+      font-weight: 500;
+      letter-spacing: -0.5px;
+    }
 
     /* ═══════ PROMPTS SECTION ═══════ */
     .prompts-header {
@@ -1085,26 +1098,48 @@ let currentViewMode = 'raw';
 let searchQuery = '';
 
 /* ══════════════════════════════════════════════════
+   VARIABLE SYNTAX  (industry-standard {{var}})
+   ══════════════════════════════════════════════════ */
+// Matches {{ var_name }} with optional whitespace; non-greedy; no nesting.
+const VAR_RE_GLOBAL = () => /\{\{\s*([^{}]+?)\s*\}\}/g;
+
+function extractAutoVars(prompt) {
+  const out = new Set();
+  const re = VAR_RE_GLOBAL();
+  let m;
+  while ((m = re.exec(prompt)) !== null) {
+    const v = m[1].trim();
+    if (v) out.add(v);
+  }
+  return out;
+}
+
+function buildVarRegex(name) {
+  // Build a regex that matches {{ name }} with optional whitespace inside.
+  return new RegExp(`\\{\\{\\s*${escapeRegex(name)}\\s*\\}\\}`, 'g');
+}
+
+/* ══════════════════════════════════════════════════
    TRANSLATIONS (full i18n)
    ══════════════════════════════════════════════════ */
 const translations = {
   ja: {
-    langName:"日本語",appTitle:"プロンプトライブラリ",fontSizeLabel:"文字サイズ:",exportBtn:"📤 エクスポート",importBtn:"📥 インポート",importTitle:"📥 ファイルをインポート",importInstructions:"JSONファイルをドラッグするかクリックして選択してください",fileSelect:"ファイル選択",cancel:"キャンセル",addCategory:"＋ 新しいカテゴリを追加",noSelection:"左側から項目を選択してください。<br>タスクをクリックすると詳細プロンプトが表示されます。",emojiLabel:"絵文字",saveBtn:"保存",taskContentPlaceholder:"タスク関連の内容を入力してください...",taskContentHint:"※ 内容を入力すると以下のプロンプトにすぐに反映されます。<b>Ctrl+V</b>で貼り付けも可能です！",completedPrompt:"完成したプロンプト",addPrompt:"＋ プロンプト追加",copy:"📋 コピー",edit:"編集",delete:"削除",copyComplete:"✅ コピー完了",showMore:"もっと見る ▼",showLess:"折りたたむ ▲",noSelectedPrompt:"選択されたプロンプトがありません。",categoryAdd:"カテゴリ追加",categoryEdit:"カテゴリ編集",taskAdd:"タスク追加",taskEdit:"タスク編集",promptAdd:"プロンプト追加",promptEdit:"プロンプト編集",enterCategoryName:"カテゴリ名を入力してください！",enterTaskName:"タスク名を入力してください！",enterPromptContent:"プロンプトの内容を入力してください！",confirmDeleteCategory:"カテゴリを削除しますか？",confirmDeleteTask:"タスクを削除しますか？",confirmDeletePrompt:"プロンプトを削除しますか？",copyFailed:"コピーに失敗しました！",jsonOnly:"JSONファイルのみサポートしています。",fileReading:"ファイルを読み込み中...",invalidFile:"正しいプロンプトライブラリファイルではありません。",emptyCategoryData:"カテゴリデータがないため空のライブラリで開始します。",importComplete:"インポート完了！{0}個のカテゴリをインポートしました。",importFailed:"インポートに失敗しました: {0}",fileReadError:"ファイル読み込み中にエラーが発生しました。",exportComplete:"📤 エクスポート完了: {0}",exportFailed:"❌ エクスポート失敗: {0}",variablesLabel:"変数入力",variablePlaceholder:"{0}を入力",noVariables:"変数なし",addVariable:"+ 変数追加",enterVariableName:"追加する変数名を入力してください:",enterNewVariableName:"新しい変数名を入力してください:",variableExists:"この変数名は既に存在します。",confirmDeleteVariable:"変数「{0}」を削除しますか？",deleteFromPromptsWarning:"⚠️ この変数はプロンプト内で使用されています。削除するとプロンプトからも削除されます。",dragToReorder:"ドラッグして順序を変更",viewRaw:"📝 原文",viewMarkdown:"📄 MD",searchPlaceholder:"検索..."
+    langName:"日本語",appTitle:"プロンプトライブラリ",fontSizeLabel:"文字サイズ:",exportBtn:"📤 エクスポート",importBtn:"📥 インポート",importTitle:"📥 ファイルをインポート",importInstructions:"JSONファイルをドラッグするかクリックして選択してください",fileSelect:"ファイル選択",cancel:"キャンセル",addCategory:"＋ 新しいカテゴリを追加",noSelection:"左側から項目を選択してください。<br>タスクをクリックすると詳細プロンプトが表示されます。",emojiLabel:"絵文字",saveBtn:"保存",taskContentPlaceholder:"タスク関連の内容を入力してください...",taskContentHint:"※ 内容を入力すると以下のプロンプトにすぐに反映されます。<b>Ctrl+V</b>で貼り付けも可能です！",completedPrompt:"完成したプロンプト",addPrompt:"＋ プロンプト追加",copy:"📋 コピー",edit:"編集",delete:"削除",copyComplete:"✅ コピー完了",showMore:"もっと見る ▼",showLess:"折りたたむ ▲",noSelectedPrompt:"選択されたプロンプトがありません。",categoryAdd:"カテゴリ追加",categoryEdit:"カテゴリ編集",taskAdd:"タスク追加",taskEdit:"タスク編集",promptAdd:"プロンプト追加",promptEdit:"プロンプト編集",enterCategoryName:"カテゴリ名を入力してください！",enterTaskName:"タスク名を入力してください！",enterPromptContent:"プロンプトの内容を入力してください！",confirmDeleteCategory:"カテゴリを削除しますか？",confirmDeleteTask:"タスクを削除しますか？",confirmDeletePrompt:"プロンプトを削除しますか？",copyFailed:"コピーに失敗しました！",jsonOnly:"JSONファイルのみサポートしています。",fileReading:"ファイルを読み込み中...",invalidFile:"正しいプロンプトライブラリファイルではありません。",emptyCategoryData:"カテゴリデータがないため空のライブラリで開始します。",importComplete:"インポート完了！{0}個のカテゴリをインポートしました。",importFailed:"インポートに失敗しました: {0}",fileReadError:"ファイル読み込み中にエラーが発生しました。",exportComplete:"📤 エクスポート完了: {0}",exportFailed:"❌ エクスポート失敗: {0}",variablesLabel:"変数入力",variablePlaceholder:"{0}を入力",noVariables:"変数なし",addVariable:"+ 変数追加",enterVariableName:"追加する変数名を入力してください:",enterNewVariableName:"新しい変数名を入力してください:",variableExists:"この変数名は既に存在します。",confirmDeleteVariable:"変数「{0}」を削除しますか？",deleteFromPromptsWarning:"⚠️ この変数はプロンプト内で使用されています。削除するとプロンプトからも削除されます。",dragToReorder:"ドラッグして順序を変更",viewRaw:"📝 原文",viewMarkdown:"📄 MD",searchPlaceholder:"検索...",syntaxHintTitle:"変数構文: {{変数名}} と書くと自動検出されます"
   },
   en: {
-    langName:"English",appTitle:"Prompt Library",fontSizeLabel:"Font Size:",exportBtn:"📤 Export",importBtn:"📥 Import",importTitle:"📥 Import File",importInstructions:"Drag & drop a JSON file or click to select",fileSelect:"Select File",cancel:"Cancel",addCategory:"+ Add Category",noSelection:"Select an item from the left.<br>Click a task to see prompts.",emojiLabel:"Emoji",saveBtn:"Save",taskContentPlaceholder:"Enter task-related content here...",taskContentHint:"※ Content entered here will be reflected in prompts below.",completedPrompt:"Completed Prompts",addPrompt:"+ Add Prompt",copy:"📋 Copy",edit:"Edit",delete:"Delete",copyComplete:"✅ Copied!",showMore:"Show More ▼",showLess:"Show Less ▲",noSelectedPrompt:"No prompt selected.",categoryAdd:"Add Category",categoryEdit:"Edit Category",taskAdd:"Add Task",taskEdit:"Edit Task",promptAdd:"Add Prompt",promptEdit:"Edit Prompt",enterCategoryName:"Please enter a category name!",enterTaskName:"Please enter a task name!",enterPromptContent:"Please enter the prompt content!",confirmDeleteCategory:"Delete this category?",confirmDeleteTask:"Delete this task?",confirmDeletePrompt:"Delete this prompt?",copyFailed:"Failed to copy!",jsonOnly:"Only JSON files are supported.",fileReading:"Reading file...",invalidFile:"Not a valid prompt library file.",emptyCategoryData:"No category data, starting empty.",importComplete:"Imported {0} categories!",importFailed:"Import failed: {0}",fileReadError:"Error reading file.",exportComplete:"📤 Exported: {0}",exportFailed:"❌ Export failed: {0}",variablesLabel:"Variables",variablePlaceholder:"Enter {0}",noVariables:"No variables",addVariable:"+ Add Variable",enterVariableName:"Enter variable name:",enterNewVariableName:"Enter new variable name:",variableExists:"Variable already exists.",confirmDeleteVariable:"Delete variable \"{0}\"?",deleteFromPromptsWarning:"⚠️ Used in prompts. Deleting removes it from all prompts.",dragToReorder:"Drag to reorder",viewRaw:"📝 Raw",viewMarkdown:"📄 MD",searchPlaceholder:"Search..."
+    langName:"English",appTitle:"Prompt Library",fontSizeLabel:"Font Size:",exportBtn:"📤 Export",importBtn:"📥 Import",importTitle:"📥 Import File",importInstructions:"Drag & drop a JSON file or click to select",fileSelect:"Select File",cancel:"Cancel",addCategory:"+ Add Category",noSelection:"Select an item from the left.<br>Click a task to see prompts.",emojiLabel:"Emoji",saveBtn:"Save",taskContentPlaceholder:"Enter task-related content here...",taskContentHint:"※ Content entered here will be reflected in prompts below.",completedPrompt:"Completed Prompts",addPrompt:"+ Add Prompt",copy:"📋 Copy",edit:"Edit",delete:"Delete",copyComplete:"✅ Copied!",showMore:"Show More ▼",showLess:"Show Less ▲",noSelectedPrompt:"No prompt selected.",categoryAdd:"Add Category",categoryEdit:"Edit Category",taskAdd:"Add Task",taskEdit:"Edit Task",promptAdd:"Add Prompt",promptEdit:"Edit Prompt",enterCategoryName:"Please enter a category name!",enterTaskName:"Please enter a task name!",enterPromptContent:"Please enter the prompt content!",confirmDeleteCategory:"Delete this category?",confirmDeleteTask:"Delete this task?",confirmDeletePrompt:"Delete this prompt?",copyFailed:"Failed to copy!",jsonOnly:"Only JSON files are supported.",fileReading:"Reading file...",invalidFile:"Not a valid prompt library file.",emptyCategoryData:"No category data, starting empty.",importComplete:"Imported {0} categories!",importFailed:"Import failed: {0}",fileReadError:"Error reading file.",exportComplete:"📤 Exported: {0}",exportFailed:"❌ Export failed: {0}",variablesLabel:"Variables",variablePlaceholder:"Enter {0}",noVariables:"No variables",addVariable:"+ Add Variable",enterVariableName:"Enter variable name:",enterNewVariableName:"Enter new variable name:",variableExists:"Variable already exists.",confirmDeleteVariable:"Delete variable \"{0}\"?",deleteFromPromptsWarning:"⚠️ Used in prompts. Deleting removes it from all prompts.",dragToReorder:"Drag to reorder",viewRaw:"📝 Raw",viewMarkdown:"📄 MD",searchPlaceholder:"Search...",syntaxHintTitle:"Variable syntax: write {{var_name}} and it's auto-detected"
   },
   zh: {
-    langName:"简体中文",appTitle:"提示词库",fontSizeLabel:"字体大小:",exportBtn:"📤 导出",importBtn:"📥 导入",importTitle:"📥 导入文件",importInstructions:"拖放JSON文件或点击选择",fileSelect:"选择文件",cancel:"取消",addCategory:"＋ 添加分类",noSelection:"请从左侧选择项目。<br>点击任务查看详细提示。",emojiLabel:"表情符号",saveBtn:"保存",taskContentPlaceholder:"在此输入任务相关内容...",taskContentHint:"※ 输入内容将立即反映在下面的提示中。",completedPrompt:"完成的提示",addPrompt:"＋ 添加提示",copy:"📋 复制",edit:"编辑",delete:"删除",copyComplete:"✅ 已复制",showMore:"展开 ▼",showLess:"收起 ▲",noSelectedPrompt:"未选择任何提示。",categoryAdd:"添加分类",categoryEdit:"编辑分类",taskAdd:"添加任务",taskEdit:"编辑任务",promptAdd:"添加提示",promptEdit:"编辑提示",enterCategoryName:"请输入分类名称！",enterTaskName:"请输入任务名称！",enterPromptContent:"请输入提示内容！",confirmDeleteCategory:"确定删除此分类？",confirmDeleteTask:"确定删除此任务？",confirmDeletePrompt:"确定删除此提示？",copyFailed:"复制失败！",jsonOnly:"仅支持JSON文件。",fileReading:"正在读取...",invalidFile:"不是有效的提示库文件。",emptyCategoryData:"未找到分类数据。",importComplete:"导入完成！{0}个分类。",importFailed:"导入失败：{0}",fileReadError:"读取文件错误。",exportComplete:"📤 导出完成: {0}",exportFailed:"❌ 导出失败: {0}",variablesLabel:"输入变量",variablePlaceholder:"输入{0}",noVariables:"无变量",addVariable:"+ 添加变量",enterVariableName:"输入变量名:",enterNewVariableName:"输入新变量名:",variableExists:"变量名已存在。",confirmDeleteVariable:"删除变量「{0}」？",deleteFromPromptsWarning:"⚠️ 此变量在提示词中使用。删除后也将从所有提示词中移除。",dragToReorder:"拖动排序",viewRaw:"📝 原文",viewMarkdown:"📄 MD",searchPlaceholder:"搜索..."
+    langName:"简体中文",appTitle:"提示词库",fontSizeLabel:"字体大小:",exportBtn:"📤 导出",importBtn:"📥 导入",importTitle:"📥 导入文件",importInstructions:"拖放JSON文件或点击选择",fileSelect:"选择文件",cancel:"取消",addCategory:"＋ 添加分类",noSelection:"请从左侧选择项目。<br>点击任务查看详细提示。",emojiLabel:"表情符号",saveBtn:"保存",taskContentPlaceholder:"在此输入任务相关内容...",taskContentHint:"※ 输入内容将立即反映在下面的提示中。",completedPrompt:"完成的提示",addPrompt:"＋ 添加提示",copy:"📋 复制",edit:"编辑",delete:"删除",copyComplete:"✅ 已复制",showMore:"展开 ▼",showLess:"收起 ▲",noSelectedPrompt:"未选择任何提示。",categoryAdd:"添加分类",categoryEdit:"编辑分类",taskAdd:"添加任务",taskEdit:"编辑任务",promptAdd:"添加提示",promptEdit:"编辑提示",enterCategoryName:"请输入分类名称！",enterTaskName:"请输入任务名称！",enterPromptContent:"请输入提示内容！",confirmDeleteCategory:"确定删除此分类？",confirmDeleteTask:"确定删除此任务？",confirmDeletePrompt:"确定删除此提示？",copyFailed:"复制失败！",jsonOnly:"仅支持JSON文件。",fileReading:"正在读取...",invalidFile:"不是有效的提示库文件。",emptyCategoryData:"未找到分类数据。",importComplete:"导入完成！{0}个分类。",importFailed:"导入失败：{0}",fileReadError:"读取文件错误。",exportComplete:"📤 导出完成: {0}",exportFailed:"❌ 导出失败: {0}",variablesLabel:"输入变量",variablePlaceholder:"输入{0}",noVariables:"无变量",addVariable:"+ 添加变量",enterVariableName:"输入变量名:",enterNewVariableName:"输入新变量名:",variableExists:"变量名已存在。",confirmDeleteVariable:"删除变量「{0}」？",deleteFromPromptsWarning:"⚠️ 此变量在提示词中使用。删除后也将从所有提示词中移除。",dragToReorder:"拖动排序",viewRaw:"📝 原文",viewMarkdown:"📄 MD",searchPlaceholder:"搜索...",syntaxHintTitle:"变量语法: 写 {{变量名}} 即可自动检测"
   },
   ko: {
-    langName:"한국어",appTitle:"프롬프트 라이브러리",fontSizeLabel:"글꼴:",exportBtn:"📤 내보내기",importBtn:"📥 가져오기",importTitle:"📥 파일 가져오기",importInstructions:"JSON 파일을 드래그하거나 클릭하여 선택하세요",fileSelect:"파일 선택",cancel:"취소",addCategory:"＋ 카테고리 추가",noSelection:"왼쪽에서 항목을 선택하세요.<br>태스크를 클릭하면 프롬프트가 표시됩니다.",emojiLabel:"이모지",saveBtn:"저장",taskContentPlaceholder:"태스크 관련 내용을 입력하세요...",taskContentHint:"※ 입력 내용이 아래 프롬프트에 즉시 반영됩니다.",completedPrompt:"완성된 프롬프트",addPrompt:"＋ 프롬프트 추가",copy:"📋 복사",edit:"편집",delete:"삭제",copyComplete:"✅ 복사 완료",showMore:"더 보기 ▼",showLess:"접기 ▲",noSelectedPrompt:"선택된 프롬프트가 없습니다.",categoryAdd:"카테고리 추가",categoryEdit:"카테고리 편집",taskAdd:"태스크 추가",taskEdit:"태스크 편집",promptAdd:"프롬프트 추가",promptEdit:"프롬프트 편집",enterCategoryName:"카테고리명을 입력해주세요!",enterTaskName:"태스크명을 입력해주세요!",enterPromptContent:"프롬프트 내용을 입력해주세요!",confirmDeleteCategory:"카테고리를 삭제하시겠습니까?",confirmDeleteTask:"태스크를 삭제하시겠습니까?",confirmDeletePrompt:"프롬프트를 삭제하시겠습니까?",copyFailed:"복사에 실패했습니다!",jsonOnly:"JSON 파일만 지원합니다.",fileReading:"파일 읽는 중...",invalidFile:"올바른 프롬프트 라이브러리 파일이 아닙니다.",emptyCategoryData:"카테고리 데이터 없음. 빈 라이브러리로 시작합니다.",importComplete:"가져오기 완료! {0}개 카테고리.",importFailed:"가져오기 실패: {0}",fileReadError:"파일 읽기 오류.",exportComplete:"📤 내보내기 완료: {0}",exportFailed:"❌ 내보내기 실패: {0}",variablesLabel:"변수 입력",variablePlaceholder:"{0}을(를) 입력",noVariables:"변수 없음",addVariable:"+ 변수 추가",enterVariableName:"추가할 변수명을 입력하세요:",enterNewVariableName:"새 변수명을 입력하세요:",variableExists:"이 변수명은 이미 존재합니다.",confirmDeleteVariable:"변수 \"{0}\"을(를) 삭제하시겠습니까?",deleteFromPromptsWarning:"⚠️ 프롬프트에서 사용 중. 삭제하면 모든 프롬프트에서도 제거됩니다.",dragToReorder:"드래그하여 순서 변경",viewRaw:"📝 원본",viewMarkdown:"📄 MD",searchPlaceholder:"검색..."
+    langName:"한국어",appTitle:"프롬프트 라이브러리",fontSizeLabel:"글꼴:",exportBtn:"📤 내보내기",importBtn:"📥 가져오기",importTitle:"📥 파일 가져오기",importInstructions:"JSON 파일을 드래그하거나 클릭하여 선택하세요",fileSelect:"파일 선택",cancel:"취소",addCategory:"＋ 카테고리 추가",noSelection:"왼쪽에서 항목을 선택하세요.<br>태스크를 클릭하면 프롬프트가 표시됩니다.",emojiLabel:"이모지",saveBtn:"저장",taskContentPlaceholder:"태스크 관련 내용을 입력하세요...",taskContentHint:"※ 입력 내용이 아래 프롬프트에 즉시 반영됩니다.",completedPrompt:"완성된 프롬프트",addPrompt:"＋ 프롬프트 추가",copy:"📋 복사",edit:"편집",delete:"삭제",copyComplete:"✅ 복사 완료",showMore:"더 보기 ▼",showLess:"접기 ▲",noSelectedPrompt:"선택된 프롬프트가 없습니다.",categoryAdd:"카테고리 추가",categoryEdit:"카테고리 편집",taskAdd:"태스크 추가",taskEdit:"태스크 편집",promptAdd:"프롬프트 추가",promptEdit:"프롬프트 편집",enterCategoryName:"카테고리명을 입력해주세요!",enterTaskName:"태스크명을 입력해주세요!",enterPromptContent:"프롬프트 내용을 입력해주세요!",confirmDeleteCategory:"카테고리를 삭제하시겠습니까?",confirmDeleteTask:"태스크를 삭제하시겠습니까?",confirmDeletePrompt:"프롬프트를 삭제하시겠습니까?",copyFailed:"복사에 실패했습니다!",jsonOnly:"JSON 파일만 지원합니다.",fileReading:"파일 읽는 중...",invalidFile:"올바른 프롬프트 라이브러리 파일이 아닙니다.",emptyCategoryData:"카테고리 데이터 없음. 빈 라이브러리로 시작합니다.",importComplete:"가져오기 완료! {0}개 카테고리.",importFailed:"가져오기 실패: {0}",fileReadError:"파일 읽기 오류.",exportComplete:"📤 내보내기 완료: {0}",exportFailed:"❌ 내보내기 실패: {0}",variablesLabel:"변수 입력",variablePlaceholder:"{0}을(를) 입력",noVariables:"변수 없음",addVariable:"+ 변수 추가",enterVariableName:"추가할 변수명을 입력하세요:",enterNewVariableName:"새 변수명을 입력하세요:",variableExists:"이 변수명은 이미 존재합니다.",confirmDeleteVariable:"변수 \"{0}\"을(를) 삭제하시겠습니까?",deleteFromPromptsWarning:"⚠️ 프롬프트에서 사용 중. 삭제하면 모든 프롬프트에서도 제거됩니다.",dragToReorder:"드래그하여 순서 변경",viewRaw:"📝 원본",viewMarkdown:"📄 MD",searchPlaceholder:"검색...",syntaxHintTitle:"변수 문법: {{변수명}} 으로 작성하면 자동검출됩니다"
   },
   fr: {
-    langName:"Français",appTitle:"Bibliothèque de Prompts",fontSizeLabel:"Taille:",exportBtn:"📤 Exporter",importBtn:"📥 Importer",importTitle:"📥 Importer",importInstructions:"Glissez un fichier JSON ou cliquez",fileSelect:"Sélectionner",cancel:"Annuler",addCategory:"+ Ajouter catégorie",noSelection:"Sélectionnez un élément à gauche.<br>Cliquez pour voir les prompts.",emojiLabel:"Émoji",saveBtn:"Enregistrer",taskContentPlaceholder:"Contenu de la tâche...",taskContentHint:"※ Reflété immédiatement.",completedPrompt:"Prompts complétés",addPrompt:"+ Ajouter prompt",copy:"📋 Copier",edit:"Modifier",delete:"Supprimer",copyComplete:"✅ Copié !",showMore:"Plus ▼",showLess:"Moins ▲",noSelectedPrompt:"Aucun prompt sélectionné.",categoryAdd:"Ajouter catégorie",categoryEdit:"Modifier catégorie",taskAdd:"Ajouter tâche",taskEdit:"Modifier tâche",promptAdd:"Ajouter prompt",promptEdit:"Modifier prompt",enterCategoryName:"Entrez un nom !",enterTaskName:"Entrez un nom !",enterPromptContent:"Entrez le contenu !",confirmDeleteCategory:"Supprimer la catégorie ?",confirmDeleteTask:"Supprimer la tâche ?",confirmDeletePrompt:"Supprimer ce prompt ?",copyFailed:"Échec !",jsonOnly:"JSON uniquement.",fileReading:"Lecture...",invalidFile:"Fichier invalide.",emptyCategoryData:"Aucune donnée.",importComplete:"Importé {0} catégories !",importFailed:"Échec : {0}",fileReadError:"Erreur de lecture.",exportComplete:"📤 Exporté : {0}",exportFailed:"❌ Échec : {0}",variablesLabel:"Variables",variablePlaceholder:"Saisir {0}",noVariables:"Aucune variable",addVariable:"+ Ajouter variable",enterVariableName:"Nom de la variable :",enterNewVariableName:"Nouveau nom :",variableExists:"Existe déjà.",confirmDeleteVariable:"Supprimer «{0}» ?",deleteFromPromptsWarning:"⚠️ Utilisée dans les prompts.",dragToReorder:"Glisser",viewRaw:"📝 Brut",viewMarkdown:"📄 MD",searchPlaceholder:"Rechercher..."
+    langName:"Français",appTitle:"Bibliothèque de Prompts",fontSizeLabel:"Taille:",exportBtn:"📤 Exporter",importBtn:"📥 Importer",importTitle:"📥 Importer",importInstructions:"Glissez un fichier JSON ou cliquez",fileSelect:"Sélectionner",cancel:"Annuler",addCategory:"+ Ajouter catégorie",noSelection:"Sélectionnez un élément à gauche.<br>Cliquez pour voir les prompts.",emojiLabel:"Émoji",saveBtn:"Enregistrer",taskContentPlaceholder:"Contenu de la tâche...",taskContentHint:"※ Reflété immédiatement.",completedPrompt:"Prompts complétés",addPrompt:"+ Ajouter prompt",copy:"📋 Copier",edit:"Modifier",delete:"Supprimer",copyComplete:"✅ Copié !",showMore:"Plus ▼",showLess:"Moins ▲",noSelectedPrompt:"Aucun prompt sélectionné.",categoryAdd:"Ajouter catégorie",categoryEdit:"Modifier catégorie",taskAdd:"Ajouter tâche",taskEdit:"Modifier tâche",promptAdd:"Ajouter prompt",promptEdit:"Modifier prompt",enterCategoryName:"Entrez un nom !",enterTaskName:"Entrez un nom !",enterPromptContent:"Entrez le contenu !",confirmDeleteCategory:"Supprimer la catégorie ?",confirmDeleteTask:"Supprimer la tâche ?",confirmDeletePrompt:"Supprimer ce prompt ?",copyFailed:"Échec !",jsonOnly:"JSON uniquement.",fileReading:"Lecture...",invalidFile:"Fichier invalide.",emptyCategoryData:"Aucune donnée.",importComplete:"Importé {0} catégories !",importFailed:"Échec : {0}",fileReadError:"Erreur de lecture.",exportComplete:"📤 Exporté : {0}",exportFailed:"❌ Échec : {0}",variablesLabel:"Variables",variablePlaceholder:"Saisir {0}",noVariables:"Aucune variable",addVariable:"+ Ajouter variable",enterVariableName:"Nom de la variable :",enterNewVariableName:"Nouveau nom :",variableExists:"Existe déjà.",confirmDeleteVariable:"Supprimer «{0}» ?",deleteFromPromptsWarning:"⚠️ Utilisée dans les prompts.",dragToReorder:"Glisser",viewRaw:"📝 Brut",viewMarkdown:"📄 MD",searchPlaceholder:"Rechercher...",syntaxHintTitle:"Syntaxe: écrivez {{nom_variable}} pour détection auto"
   },
   es: {
-    langName:"Español",appTitle:"Biblioteca de Prompts",fontSizeLabel:"Tamaño:",exportBtn:"📤 Exportar",importBtn:"📥 Importar",importTitle:"📥 Importar",importInstructions:"Arrastra un JSON o haz clic",fileSelect:"Seleccionar",cancel:"Cancelar",addCategory:"+ Añadir categoría",noSelection:"Selecciona un elemento.<br>Haz clic para ver prompts.",emojiLabel:"Emoji",saveBtn:"Guardar",taskContentPlaceholder:"Contenido de la tarea...",taskContentHint:"※ Reflejo inmediato.",completedPrompt:"Prompts completados",addPrompt:"+ Añadir prompt",copy:"📋 Copiar",edit:"Editar",delete:"Eliminar",copyComplete:"✅ ¡Copiado!",showMore:"Más ▼",showLess:"Menos ▲",noSelectedPrompt:"Ningún prompt seleccionado.",categoryAdd:"Añadir categoría",categoryEdit:"Editar categoría",taskAdd:"Añadir tarea",taskEdit:"Editar tarea",promptAdd:"Añadir prompt",promptEdit:"Editar prompt",enterCategoryName:"¡Introduce nombre!",enterTaskName:"¡Introduce nombre!",enterPromptContent:"¡Introduce contenido!",confirmDeleteCategory:"¿Eliminar categoría?",confirmDeleteTask:"¿Eliminar tarea?",confirmDeletePrompt:"¿Eliminar prompt?",copyFailed:"¡Error!",jsonOnly:"Solo JSON.",fileReading:"Leyendo...",invalidFile:"Archivo inválido.",emptyCategoryData:"Sin datos.",importComplete:"¡Importadas {0} categorías!",importFailed:"Fallo: {0}",fileReadError:"Error.",exportComplete:"📤 Exportado: {0}",exportFailed:"❌ Fallo: {0}",variablesLabel:"Variables",variablePlaceholder:"Introducir {0}",noVariables:"Sin variables",addVariable:"+ Añadir variable",enterVariableName:"Nombre:",enterNewVariableName:"Nuevo nombre:",variableExists:"Ya existe.",confirmDeleteVariable:"¿Eliminar \"{0}\"?",deleteFromPromptsWarning:"⚠️ Usada en prompts.",dragToReorder:"Arrastrar",viewRaw:"📝 Original",viewMarkdown:"📄 MD",searchPlaceholder:"Buscar..."
+    langName:"Español",appTitle:"Biblioteca de Prompts",fontSizeLabel:"Tamaño:",exportBtn:"📤 Exportar",importBtn:"📥 Importar",importTitle:"📥 Importar",importInstructions:"Arrastra un JSON o haz clic",fileSelect:"Seleccionar",cancel:"Cancelar",addCategory:"+ Añadir categoría",noSelection:"Selecciona un elemento.<br>Haz clic para ver prompts.",emojiLabel:"Emoji",saveBtn:"Guardar",taskContentPlaceholder:"Contenido de la tarea...",taskContentHint:"※ Reflejo inmediato.",completedPrompt:"Prompts completados",addPrompt:"+ Añadir prompt",copy:"📋 Copiar",edit:"Editar",delete:"Eliminar",copyComplete:"✅ ¡Copiado!",showMore:"Más ▼",showLess:"Menos ▲",noSelectedPrompt:"Ningún prompt seleccionado.",categoryAdd:"Añadir categoría",categoryEdit:"Editar categoría",taskAdd:"Añadir tarea",taskEdit:"Editar tarea",promptAdd:"Añadir prompt",promptEdit:"Editar prompt",enterCategoryName:"¡Introduce nombre!",enterTaskName:"¡Introduce nombre!",enterPromptContent:"¡Introduce contenido!",confirmDeleteCategory:"¿Eliminar categoría?",confirmDeleteTask:"¿Eliminar tarea?",confirmDeletePrompt:"¿Eliminar prompt?",copyFailed:"¡Error!",jsonOnly:"Solo JSON.",fileReading:"Leyendo...",invalidFile:"Archivo inválido.",emptyCategoryData:"Sin datos.",importComplete:"¡Importadas {0} categorías!",importFailed:"Fallo: {0}",fileReadError:"Error.",exportComplete:"📤 Exportado: {0}",exportFailed:"❌ Fallo: {0}",variablesLabel:"Variables",variablePlaceholder:"Introducir {0}",noVariables:"Sin variables",addVariable:"+ Añadir variable",enterVariableName:"Nombre:",enterNewVariableName:"Nuevo nombre:",variableExists:"Ya existe.",confirmDeleteVariable:"¿Eliminar \"{0}\"?",deleteFromPromptsWarning:"⚠️ Usada en prompts.",dragToReorder:"Arrastrar",viewRaw:"📝 Original",viewMarkdown:"📄 MD",searchPlaceholder:"Buscar...",syntaxHintTitle:"Sintaxis: escriba {{nombre_var}} para detección automática"
   }
 };
 
@@ -1334,14 +1369,10 @@ function showDetail(catId, taskId, onlySilent) {
 
   if (!task.variables) task.variables = [];
 
-  // Extract variables from prompts
+  // Extract variables from prompts ({{var}} syntax)
   const autoDetectedVars = new Set();
   task.prompts.forEach(p => {
-    const matches = p.match(/\[([^\[\]]+)\]/g);
-    if (matches) matches.forEach(m => {
-      const v = m.replace(/[\[\]]/g, '').trim();
-      if (v) autoDetectedVars.add(v);
-    });
+    extractAutoVars(p).forEach(v => autoDetectedVars.add(v));
   });
 
   if (!task.variableOrder) task.variableOrder = [];
@@ -1361,7 +1392,7 @@ function showDetail(catId, taskId, onlySilent) {
         <div class="var-item" data-var="${escapeHtml(v)}" data-idx="${idx}" draggable="true">
           <div class="var-item-header">
             <span class="var-drag-handle" title="${t('dragToReorder')}">⋮⋮</span>
-            <span class="var-label">[${escapeHtml(v)}]</span>
+            <span class="var-label">{{${escapeHtml(v)}}}</span>
             ${isAuto ? '<span class="var-auto-badge" title="Auto-detected">⚡</span>' : ''}
             <div class="var-item-actions">
               <button class="var-action-btn" onclick="editVariable('${escapeHtml(v)}')" title="${t('edit')}">✏️</button>
@@ -1381,7 +1412,7 @@ function showDetail(catId, taskId, onlySilent) {
     
     <div class="var-card">
       <div class="var-card-header">
-        <div class="var-card-title">🔤 ${t('variablesLabel')}</div>
+        <div class="var-card-title">🔤 ${t('variablesLabel')} <span class="var-syntax-hint" title="${t('syntaxHintTitle')}">{{ var }}</span></div>
         <button class="var-add-btn" onclick="openAddVariableModal()">${t('addVariable')}</button>
       </div>
       <div id="variables-container">${varsHtml}</div>
@@ -1485,8 +1516,7 @@ function addVariable(varName) {
   
   const autoVars = new Set();
   task.prompts.forEach(p => {
-    const m = p.match(/\[([^\[\]]+)\]/g);
-    if (m) m.forEach(x => { const v = x.replace(/[\[\]]/g, '').trim(); if (v) autoVars.add(v); });
+    extractAutoVars(p).forEach(v => autoVars.add(v));
   });
   if (task.variables.includes(varName) || autoVars.has(varName)) { alert(t('variableExists')); return; }
   task.variables.push(varName);
@@ -1501,15 +1531,14 @@ function deleteVariable(varName) {
   if (!task) return;
   const autoVars = new Set();
   task.prompts.forEach(p => {
-    const m = p.match(/\[([^\[\]]+)\]/g);
-    if (m) m.forEach(x => { const v = x.replace(/[\[\]]/g, '').trim(); if (v) autoVars.add(v); });
+    extractAutoVars(p).forEach(v => autoVars.add(v));
   });
   const isAuto = autoVars.has(varName);
   let msg = t('confirmDeleteVariable', varName);
   if (isAuto) msg += '\n\n' + t('deleteFromPromptsWarning');
   if (!confirm(msg)) return;
   if (task.variables) task.variables = task.variables.filter(v => v !== varName);
-  if (isAuto) task.prompts = task.prompts.map(p => p.replace(new RegExp(`\\[${escapeRegex(varName)}\\]`, 'g'), ''));
+  if (isAuto) task.prompts = task.prompts.map(p => p.replace(buildVarRegex(varName), ''));
   delete currentVarState[varName];
   localStorage.setItem('promptUIData', JSON.stringify(data));
   showDetail(currentCat, currentTask);
@@ -1524,8 +1553,7 @@ function editVariable(oldName) {
   const trimmed = newName.trim();
   const autoVars = new Set();
   task.prompts.forEach(p => {
-    const m = p.match(/\[([^\[\]]+)\]/g);
-    if (m) m.forEach(x => { const v = x.replace(/[\[\]]/g, '').trim(); if (v) autoVars.add(v); });
+    extractAutoVars(p).forEach(v => autoVars.add(v));
   });
   if ((task.variables && task.variables.includes(trimmed)) || (autoVars.has(trimmed) && trimmed !== oldName)) { alert(t('variableExists')); return; }
   if (task.variables) {
@@ -1533,7 +1561,7 @@ function editVariable(oldName) {
     if (idx !== -1) task.variables[idx] = trimmed;
     else task.variables.push(trimmed);
   }
-  task.prompts = task.prompts.map(p => p.replace(new RegExp(`\\[${escapeRegex(oldName)}\\]`, 'g'), `[${trimmed}]`));
+  task.prompts = task.prompts.map(p => p.replace(buildVarRegex(oldName), `{{${trimmed}}}`));
   if (currentVarState[oldName] !== undefined) { currentVarState[trimmed] = currentVarState[oldName]; delete currentVarState[oldName]; }
   localStorage.setItem('promptUIData', JSON.stringify(data));
   showDetail(currentCat, currentTask);
@@ -1592,7 +1620,10 @@ function togglePromptSelect(idx, cb) {
 }
 
 function replacePH(tpl, vs) {
-  return tpl.replace(/\[(.*?)\]/g, (m, p1) => (vs[p1] !== undefined && vs[p1] !== '') ? vs[p1] : m);
+  return tpl.replace(VAR_RE_GLOBAL(), (m, p1) => {
+    const key = p1.trim();
+    return (vs[key] !== undefined && vs[key] !== '') ? vs[key] : m;
+  });
 }
 function escapeHtml(txt) { return txt.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
 function unescapeHtml(txt) { return txt.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&'); }
