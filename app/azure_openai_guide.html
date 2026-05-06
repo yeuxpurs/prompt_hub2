@@ -16,6 +16,174 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+<style id="ax-bridge-nav-styles">
+  /* === AX Bridge Nav (injected) === */
+  .ax-bridge-nav {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    background: rgba(250, 248, 245, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(26, 82, 118, 0.12);
+    font-family: 'Noto Sans JP', 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+    color: #1a1a2e;
+    padding: 0;
+    line-height: 1.4;
+    font-size: 13px;
+  }
+  [data-theme="dark"] .ax-bridge-nav,
+  body.dark .ax-bridge-nav {
+    background: rgba(15, 17, 23, 0.92);
+    color: #e2e8f0;
+    border-bottom-color: rgba(99, 179, 237, 0.18);
+  }
+  .ax-bridge-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .ax-bridge-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s;
+  }
+  .ax-bridge-brand:hover { transform: translateX(-2px); }
+  .ax-bridge-mark {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #1a5276, #c0392b);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(26, 82, 118, 0.22);
+    flex-shrink: 0;
+  }
+  .ax-bridge-brand-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+  .ax-bridge-brand-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  .ax-bridge-brand-sub {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    color: #8a8578;
+    font-weight: 600;
+    margin-top: 1px;
+  }
+  [data-theme="dark"] .ax-bridge-brand-sub,
+  body.dark .ax-bridge-brand-sub { color: #64708a; }
+  .ax-bridge-arrow {
+    opacity: 0.5;
+    font-size: 11px;
+    margin: 0 4px;
+  }
+  .ax-bridge-tool {
+    font-size: 12px;
+    font-weight: 500;
+    color: #1a5276;
+    padding: 3px 10px;
+    background: rgba(26, 82, 118, 0.08);
+    border-radius: 6px;
+    letter-spacing: 0.1px;
+  }
+  [data-theme="dark"] .ax-bridge-tool,
+  body.dark .ax-bridge-tool {
+    color: #63b3ed;
+    background: rgba(99, 179, 237, 0.12);
+  }
+  .ax-bridge-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ax-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .ax-chip.tier1 { background: rgba(100, 181, 246, 0.14); color: #1976d2; }
+  .ax-chip.tier2 { background: rgba(255, 183, 77, 0.14); color: #ef6c00; }
+  .ax-chip.tier3 { background: rgba(229, 115, 115, 0.14); color: #c62828; }
+  .ax-chip.approved { background: rgba(45, 106, 79, 0.12); color: #2d6a4f; }
+  .ax-chip.internal { background: rgba(26, 82, 118, 0.12); color: #1a5276; }
+  .ax-chip.new { background: rgba(192, 57, 43, 0.12); color: #c0392b; }
+  .ax-chip::before {
+    content: '';
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  [data-theme="dark"] .ax-chip.tier1 { color: #90caf9; }
+  [data-theme="dark"] .ax-chip.tier2 { color: #ffb74d; }
+  [data-theme="dark"] .ax-chip.tier3 { color: #ef9a9a; }
+  [data-theme="dark"] .ax-chip.approved { color: #81c784; }
+  [data-theme="dark"] .ax-chip.internal { color: #63b3ed; }
+  [data-theme="dark"] .ax-chip.new { color: #ef9a9a; }
+  .ax-bench-note {
+    font-size: 10.5px;
+    color: #8a8578;
+    font-style: italic;
+    padding-left: 10px;
+    border-left: 1px solid rgba(26, 82, 118, 0.2);
+  }
+  [data-theme="dark"] .ax-bench-note,
+  body.dark .ax-bench-note { color: #64708a; }
+  @media (max-width: 680px) {
+    .ax-bridge-inner { padding: 8px 14px; gap: 8px; }
+    .ax-bench-note { display: none; }
+    .ax-bridge-brand-sub { display: none; }
+  }
+  /* Nudge page content down if it had its own sticky element */
+  body { scroll-padding-top: 60px; }
+</style>
+
+<nav class="ax-bridge-nav" id="ax-bridge-nav">
+  <div class="ax-bridge-inner">
+    <a href="index.html" class="ax-bridge-brand" title="ハブに戻る">
+      <div class="ax-bridge-mark">📖</div>
+      <div class="ax-bridge-brand-text">
+        <span class="ax-bridge-brand-name">Prompt Book</span>
+        <span class="ax-bridge-brand-sub">JKE AX Bridge</span>
+      </div>
+      <span class="ax-bridge-arrow">›</span>
+      <span class="ax-bridge-tool">Azure OpenAI ガイド</span>
+    </a>
+    <div class="ax-bridge-meta">
+      <span class="ax-chip tier1">聞く · Ask</span>
+      <span class="ax-chip approved">承認済</span>
+      <span class="ax-bench-note">運用リファレンス · 2026版</span>
+    </div>
+  </div>
+</nav>
+
 
 <div id="app" class="max-w-6xl mx-auto pb-20">
     <!-- Header -->
